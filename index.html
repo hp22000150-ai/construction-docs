@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공사일지</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Nanum+Gothic:wght@700;800&display=swap');
+  :root {
+    --bg: #f5f5f0;
+    --border: #333;
+    --light-border: #999;
+    --header-bg: #f0f0f0;
+    --green: #1a3a2a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: #111; }
+
+  .app { display: grid; grid-template-columns: 420px 1fr; gap: 20px; max-width: 1400px; margin: 0 auto; padding: 20px; min-height: 100vh; }
+
+  .input-panel { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; }
+  .input-panel-header { background: var(--green); color: white; padding: 14px 18px; font-size: 14px; font-weight: 700; }
+  .input-body { padding: 16px; overflow-y: auto; max-height: calc(100vh - 60px); }
+
+  .fg { margin-bottom: 10px; }
+  .fg label { display: block; font-size: 11px; font-weight: 700; color: #2d6a4f; margin-bottom: 3px; }
+  .fg input, .fg select, .fg textarea {
+    width: 100%; padding: 7px 9px; border: 1.5px solid #ddd; border-radius: 6px;
+    font-size: 12px; font-family: 'Noto Sans KR', sans-serif; background: #fafafa; outline: none;
+  }
+  .fg input:focus, .fg select:focus, .fg textarea:focus { border-color: #52b788; background: white; }
+  .fg textarea { resize: vertical; min-height: 60px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+  .sec-title { font-size: 11px; font-weight: 700; color: #8b5e3c; border-bottom: 1.5px solid #f4e0c8; padding-bottom: 5px; margin: 14px 0 8px; }
+
+  .trow { display: grid; gap: 4px; margin-bottom: 5px; align-items: center; }
+  .trow input { padding: 6px 7px; border: 1.5px solid #ddd; border-radius: 5px; font-size: 11px; font-family: 'Noto Sans KR', sans-serif; background: #fafafa; outline: none; width: 100%; }
+  .trow input:focus { border-color: #52b788; background: white; }
+  .trow-header { display: grid; gap: 4px; margin-bottom: 3px; font-size: 10px; font-weight: 700; color: #888; text-align: center; }
+
+  .manrow { grid-template-columns: 0.9fr 1.1fr 0.5fr 0.6fr 1.2fr 24px; }
+  .eqrow  { grid-template-columns: 1.8fr 1fr 1.1fr 0.8fr 0.8fr 1.2fr 24px; }
+  .mtrow  { grid-template-columns: 1.4fr 0.9fr 0.7fr 0.7fr 1.2fr 1fr 24px; }
+
+  .btn-add { width: 100%; padding: 6px; background: #d8f3dc; color: #2d6a4f; border: 1.5px dashed #52b788; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 2px; font-family: 'Noto Sans KR', sans-serif; }
+  .btn-add:hover { background: #52b788; color: white; }
+  .btn-del { background: #fee2e2; color: #dc2626; border: none; border-radius: 4px; width: 24px; height: 24px; cursor: pointer; font-size: 12px; flex-shrink: 0; }
+
+  .btn-gen { width: 100%; margin-top: 16px; padding: 13px; background: var(--green); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+  .btn-gen:hover { background: #2d6a4f; }
+
+  .preview-panel { background: white; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; display: flex; flex-direction: column; }
+  .preview-header { background: #8b5e3c; color: white; padding: 14px 18px; font-size: 14px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+  .btn-print { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 5px; padding: 5px 12px; font-size: 12px; font-family: 'Noto Sans KR', sans-serif; cursor: pointer; }
+  .preview-body { padding: 20px; overflow-y: auto; flex: 1; }
+
+  /* ===== 작업일보 문서 스타일 ===== */
+  .doc-wrap { width: 100%; font-family: 'Noto Sans KR', sans-serif; font-size: 11px; }
+
+  .doc-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .doc-main-title { font-family: 'Nanum Gothic', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: 10px; padding-top: 8px; }
+
+  .approval-table { border-collapse: collapse; font-size: 10px; }
+  .approval-table td { border: 1px solid var(--border); padding: 3px 6px; text-align: center; min-width: 36px; height: 22px; }
+  .approval-table .ap-title { background: var(--header-bg); font-weight: 700; }
+  .approval-table .ap-sign { height: 32px; }
+
+  .doc-main { border-collapse: collapse; width: 100%; font-size: 10px; }
+  .doc-main td, .doc-main th { border: 1px solid var(--border); padding: 3px 4px; text-align: center; vertical-align: middle; }
+  .doc-main .th-group { background: var(--header-bg); font-weight: 700; font-size: 10px; }
+  .doc-main .th-sub { background: #fafafa; font-weight: 700; font-size: 9px; color: #444; }
+  .doc-main td.left { text-align: left; padding-left: 5px; }
+
+  .placeholder { text-align: center; color: #aaa; padding: 80px 20px; font-size: 14px; line-height: 2.2; }
+
+  @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { background: white; margin: 0; padding: 0; }
+    .app { display: block; padding: 0; margin: 0; }
+    .input-panel, .preview-header { display: none !important; }
+    .preview-panel { box-shadow: none; border-radius: 0; width: 100%; }
+    .preview-body { padding: 8mm 10mm; margin: 0; max-height: none; overflow: visible; }
+
+    @page {
+      size: A4 portrait;
+      margin: 8mm 10mm;
+    }
+
+    .doc-wrap { width: 100%; font-size: 9px; }
+    .doc-main-title { font-size: 22px; }
+    .approval-table td { min-width: 28px; padding: 2px 4px; font-size: 9px; }
+    .approval-table .ap-sign { height: 26px; }
+    .doc-main td, .doc-main th { padding: 2px 3px; font-size: 8.5px; }
+    .doc-main .th-sub { font-size: 8px; }
+  }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+  }
+  /* flatpickr 저장날짜 표시 */
+  .flatpickr-day.has-log { font-weight: 700; }
+  .flatpickr-day.has-log::after {
+    content: '';
+    display: block;
+    width: 4px; height: 4px;
+    background: #52b788;
+    border-radius: 50%;
+    margin: 1px auto 0;
+  }
+  .flatpickr-day.has-log.selected::after { background: white; }
+  .flatpickr-input { cursor: pointer; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- 입력 패널 -->
+  <div class="input-panel">
+    <div class="input-panel-header">📋 작업일보 입력</div>
+    <div class="input-body">
+
+      <div class="row2">
+        <div class="fg">
+          <label>공사명</label>
+          <div style="display:flex; gap:4px;">
+            <select id="i-project-select" onchange="selectProject(this)" style="flex:1; padding:7px 9px; border:1.5px solid #ddd; border-radius:6px; font-size:12px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; outline:none;">
+              <option value="">-- 선택 또는 새로 입력 --</option>
+            </select>
+            <button onclick="deleteProject()" style="padding:0 8px; background:#fee2e2; color:#dc2626; border:none; border-radius:6px; cursor:pointer; font-size:12px;" title="선택한 공사명 삭제">✕</button>
+          </div>
+          <div style="display:flex; gap:4px; margin-top:4px;">
+            <input id="i-project" placeholder="새 공사명 입력" style="flex:1;">
+            <button onclick="saveProject()" style="padding:0 10px; background:#d8f3dc; color:#2d6a4f; border:1.5px solid #52b788; border-radius:6px; cursor:pointer; font-size:12px; font-weight:700; white-space:nowrap;">저장</button>
+          </div>
+        </div>
+        <div class="fg">
+          <label>시공회사</label>
+          <div style="display:flex; gap:4px;">
+            <select id="i-company-select" onchange="selectCompany(this)" style="flex:1; padding:7px 9px; border:1.5px solid #ddd; border-radius:6px; font-size:12px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; outline:none;">
+              <option value="">-- 선택 또는 새로 입력 --</option>
+            </select>
+            <button onclick="deleteCompany()" style="padding:0 8px; background:#fee2e2; color:#dc2626; border:none; border-radius:6px; cursor:pointer; font-size:12px;" title="선택한 시공회사 삭제">✕</button>
+          </div>
+          <div style="display:flex; gap:4px; margin-top:4px;">
+            <input id="i-company" placeholder="새 시공회사 입력" style="flex:1;">
+            <button onclick="saveCompany()" style="padding:0 10px; background:#d8f3dc; color:#2d6a4f; border:1.5px solid #52b788; border-radius:6px; cursor:pointer; font-size:12px; font-weight:700; white-space:nowrap;">저장</button>
+          </div>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="fg">
+          <label>작성일</label>
+          <div style="display:flex; gap:4px;">
+            <input id="i-date" placeholder="날짜 선택" style="flex:1; cursor:pointer;">
+            <button id="btn-load" onclick="loadLog()" disabled style="padding:0 8px; background:#f0f0f0; color:#aaa; border:1.5px solid #ddd; border-radius:6px; cursor:default; font-size:11px; font-weight:700; white-space:nowrap; font-family:'Noto Sans KR',sans-serif;">불러오기</button>
+          </div>
+        </div>
+        <div class="fg"><label>날씨</label>
+          <select id="i-weather"><option>맑음 ☀️</option><option>흐림 ☁️</option><option>비 🌧️</option><option>눈 ❄️</option><option>강풍 💨</option></select>
+        </div>
+        <div class="fg">
+          <label>기온 <span id="weather-status" style="font-weight:400; color:#888; font-size:10px;"></span></label>
+          <div style="display:flex; gap:4px;">
+            <input id="i-temp" placeholder="최저/최고" style="flex:1;">
+            <button onclick="getWeather()" style="padding:0 8px; background:#d8f3dc; color:#2d6a4f; border:1.5px solid #52b788; border-radius:6px; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap;">📍자동</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 인력 -->
+      <div class="sec-title">👷 인력 투입 현황</div>
+
+      <div style="background:#f4f4f4; border:1px dashed #bbb; border-radius:8px; padding:10px 12px; margin-bottom:12px;">
+        <div style="font-size:10px; font-weight:700; color:#999; margin-bottom:8px; letter-spacing:1px;">자동완성 목록 관리 (선택사항)</div>
+
+        <div style="font-size:10px; color:#aaa; font-weight:700; margin-bottom:3px;">직종</div>
+        <div style="display:flex; gap:4px; margin-bottom:4px; align-items:center;">
+          <select id="job-select" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#f9f9f9; color:#555; outline:none;">
+            <option value="">-- 직종 선택 --</option>
+          </select>
+          <button onclick="deleteJob()" style="padding:0 7px; height:26px; background:#f5e0e0; color:#c0392b; border:none; border-radius:5px; cursor:pointer; font-size:11px;" title="선택 직종 삭제">✕</button>
+        </div>
+        <div style="display:flex; gap:4px; margin-bottom:10px;">
+          <input id="job-input" placeholder="새 직종 입력" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fff; color:#333; outline:none;" onfocus="this.style.borderColor='#888'" onblur="this.style.borderColor='#ccc'">
+          <button onclick="saveJob()" style="padding:0 9px; background:#e8e8e8; color:#666; border:1px solid #bbb; border-radius:5px; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap; font-family:'Noto Sans KR',sans-serif;">저장</button>
+        </div>
+
+        <div style="font-size:10px; color:#aaa; font-weight:700; margin-bottom:3px;">성명</div>
+        <div style="display:flex; gap:4px; margin-bottom:4px; align-items:center;">
+          <select id="name-select" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#f9f9f9; color:#555; outline:none;">
+            <option value="">-- 성명 선택 --</option>
+          </select>
+          <button onclick="deleteName()" style="padding:0 7px; height:26px; background:#f5e0e0; color:#c0392b; border:none; border-radius:5px; cursor:pointer; font-size:11px;" title="선택 성명 삭제">✕</button>
+        </div>
+        <div style="display:flex; gap:4px; margin-bottom:10px;">
+          <input id="name-input" placeholder="새 성명 입력" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fff; color:#333; outline:none;" onfocus="this.style.borderColor='#888'" onblur="this.style.borderColor='#ccc'">
+          <button onclick="saveName()" style="padding:0 9px; background:#e8e8e8; color:#666; border:1px solid #bbb; border-radius:5px; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap; font-family:'Noto Sans KR',sans-serif;">저장</button>
+        </div>
+
+        <div style="font-size:10px; color:#aaa; font-weight:700; margin-bottom:3px;">장비명</div>
+        <div style="display:flex; gap:4px; margin-bottom:4px; align-items:center;">
+          <select id="equip-select" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#f9f9f9; color:#555; outline:none;">
+            <option value="">-- 장비명 선택 --</option>
+          </select>
+          <button onclick="deleteEquip()" style="padding:0 7px; height:26px; background:#f5e0e0; color:#c0392b; border:none; border-radius:5px; cursor:pointer; font-size:11px;" title="선택 장비명 삭제">✕</button>
+        </div>
+        <div style="display:flex; gap:4px; margin-bottom:0;">
+          <input id="equip-input" placeholder="새 장비명 입력" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fff; color:#333; outline:none;" onfocus="this.style.borderColor='#888'" onblur="this.style.borderColor='#ccc'">
+          <button onclick="saveEquip()" style="padding:0 9px; background:#e8e8e8; color:#666; border:1px solid #bbb; border-radius:5px; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap; font-family:'Noto Sans KR',sans-serif;">저장</button>
+        </div>
+      </div>
+
+      <div class="trow-header manrow"><span>직종</span><span>성명</span><span>공수</span><span>누계</span><span>비고</span><span></span></div>
+      <div id="man-list">
+        <div class="trow manrow">
+          <select class="job-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">직종</option></select>
+          <input class="name-sel" list="names-datalist" placeholder="성명">
+          <select class="gongsu-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">공수</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select>
+          <input placeholder="누계" readonly style="background:#f0f0f0">
+          <input placeholder="비고">
+          <button class="btn-del" onclick="delRow(this)">✕</button>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addMan()">+ 인력 추가</button>
+
+      <!-- 장비 -->
+      <div class="sec-title">🚜 장비 투입 현황</div>
+      <div class="trow-header eqrow"><span>장비명</span><span>규격</span><span>성명</span><span>금일</span><span>누계</span><span>비고</span><span></span></div>
+      <div id="eq-list">
+        <div class="trow eqrow">
+          <input placeholder="장비명" list="equip-datalist">
+          <input placeholder="규격">
+          <input placeholder="성명">
+          <select class="today-sel" onchange="calcEq(this)" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">금일</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select>
+          <input placeholder="누계" readonly style="background:#f0f0f0">
+          <input placeholder="비고">
+          <button class="btn-del" onclick="delRow(this)">✕</button>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addEq()">+ 장비 추가</button>
+
+      <!-- 자재 -->
+      <div class="sec-title">📦 자재 반입 현황</div>
+      <div class="trow-header mtrow"><span>품명</span><span>규격</span><span>단위</span><span>수량</span><span>거래처</span><span>비고</span><span></span></div>
+      <div id="mt-list">
+        <div class="trow mtrow">
+          <input placeholder="품명">
+          <input placeholder="규격">
+          <input placeholder="단위">
+          <input placeholder="수량">
+          <input placeholder="거래처">
+          <input placeholder="비고">
+          <button class="btn-del" onclick="delRow(this)">✕</button>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addMt()">+ 자재 추가</button>
+
+      <!-- 작업내용 / 계획 -->
+      <div class="sec-title">📝 작업 내용 / 계획</div>
+      <div class="fg"><label>작업 내용</label><textarea id="i-work" placeholder="금일 작업 내용을 입력하세요"></textarea></div>
+      <div class="fg"><label>작업 계획</label><textarea id="i-plan" placeholder="내일 작업 계획을 입력하세요"></textarea></div>
+      <div class="fg"><label>비고</label><textarea id="i-note" placeholder="특이사항 등" style="min-height:40px"></textarea></div>
+      <div class="sec-title">👤 현장대리인</div>
+      <div style="display:flex; gap:4px; margin-bottom:4px; align-items:center;">
+        <select id="supervisor-select" onchange="document.getElementById('i-supervisor').value=this.value" style="flex:1; padding:6px 8px; border:1.5px solid #ddd; border-radius:6px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; outline:none;">
+          <option value="">-- 선택 --</option>
+        </select>
+        <button onclick="deleteSupervisor()" style="padding:0 7px; height:28px; background:#fee2e2; color:#dc2626; border:none; border-radius:5px; cursor:pointer; font-size:11px;" title="삭제">✕</button>
+      </div>
+      <div style="display:flex; gap:4px; margin-bottom:10px;">
+        <input id="i-supervisor" placeholder="새 현장대리인 이름 입력" style="flex:1; padding:6px 8px; border:1.5px solid #ddd; border-radius:6px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; outline:none;">
+        <button onclick="saveSupervisor()" style="padding:0 10px; background:#d8f3dc; color:#2d6a4f; border:1.5px solid #52b788; border-radius:6px; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap;">저장</button>
+      </div>
+
+      <button class="btn-gen" onclick="generate()">📄 일보 생성하기</button>
+      <button onclick="resetAll()" style="width:100%; margin-top:8px; padding:9px; background:none; color:#bbb; border:1px solid #ddd; border-radius:8px; font-size:12px; font-family:'Noto Sans KR',sans-serif; cursor:pointer;" onmouseover="this.style.color='#dc2626'; this.style.borderColor='#fca5a5';" onmouseout="this.style.color='#bbb'; this.style.borderColor='#ddd';">전체 초기화</button>
+    </div>
+  </div>
+
+  <!-- 미리보기 패널 -->
+  <div class="preview-panel">
+    <div class="preview-header">
+      <span>📄 미리보기</span>
+      <button class="btn-print" onclick="window.print()">🖨️ 인쇄</button>
+    </div>
+    <div class="preview-body" id="preview-body">
+      <div class="placeholder">🌿<br>왼쪽에 정보를 입력하고<br><strong>일보 생성하기</strong>를 눌러주세요</div>
+    </div>
+  </div>
+
+</div>
+<datalist id="names-datalist"></datalist>
+<datalist id="equip-datalist"></datalist>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+  let fpInstance;
+  function initDatePicker() {
+    const toDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    fpInstance = flatpickr('#i-date', {
+      dateFormat: 'Y-m-d',
+      defaultDate: 'today',
+      locale: { firstDayOfWeek: 0, weekdays: { shorthand:['일','월','화','수','목','금','토'], longhand:['일','월','화','수','목','금','토'] }, months: { shorthand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'], longhand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'] } },
+      onDayCreate(dObj, dStr, fp, dayElem) {
+        const d = toDateStr(dayElem.dateObj);
+        if (getDailyLogs()[d]) dayElem.classList.add('has-log');
+      },
+      onChange(dates, dateStr) {
+        checkLogExists(dateStr);
+      },
+      onReady() {
+        checkLogExists(toDateStr(new Date()));
+      }
+    });
+  }
+
+  function getWeather() {
+    const status = document.getElementById('weather-status');
+    if (!navigator.geolocation) { status.textContent = '위치 사용 불가'; return; }
+    status.textContent = '위치 확인 중...';
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        status.textContent = '날씨 가져오는 중...';
+        try {
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=Asia%2FSeoul&forecast_days=1`;
+          const res  = await fetch(url);
+          const data = await res.json();
+          const tMax  = Math.round(data.daily.temperature_2m_max[0]);
+          const tMin  = Math.round(data.daily.temperature_2m_min[0]);
+          const wcode = data.daily.weathercode[0];
+          document.getElementById('i-temp').value = `최저 ${tMin}°C / 최고 ${tMax}°C`;
+          const sel = document.getElementById('i-weather');
+          if (wcode === 0 || wcode === 1) sel.value = '맑음 ☀️';
+          else if (wcode <= 48) sel.value = '흐림 ☁️';
+          else if (wcode <= 67 || (wcode >= 80 && wcode <= 82)) sel.value = '비 🌧️';
+          else if (wcode <= 77 || (wcode >= 85 && wcode <= 86)) sel.value = '눈 ❄️';
+          else if (wcode >= 95) sel.value = '비 🌧️';
+          status.textContent = '✓ 자동 입력됨';
+          setTimeout(() => status.textContent = '', 3000);
+        } catch(e) { status.textContent = '가져오기 실패'; }
+      },
+      () => { status.textContent = '위치 권한 거부됨'; }
+    );
+  }
+
+  // ===== 공사명 관리 =====
+  function loadProjects() {
+    const list = JSON.parse(localStorage.getItem('projects') || '[]');
+    const sel = document.getElementById('i-project-select');
+    sel.innerHTML = '<option value="">-- 선택 또는 새로 입력 --</option>';
+    list.forEach(p => { const o = document.createElement('option'); o.value = p; o.textContent = p; sel.appendChild(o); });
+  }
+  function saveProject() {
+    const inp = document.getElementById('i-project');
+    const val = inp.value.trim();
+    if (!val) return;
+    const list = JSON.parse(localStorage.getItem('projects') || '[]');
+    if (list.includes(val)) return;
+    list.push(val);
+    localStorage.setItem('projects', JSON.stringify(list));
+    loadProjects();
+    document.getElementById('i-project-select').value = val;
+  }
+  function selectProject(sel) { document.getElementById('i-project').value = sel.value; }
+
+  // ===== 시공회사 관리 =====
+  function loadCompanies() {
+    const list = JSON.parse(localStorage.getItem('companies') || '["세명조경건설","제일조경개발","명문조경건설"]');
+    const sel = document.getElementById('i-company-select');
+    sel.innerHTML = '<option value="">-- 선택 또는 새로 입력 --</option>';
+    list.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+  }
+  function saveCompany() {
+    const inp = document.getElementById('i-company');
+    const val = inp.value.trim();
+    if (!val) return;
+    const list = JSON.parse(localStorage.getItem('companies') || '["세명조경건설","제일조경개발","명문조경건설"]');
+    if (list.includes(val)) return;
+    list.push(val);
+    localStorage.setItem('companies', JSON.stringify(list));
+    loadCompanies();
+    document.getElementById('i-company-select').value = val;
+  }
+  function selectCompany(sel) { document.getElementById('i-company').value = sel.value; }
+  function deleteCompany() {
+    const sel = document.getElementById('i-company-select');
+    const val = sel.value;
+    if (!val) return alert('삭제할 시공회사를 선택해주세요');
+    if (!confirm(`"${val}" 을 목록에서 삭제할까요?`)) return;
+    const list = JSON.parse(localStorage.getItem('companies') || '[]').filter(c => c !== val);
+    localStorage.setItem('companies', JSON.stringify(list));
+    document.getElementById('i-company').value = '';
+    loadCompanies();
+  }
+  function deleteProject() {
+    const sel = document.getElementById('i-project-select');
+    const val = sel.value;
+    if (!val) return alert('삭제할 공사명을 선택해주세요');
+    if (!confirm(`"${val}" 을 목록에서 삭제할까요?`)) return;
+    const list = JSON.parse(localStorage.getItem('projects') || '[]').filter(p => p !== val);
+    localStorage.setItem('projects', JSON.stringify(list));
+    document.getElementById('i-project').value = '';
+    loadProjects();
+  }
+
+  // ===== 직종 관리 =====
+  function getJobOptions() {
+    const list = JSON.parse(localStorage.getItem('jobs') || '["직영","용역","특수인부"]');
+    return '<option value="">직종</option>' + list.map(j => `<option value="${j}">${j}</option>`).join('');
+  }
+  function loadJobs() {
+    const list = JSON.parse(localStorage.getItem('jobs') || '["직영","용역","특수인부"]');
+    const sel = document.getElementById('job-select');
+    sel.innerHTML = '<option value="">-- 직종 선택 --</option>' + list.map(j => `<option value="${j}">${j}</option>`).join('');
+    document.querySelectorAll('.job-sel').forEach(s => { const cur = s.value; s.innerHTML = getJobOptions(); s.value = cur; });
+  }
+  function saveJob() {
+    const inp = document.getElementById('job-input');
+    const val = inp.value.trim();
+    if (!val) return;
+    const list = JSON.parse(localStorage.getItem('jobs') || '["직영","용역","특수인부"]');
+    if (list.includes(val)) { inp.select(); return; }
+    list.push(val);
+    localStorage.setItem('jobs', JSON.stringify(list));
+    loadJobs();
+    inp.value = '';
+    inp.focus();
+  }
+  function deleteJob() {
+    const sel = document.getElementById('job-select');
+    const val = sel.value;
+    if (!val) return alert('삭제할 직종을 선택해주세요');
+    if (!confirm(`"${val}" 을 목록에서 삭제할까요?`)) return;
+    const list = JSON.parse(localStorage.getItem('jobs') || '[]').filter(j => j !== val);
+    localStorage.setItem('jobs', JSON.stringify(list));
+    loadJobs();
+  }
+
+  // ===== 성명 관리 =====
+  function loadNames() {
+    const list = JSON.parse(localStorage.getItem('names') || '[]');
+    const sel = document.getElementById('name-select');
+    sel.innerHTML = '<option value="">-- 성명 선택 --</option>' + list.map(n => `<option value="${n}">${n}</option>`).join('');
+    document.getElementById('names-datalist').innerHTML = list.map(n => `<option value="${n}">`).join('');
+  }
+  function saveName() {
+    const inp = document.getElementById('name-input');
+    const val = inp.value.trim();
+    if (!val) return;
+    const list = JSON.parse(localStorage.getItem('names') || '[]');
+    if (list.includes(val)) { inp.select(); return; }
+    list.push(val);
+    localStorage.setItem('names', JSON.stringify(list));
+    loadNames();
+    inp.value = '';
+    inp.focus();
+  }
+  function deleteName() {
+    const sel = document.getElementById('name-select');
+    const val = sel.value;
+    if (!val) return alert('삭제할 성명을 선택해주세요');
+    if (!confirm(`"${val}" 을 목록에서 삭제할까요?`)) return;
+    const list = JSON.parse(localStorage.getItem('names') || '[]').filter(n => n !== val);
+    localStorage.setItem('names', JSON.stringify(list));
+    loadNames();
+  }
+
+  // ===== 현장대리인 관리 =====
+  function loadSupervisors() {
+    const list = JSON.parse(localStorage.getItem('supervisors') || '[]');
+    const sel = document.getElementById('supervisor-select');
+    sel.innerHTML = '<option value="">-- 선택 --</option>' + list.map(n => `<option value="${n}">${n}</option>`).join('');
+  }
+  function saveSupervisor() {
+    const inp = document.getElementById('i-supervisor');
+    const val = inp.value.trim();
+    if (!val) return;
+    const list = JSON.parse(localStorage.getItem('supervisors') || '[]');
+    if (list.includes(val)) return;
+    list.push(val);
+    localStorage.setItem('supervisors', JSON.stringify(list));
+    loadSupervisors();
+    document.getElementById('supervisor-select').value = val;
+  }
+  function deleteSupervisor() {
+    const sel = document.getElementById('supervisor-select');
+    const val = sel.value;
+    if (!val) return alert('삭제할 이름을 선택해주세요');
+    if (!confirm(`"${val}" 을 목록에서 삭제할까요?`)) return;
+    const list = JSON.parse(localStorage.getItem('supervisors') || '[]').filter(n => n !== val);
+    localStorage.setItem('supervisors', JSON.stringify(list));
+    document.getElementById('i-supervisor').value = '';
+    loadSupervisors();
+  }
+
+  // ===== 전체 초기화 =====
+  function resetAll() {
+    if (!confirm('모든 데이터를 초기화합니다.\n(공사명·직종·성명·장비명·현장대리인 목록 및 누계 기록 전부 삭제)\n\n계속하시겠습니까?')) return;
+    ['projects','companies','jobs','names','equip_names','supervisors','daily_logs'].forEach(k => localStorage.removeItem(k));
+    loadProjects(); loadCompanies(); loadJobs(); loadNames(); loadSupervisors(); loadEquipNames();
+    if (fpInstance) { fpInstance.redraw(); }
+    // 폼 초기화
+    ['i-project','i-temp','i-work','i-plan','i-note','i-supervisor'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('i-project-select').value = '';
+    document.getElementById('i-company').value = '';
+    document.getElementById('i-company-select').value = '';
+    document.getElementById('i-weather').value = '맑음 ☀️';
+    document.getElementById('supervisor-select').value = '';
+    document.getElementById('man-list').innerHTML = '';  addMan();
+    document.getElementById('eq-list').innerHTML = '';   addEq();
+    document.getElementById('mt-list').innerHTML = '';   addMt();
+    document.getElementById('preview-body').innerHTML = '<div class="placeholder">🌿<br>왼쪽에 정보를 입력하고<br><strong>일보 생성하기</strong>를 눌러주세요</div>';
+    checkLogExists(document.getElementById('i-date').value);
+  }
+
+  // ===== 장비명 관리 =====
+  function loadEquipNames() {
+    const list = JSON.parse(localStorage.getItem('equip_names') || '[]');
+    const sel = document.getElementById('equip-select');
+    sel.innerHTML = '<option value="">-- 장비명 선택 --</option>' + list.map(n => `<option value="${n}">${n}</option>`).join('');
+    document.getElementById('equip-datalist').innerHTML = list.map(n => `<option value="${n}">`).join('');
+  }
+  function saveEquip() {
+    const inp = document.getElementById('equip-input');
+    const val = inp.value.trim();
+    if (!val) return;
+    const list = JSON.parse(localStorage.getItem('equip_names') || '[]');
+    if (list.includes(val)) { inp.select(); return; }
+    list.push(val);
+    localStorage.setItem('equip_names', JSON.stringify(list));
+    loadEquipNames();
+    inp.value = '';
+    inp.focus();
+  }
+  function deleteEquip() {
+    const sel = document.getElementById('equip-select');
+    const val = sel.value;
+    if (!val) return alert('삭제할 장비명을 선택해주세요');
+    if (!confirm(`"${val}" 을 목록에서 삭제할까요?`)) return;
+    const list = JSON.parse(localStorage.getItem('equip_names') || '[]').filter(n => n !== val);
+    localStorage.setItem('equip_names', JSON.stringify(list));
+    loadEquipNames();
+  }
+
+  // ===== 과거 일보 불러오기 =====
+  function checkLogExists(date) {
+    const btn = document.getElementById('btn-load');
+    const has = !!getDailyLogs()[date];
+    btn.disabled = !has;
+    btn.style.background = has ? '#d8f3dc' : '#f0f0f0';
+    btn.style.color      = has ? '#2d6a4f' : '#aaa';
+    btn.style.borderColor= has ? '#52b788' : '#ddd';
+    btn.style.cursor     = has ? 'pointer'  : 'default';
+  }
+
+  function loadLog() {
+    const date = document.getElementById('i-date').value;
+    const log  = getDailyLogs()[date];
+    if (!log) return;
+
+    // 기본 필드
+    document.getElementById('i-project').value  = log.project  || '';
+    document.getElementById('i-project-select').value = log.project || '';
+    document.getElementById('i-company').value  = log.company  || '';
+    document.getElementById('i-company-select').value = log.company || '';
+    document.getElementById('i-weather').value  = log.weather  || '맑음 ☀️';
+    document.getElementById('i-temp').value     = log.temp     || '';
+    document.getElementById('i-work').value     = log.work     || '';
+    document.getElementById('i-plan').value     = log.plan     || '';
+    document.getElementById('i-note').value     = log.note     || '';
+    document.getElementById('i-supervisor').value        = log.supervisor || '';
+    document.getElementById('supervisor-select').value   = log.supervisor || '';
+
+    // 인력 행
+    const manList = document.getElementById('man-list');
+    manList.innerHTML = '';
+    (log.man?.length ? log.man : [{}]).forEach(m => {
+      addMan();
+      const row = manList.lastElementChild;
+      const f = row.querySelectorAll('input, select.job-sel, select.gongsu-sel');
+      f[0].value = m.job    || '';
+      f[1].value = m.name   || '';
+      f[2].value = m.gongsu || '';
+      if (f[4]) f[4].value = m.note || '';
+    });
+
+    // 장비 행
+    const eqList = document.getElementById('eq-list');
+    eqList.innerHTML = '';
+    (log.eq?.length ? log.eq : [{}]).forEach(e => {
+      addEq();
+      const row = eqList.lastElementChild;
+      const inp = row.querySelectorAll('input');
+      const todaySel = row.querySelector('select.today-sel');
+      inp[0].value = e.name   || '';
+      inp[1].value = e.spec   || '';
+      inp[2].value = e.driver || '';
+      if (todaySel) todaySel.value = e.today || '';
+      if (inp[4]) inp[4].value = e.note || '';
+    });
+
+    // 자재 행
+    const mtList = document.getElementById('mt-list');
+    mtList.innerHTML = '';
+    (log.mt?.length ? log.mt : [{}]).forEach(m => {
+      addMt();
+      const row = mtList.lastElementChild;
+      const inp = row.querySelectorAll('input');
+      inp[0].value = m.item     || '';
+      inp[1].value = m.spec     || '';
+      inp[2].value = m.unit     || '';
+      inp[3].value = m.qty      || '';
+      inp[4].value = m.supplier || '';
+      inp[5].value = m.note     || '';
+    });
+
+    generate();
+  }
+
+  // ===== 초기 로드 =====
+  loadProjects(); loadCompanies(); loadJobs(); loadNames(); loadSupervisors(); loadEquipNames(); initDatePicker();
+
+  // ===== 행 관리 =====
+  function delRow(btn) { btn.closest('.trow').remove(); }
+
+  function addMan() {
+    const d = document.createElement('div');
+    d.className = 'trow manrow';
+    d.innerHTML = `<select class="job-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;">${getJobOptions()}</select><input class="name-sel" list="names-datalist" placeholder="성명"><select class="gongsu-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">공수</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select><input placeholder="누계" readonly style="background:#f0f0f0"><input placeholder="비고"><button class="btn-del" onclick="delRow(this)">✕</button>`;
+    document.getElementById('man-list').appendChild(d);
+  }
+
+  function addEq() {
+    const d = document.createElement('div');
+    d.className = 'trow eqrow';
+    d.innerHTML = `<input placeholder="장비명" list="equip-datalist"><input placeholder="규격"><input placeholder="성명"><select class="today-sel" onchange="calcEq(this)" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">금일</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select><input placeholder="누계" readonly style="background:#f0f0f0"><input placeholder="비고"><button class="btn-del" onclick="delRow(this)">✕</button>`;
+    document.getElementById('eq-list').appendChild(d);
+  }
+
+  function addMt() {
+    const d = document.createElement('div');
+    d.className = 'trow mtrow';
+    d.innerHTML = `<input placeholder="품명"><input placeholder="규격"><input placeholder="단위"><input placeholder="수량"><input placeholder="거래처"><input placeholder="비고"><button class="btn-del" onclick="delRow(this)">✕</button>`;
+    document.getElementById('mt-list').appendChild(d);
+  }
+
+  function calcEq(sel) {
+    const row = sel.closest('.trow');
+    const inputs = row.querySelectorAll('input');
+    inputs[3].value = parseFloat(sel.value) || 0;
+  }
+
+  function getRows(listId, cols) {
+    return Array.from(document.getElementById(listId).querySelectorAll('.trow')).map(row => {
+      const fields = row.querySelectorAll('input, select.job-sel, select.gongsu-sel');
+      return Array.from({length: cols}, (_,i) => fields[i]?.value || '');
+    }).filter(r => r.some(v => v));
+  }
+
+  function td(val, cls='') { return `<td class="${cls}">${val||'&nbsp;'}</td>`; }
+
+  // ===== 누계 저장/조회 =====
+  function getDailyLogs() {
+    return JSON.parse(localStorage.getItem('daily_logs') || '{}');
+  }
+  function calcManCumul(name, gongsu, currentDate) {
+    if (!name) return '';
+    let total = parseFloat(gongsu || 0);
+    Object.entries(getDailyLogs()).forEach(([d, log]) => {
+      if (d < currentDate && log.man)
+        log.man.forEach(m => { if (m.name === name) total += parseFloat(m.gongsu || 0); });
+    });
+    return total;
+  }
+  function calcEqCumul(name, today, currentDate) {
+    if (!name) return '';
+    let total = parseFloat(today || 0);
+    Object.entries(getDailyLogs()).forEach(([d, log]) => {
+      if (d < currentDate && log.eq)
+        log.eq.forEach(e => { if (e.name === name) total += parseFloat(e.today || 0); });
+    });
+    return total;
+  }
+
+  function generate() {
+    const project    = document.getElementById('i-project').value || document.getElementById('i-project-select').value || '';
+    const company    = document.getElementById('i-company').value || '';
+    const date       = document.getElementById('i-date').value;
+    const weather    = document.getElementById('i-weather').value;
+    const temp       = document.getElementById('i-temp').value;
+    const work       = document.getElementById('i-work').value;
+    const plan       = document.getElementById('i-plan').value;
+    const note       = document.getElementById('i-note').value;
+    const supervisor = document.getElementById('i-supervisor').value || document.getElementById('supervisor-select').value || '';
+
+    // 인력 행 수집 (fields 순서: job-sel, name-sel, gongsu-sel, 누계input, 비고input)
+    const manData = Array.from(document.getElementById('man-list').querySelectorAll('.trow')).map(row => {
+      const f = row.querySelectorAll('input, select.job-sel, select.gongsu-sel');
+      return { job: f[0]?.value||'', name: f[1]?.value||'', gongsu: f[2]?.value||'', nugyeEl: f[3], note: f[4]?.value||'' };
+    }).filter(r => r.job || r.name || r.gongsu);
+
+    // 장비 행 수집 (inputs: 장비명, 규격, 성명, 누계readonly, 비고)
+    const eqData = Array.from(document.getElementById('eq-list').querySelectorAll('.trow')).map(row => {
+      const inp = row.querySelectorAll('input');
+      const todaySel = row.querySelector('select.today-sel');
+      return { name: inp[0]?.value||'', spec: inp[1]?.value||'', driver: inp[2]?.value||'', today: todaySel?.value||'', nugyeEl: inp[3], note: inp[4]?.value||'' };
+    }).filter(r => r.name || r.today);
+
+    const mtRows = getRows('mt-list', 6);
+
+    // 누계 계산 + 입력 패널 업데이트
+    manData.forEach(r => {
+      r.cumul = calcManCumul(r.name, r.gongsu, date);
+      if (r.nugyeEl) r.nugyeEl.value = r.cumul !== '' ? r.cumul : '';
+    });
+    eqData.forEach(r => {
+      r.cumul = calcEqCumul(r.name, r.today, date);
+      if (r.nugyeEl) r.nugyeEl.value = r.cumul !== '' ? r.cumul : '';
+    });
+
+    // 오늘 데이터 저장 (전체)
+    if (date) {
+      const logs = getDailyLogs();
+      logs[date] = {
+        project, company, weather, temp, work, plan, note, supervisor,
+        man: manData.map(r => ({ job: r.job, name: r.name, gongsu: r.gongsu, note: r.note })),
+        eq:  eqData.map(r => ({ name: r.name, spec: r.spec, driver: r.driver, today: r.today, note: r.note })),
+        mt:  mtRows.map(r => ({ item: r[0], spec: r[1], unit: r[2], qty: r[3], supplier: r[4], note: r[5] }))
+      };
+      localStorage.setItem('daily_logs', JSON.stringify(logs));
+      checkLogExists(date);
+      if (fpInstance) fpInstance.redraw();
+    }
+
+    const mainRows = Math.max(manData.length, eqData.length, 8);
+    const mtCount  = Math.max(mtRows.length, 5);
+
+    const manTds = (i) => {
+      if (i < manData.length) {
+        const r = manData[i];
+        return `${td(r.job,'left')}${td(r.name,'left')}${td(r.gongsu)}${td(r.cumul)}${td(r.note,'left')}`;
+      }
+      return `<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>`;
+    };
+    const eqTds = (i) => {
+      if (i < eqData.length) {
+        const r = eqData[i];
+        return `${td(r.name,'left')}${td(r.spec)}${td(r.driver,'left')}${td(r.today)}${td(r.cumul)}${td(r.note,'left')}`;
+      }
+      return `<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>`;
+    };
+
+    let tableRows = '';
+    for (let i = 0; i < mainRows; i++) {
+      tableRows += `<tr>${manTds(i)}${eqTds(i)}</tr>`;
+    }
+    tableRows += `
+      <tr>
+        ${manTds(mainRows)}
+        <td colspan="6" class="th-group">자 재 반 입 현 황</td>
+      </tr>
+      <tr>
+        ${manTds(mainRows + 1)}
+        <td class="th-sub">품명</td><td class="th-sub">규격</td><td class="th-sub">단위</td>
+        <td class="th-sub">수량</td><td class="th-sub">거래처</td><td class="th-sub">비고</td>
+      </tr>`;
+    for (let i = 0; i < mtCount; i++) {
+      const manIdx = mainRows + 2 + i;
+      if (i < mtRows.length) {
+        const r = mtRows[i];
+        tableRows += `<tr>${manTds(manIdx)}${td(r[0],'left')}${td(r[1])}${td(r[2])}${td(r[3])}${td(r[4],'left')}${td(r[5],'left')}</tr>`;
+      } else {
+        tableRows += `<tr>${manTds(manIdx)}<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
+      }
+    }
+
+    const dateStr = date ? (() => {
+      const dt = new Date(date);
+      const days = ['일','월','화','수','목','금','토'];
+      return `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 (${days[dt.getDay()]})`;
+    })() : '202   년   월   일';
+
+    document.getElementById('preview-body').innerHTML = `
+    <div class="doc-wrap">
+      <div class="doc-top">
+        <div class="doc-main-title">작 업 일 보</div>
+        <table class="approval-table">
+          <tr>
+            <td class="ap-title">결</td>
+            <td class="ap-title">담당</td><td class="ap-title">주임</td><td class="ap-title">과장</td>
+            <td class="ap-title">차장</td><td class="ap-title">부장</td><td class="ap-title">이사</td><td class="ap-title">상무</td><td class="ap-title">대표</td>
+          </tr>
+          <tr>
+            <td class="ap-title">재</td>
+            <td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td>
+            <td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td>
+          </tr>
+        </table>
+      </div>
+      <div style="font-size:11px; margin-bottom:3px;"><strong>시공회사 :</strong> ${company}</div>
+      <div style="font-size:11px; margin-bottom:3px; display:flex; justify-content:space-between;">
+        <span><strong>공 사 명 :</strong> ${project}</span>
+        <span><strong>날 씨 :</strong> ${weather}</span>
+      </div>
+      <div style="font-size:11px; margin-bottom:5px; display:flex; justify-content:space-between;">
+        <span><strong>작 성 일 :</strong> ${dateStr}</span>
+        <span><strong>기 온 :</strong> ${temp||'-'}</span>
+      </div>
+      <table class="doc-main">
+        <thead>
+          <tr>
+            <td colspan="5" class="th-group">인 력 투 입 현 황</td>
+            <td colspan="6" class="th-group">장 비 투 입 현 황</td>
+          </tr>
+          <tr>
+            <td class="th-sub" style="width:8%">직종</td>
+            <td class="th-sub" style="width:9%">성명</td>
+            <td class="th-sub" style="width:5%">공수</td>
+            <td class="th-sub" style="width:5%">누계</td>
+            <td class="th-sub" style="width:11%">비고</td>
+            <td class="th-sub" style="width:12%">장비명</td>
+            <td class="th-sub" style="width:7%">규격</td>
+            <td class="th-sub" style="width:9%">성명</td>
+            <td class="th-sub" style="width:5%">금일</td>
+            <td class="th-sub" style="width:5%">누계</td>
+            <td class="th-sub" style="width:9%">비고</td>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+          <tr>
+            <td colspan="5" class="th-group" style="letter-spacing:3px">작 업 내 용</td>
+            <td colspan="6" class="th-group" style="letter-spacing:3px">작 업 계 획</td>
+          </tr>
+          <tr>
+            <td colspan="5" style="height:100px; vertical-align:top; text-align:left; padding:6px; white-space:pre-line">${work||''}</td>
+            <td colspan="6" style="height:100px; vertical-align:top; text-align:left; padding:6px; white-space:pre-line">${plan||''}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:6px; font-size:11px; border-top:1px solid #333; padding-top:5px; display:flex; justify-content:space-between; align-items:center;">
+        <span><strong>비 고 :</strong> ${note||''}</span>
+        <span><strong>현장대리인 :</strong>&nbsp;${supervisor}&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size:10px">(인)</span></span>
+      </div>
+      <div style="text-align:right; font-size:11px; font-weight:700; margin-top:4px;">${company}</div>
+    </div>`;
+  }
+</script>
+</body>
+</html>
