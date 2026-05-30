@@ -8,7 +8,7 @@
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Nanum+Gothic:wght@700;800&display=swap');
   :root {
     --bg: #f5f5f0;
-    --border: #333;
+    --border: #222;
     --light-border: #999;
     --header-bg: #f0f0f0;
     --green: #1a3a2a;
@@ -63,14 +63,15 @@
   .doc-main-title { font-family: 'Nanum Gothic', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: 10px; padding-top: 8px; }
 
   .approval-table { border-collapse: collapse; font-size: 10px; }
-  .approval-table td { border: 1px solid var(--border); padding: 3px 6px; text-align: center; min-width: 36px; height: 22px; }
+  .approval-table td { border: 0.5px solid var(--border); padding: 3px 6px; text-align: center; min-width: 44px; height: 24px; }
   .approval-table .ap-title { background: var(--header-bg); font-weight: 700; }
-  .approval-table .ap-sign { height: 32px; }
+  .approval-table .ap-sign { height: 46px; }
 
-  .doc-main { border-collapse: collapse; width: 100%; font-size: 10px; }
-  .doc-main td, .doc-main th { border: 1px solid var(--border); padding: 3px 4px; text-align: center; vertical-align: middle; }
-  .doc-main .th-group { background: var(--header-bg); font-weight: 700; font-size: 10px; }
-  .doc-main .th-sub { background: #fafafa; font-weight: 700; font-size: 9px; color: #444; }
+  .doc-main { border-collapse: collapse; width: 100%; font-size: 11px; }
+  .doc-main td, .doc-main th { border: 0.5px solid var(--border); padding: 3px 4px; text-align: center; vertical-align: middle; }
+  .doc-main .th-group { background: var(--header-bg); font-weight: 700; font-size: 11px; }
+  .doc-main .th-sub { background: #fafafa; font-weight: 700; font-size: 10px; color: #444; }
+  .man-table td:last-child, .man-table th:last-child { border-right: none; }
   .doc-main td.left { text-align: left; padding-left: 5px; }
 
   .placeholder { text-align: center; color: #aaa; padding: 80px 20px; font-size: 14px; line-height: 2.2; }
@@ -81,19 +82,23 @@
     .app { display: block; padding: 0; margin: 0; }
     .input-panel, .preview-header { display: none !important; }
     .preview-panel { box-shadow: none; border-radius: 0; width: 100%; }
-    .preview-body { padding: 8mm 10mm; margin: 0; max-height: none; overflow: visible; }
+    .preview-body { padding: 0; margin: 0; max-height: none; overflow: visible; }
 
     @page {
       size: A4 portrait;
-      margin: 8mm 10mm;
+      margin: 17mm 14mm 7mm 14mm;
     }
+
+    :root { --border: #222; }
 
     .doc-wrap { width: 100%; font-size: 9px; }
     .doc-main-title { font-size: 22px; }
-    .approval-table td { min-width: 28px; padding: 2px 4px; font-size: 9px; }
-    .approval-table .ap-sign { height: 26px; }
-    .doc-main td, .doc-main th { padding: 2px 3px; font-size: 8.5px; }
-    .doc-main .th-sub { font-size: 8px; }
+    .approval-table td { min-width: 48px; padding: 3px 6px; font-size: 9px; border: 0.5px solid #222; }
+    .approval-table .ap-sign { height: 54px; }
+    .doc-main td, .doc-main th { padding: 4px 3px; font-size: 10px; border: 0.5px solid #222; }
+    .doc-main .th-sub { font-size: 9px; }
+    thead { display: table-row-group; }
+    .doc-wrap { page-break-inside: avoid; }
   }
   @media (max-width: 900px) {
     .app { grid-template-columns: 1fr; }
@@ -118,7 +123,13 @@
 
   <!-- 입력 패널 -->
   <div class="input-panel">
-    <div class="input-panel-header">📋 작업일보 입력</div>
+    <div class="input-panel-header" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>📋 작업일보 입력</span>
+      <a href="mobile.html" style="color:rgba(255,255,255,0.75);font-size:11px;text-decoration:none;border:1px solid rgba(255,255,255,0.4);border-radius:4px;padding:2px 8px;">📱 모바일</a>
+      <a href="report.html" style="color:rgba(255,255,255,0.75);font-size:11px;text-decoration:none;border:1px solid rgba(255,255,255,0.4);border-radius:4px;padding:2px 8px;margin-left:4px;">📊 정산</a>
+      <button onclick="openCalc()" style="color:rgba(255,255,255,0.75);font-size:11px;background:none;border:1px solid rgba(255,255,255,0.4);border-radius:4px;padding:2px 8px;margin-left:4px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🔧 계산기</button>
+      <button onclick="openHelp()" style="color:rgba(255,255,255,0.75);font-size:11px;background:none;border:1px solid rgba(255,255,255,0.4);border-radius:4px;padding:2px 8px;margin-left:4px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📖 도움말</button>
+    </div>
     <div class="input-body">
 
       <div class="row2">
@@ -131,20 +142,20 @@
             <button onclick="deleteProject()" style="padding:0 8px; background:#fee2e2; color:#dc2626; border:none; border-radius:6px; cursor:pointer; font-size:12px;" title="선택한 공사명 삭제">✕</button>
           </div>
           <div style="display:flex; gap:4px; margin-top:4px;">
-            <input id="i-project" placeholder="새 공사명 입력" style="flex:1;">
+            <input id="i-project" placeholder="새 공사명 입력" style="flex:1;" onkeydown="if(event.key==='Enter') saveProject()">
             <button onclick="saveProject()" style="padding:0 10px; background:#d8f3dc; color:#2d6a4f; border:1.5px solid #52b788; border-radius:6px; cursor:pointer; font-size:12px; font-weight:700; white-space:nowrap;">저장</button>
           </div>
         </div>
         <div class="fg">
-          <label>시공회사</label>
+          <label>시공사</label>
           <div style="display:flex; gap:4px;">
             <select id="i-company-select" onchange="selectCompany(this)" style="flex:1; padding:7px 9px; border:1.5px solid #ddd; border-radius:6px; font-size:12px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; outline:none;">
               <option value="">-- 선택 또는 새로 입력 --</option>
             </select>
-            <button onclick="deleteCompany()" style="padding:0 8px; background:#fee2e2; color:#dc2626; border:none; border-radius:6px; cursor:pointer; font-size:12px;" title="선택한 시공회사 삭제">✕</button>
+            <button onclick="deleteCompany()" style="padding:0 8px; background:#fee2e2; color:#dc2626; border:none; border-radius:6px; cursor:pointer; font-size:12px;" title="선택한 시공사 삭제">✕</button>
           </div>
           <div style="display:flex; gap:4px; margin-top:4px;">
-            <input id="i-company" placeholder="새 시공회사 입력" style="flex:1;">
+            <input id="i-company" placeholder="새 시공사 입력" style="flex:1;" onkeydown="if(event.key==='Enter') saveCompany()">
             <button onclick="saveCompany()" style="padding:0 10px; background:#d8f3dc; color:#2d6a4f; border:1.5px solid #52b788; border-radius:6px; cursor:pointer; font-size:12px; font-weight:700; white-space:nowrap;">저장</button>
           </div>
         </div>
@@ -170,8 +181,6 @@
       </div>
 
       <!-- 인력 -->
-      <div class="sec-title">👷 인력 투입 현황</div>
-
       <div style="background:#f4f4f4; border:1px dashed #bbb; border-radius:8px; padding:10px 12px; margin-bottom:12px;">
         <div style="font-size:10px; font-weight:700; color:#999; margin-bottom:8px; letter-spacing:1px;">자동완성 목록 관리 (선택사항)</div>
 
@@ -183,7 +192,7 @@
           <button onclick="deleteJob()" style="padding:0 7px; height:26px; background:#f5e0e0; color:#c0392b; border:none; border-radius:5px; cursor:pointer; font-size:11px;" title="선택 직종 삭제">✕</button>
         </div>
         <div style="display:flex; gap:4px; margin-bottom:10px;">
-          <input id="job-input" placeholder="새 직종 입력" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fff; color:#333; outline:none;" onfocus="this.style.borderColor='#888'" onblur="this.style.borderColor='#ccc'">
+          <input id="job-input" placeholder="새 직종 입력" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fff; color:#333; outline:none;" onfocus="this.style.borderColor='#888'" onblur="this.style.borderColor='#ccc'" onkeydown="if(event.key==='Enter') saveJob()">
           <button onclick="saveJob()" style="padding:0 9px; background:#e8e8e8; color:#666; border:1px solid #bbb; border-radius:5px; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap; font-family:'Noto Sans KR',sans-serif;">저장</button>
         </div>
 
@@ -195,7 +204,7 @@
           <button onclick="deleteName()" style="padding:0 7px; height:26px; background:#f5e0e0; color:#c0392b; border:none; border-radius:5px; cursor:pointer; font-size:11px;" title="선택 성명 삭제">✕</button>
         </div>
         <div style="display:flex; gap:4px; margin-bottom:10px;">
-          <input id="name-input" placeholder="새 성명 입력" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fff; color:#333; outline:none;" onfocus="this.style.borderColor='#888'" onblur="this.style.borderColor='#ccc'">
+          <input id="name-input" placeholder="새 성명 입력" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fff; color:#333; outline:none;" onfocus="this.style.borderColor='#888'" onblur="this.style.borderColor='#ccc'" onkeydown="if(event.key==='Enter') saveName()">
           <button onclick="saveName()" style="padding:0 9px; background:#e8e8e8; color:#666; border:1px solid #bbb; border-radius:5px; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap; font-family:'Noto Sans KR',sans-serif;">저장</button>
         </div>
 
@@ -207,17 +216,21 @@
           <button onclick="deleteEquip()" style="padding:0 7px; height:26px; background:#f5e0e0; color:#c0392b; border:none; border-radius:5px; cursor:pointer; font-size:11px;" title="선택 장비명 삭제">✕</button>
         </div>
         <div style="display:flex; gap:4px; margin-bottom:0;">
-          <input id="equip-input" placeholder="새 장비명 입력" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fff; color:#333; outline:none;" onfocus="this.style.borderColor='#888'" onblur="this.style.borderColor='#ccc'">
+          <input id="equip-input" placeholder="새 장비명 입력" style="flex:1; padding:5px 7px; border:1px solid #ccc; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fff; color:#333; outline:none;" onfocus="this.style.borderColor='#888'" onblur="this.style.borderColor='#ccc'" onkeydown="if(event.key==='Enter') saveEquip()">
           <button onclick="saveEquip()" style="padding:0 9px; background:#e8e8e8; color:#666; border:1px solid #bbb; border-radius:5px; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap; font-family:'Noto Sans KR',sans-serif;">저장</button>
         </div>
       </div>
 
+      <div class="sec-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>👷 인력 투입 현황 <span id="man-total-badge" style="font-size:10px;font-weight:400;color:#52b788;background:#d8f3dc;padding:1px 7px;border-radius:10px;margin-left:4px;display:none;"></span></span>
+        <button onclick="copyPrevDay()" style="padding:2px 9px;background:#d8f3dc;color:#2d6a4f;border:1.5px solid #52b788;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;" title="전날 인력·장비 복사">⏮ 전날 복사</button>
+      </div>
       <div class="trow-header manrow"><span>직종</span><span>성명</span><span>공수</span><span>누계</span><span>비고</span><span></span></div>
       <div id="man-list">
         <div class="trow manrow">
           <select class="job-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">직종</option></select>
           <input class="name-sel" list="names-datalist" placeholder="성명">
-          <select class="gongsu-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">공수</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select>
+          <select class="gongsu-sel" onchange="updateManTotal()" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">공수</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select>
           <input placeholder="누계" readonly style="background:#f0f0f0">
           <input placeholder="비고">
           <button class="btn-del" onclick="delRow(this)">✕</button>
@@ -230,7 +243,7 @@
       <div class="trow-header eqrow"><span>장비명</span><span>규격</span><span>성명</span><span>금일</span><span>누계</span><span>비고</span><span></span></div>
       <div id="eq-list">
         <div class="trow eqrow">
-          <input placeholder="장비명" list="equip-datalist">
+          <select class="equip-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">장비명</option></select>
           <input placeholder="규격">
           <input placeholder="성명">
           <select class="today-sel" onchange="calcEq(this)" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">금일</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select>
@@ -258,7 +271,21 @@
       <button class="btn-add" onclick="addMt()">+ 자재 추가</button>
 
       <!-- 작업내용 / 계획 -->
-      <div class="sec-title">📝 작업 내용 / 계획</div>
+      <div class="sec-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>📝 작업 내용 / 계획</span>
+        <div style="display:flex;gap:4px;">
+          <button onclick="saveWorkTemplate()" style="padding:2px 8px;background:#fff8e8;color:#8b5e3c;border:1.5px solid #f4d488;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;" title="현재 내용을 템플릿으로 저장">💾 저장</button>
+          <button onclick="toggleTplModal()" style="padding:2px 8px;background:#f4e0c8;color:#8b5e3c;border:1.5px solid #e0b88a;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;" title="저장된 템플릿 불러오기">📂 불러오기</button>
+        </div>
+      </div>
+      <div id="tpl-modal" style="display:none;background:#fdf6ee;border:1.5px solid #f4d488;border-radius:7px;padding:9px 10px;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:700;color:#8b5e3c;margin-bottom:6px;">📋 저장된 작업 템플릿</div>
+        <div style="display:flex;gap:4px;">
+          <select id="tpl-select" style="flex:1;padding:6px 8px;border:1.5px solid #ddd;border-radius:6px;font-size:12px;font-family:'Noto Sans KR',sans-serif;background:#fff;outline:none;"><option value="">-- 템플릿 선택 --</option></select>
+          <button onclick="applyTemplate()" style="padding:0 10px;background:#d8f3dc;color:#2d6a4f;border:1.5px solid #52b788;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">적용</button>
+          <button onclick="deleteTemplate()" style="padding:0 8px;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;font-size:11px;cursor:pointer;">삭제</button>
+        </div>
+      </div>
       <div class="fg"><label>작업 내용</label><textarea id="i-work" placeholder="금일 작업 내용을 입력하세요"></textarea></div>
       <div class="fg"><label>작업 계획</label><textarea id="i-plan" placeholder="내일 작업 계획을 입력하세요"></textarea></div>
       <div class="fg"><label>비고</label><textarea id="i-note" placeholder="특이사항 등" style="min-height:40px"></textarea></div>
@@ -270,11 +297,19 @@
         <button onclick="deleteSupervisor()" style="padding:0 7px; height:28px; background:#fee2e2; color:#dc2626; border:none; border-radius:5px; cursor:pointer; font-size:11px;" title="삭제">✕</button>
       </div>
       <div style="display:flex; gap:4px; margin-bottom:10px;">
-        <input id="i-supervisor" placeholder="새 현장대리인 이름 입력" style="flex:1; padding:6px 8px; border:1.5px solid #ddd; border-radius:6px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; outline:none;">
+        <input id="i-supervisor" placeholder="새 현장대리인 이름 입력" style="flex:1; padding:6px 8px; border:1.5px solid #ddd; border-radius:6px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; outline:none;" onkeydown="if(event.key==='Enter') saveSupervisor()">
         <button onclick="saveSupervisor()" style="padding:0 10px; background:#d8f3dc; color:#2d6a4f; border:1.5px solid #52b788; border-radius:6px; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap;">저장</button>
       </div>
 
       <button class="btn-gen" onclick="generate()">📄 일보 생성하기</button>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+        <button onclick="exportData()" style="padding:9px; background:#e8f4fd; color:#1a6496; border:1.5px solid #9bc8e8; border-radius:8px; font-size:12px; font-weight:700; font-family:'Noto Sans KR',sans-serif; cursor:pointer;">📤 내보내기</button>
+        <button onclick="importData()" style="padding:9px; background:#f0f7ee; color:#2d6a4f; border:1.5px solid #52b788; border-radius:8px; font-size:12px; font-weight:700; font-family:'Noto Sans KR',sans-serif; cursor:pointer;">📥 불러오기</button>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px;">
+        <button onclick="backupAll()" style="padding:8px; background:#f3e8fd; color:#5a1a8a; border:1.5px solid #c8a0e8; border-radius:8px; font-size:11px; font-weight:700; font-family:'Noto Sans KR',sans-serif; cursor:pointer;" title="모든 데이터를 파일로 백업">💾 전체 백업</button>
+        <button onclick="restoreAll()" style="padding:8px; background:#fff8e8; color:#8b5e3c; border:1.5px solid #f4d488; border-radius:8px; font-size:11px; font-weight:700; font-family:'Noto Sans KR',sans-serif; cursor:pointer;" title="백업 파일로 복원">📂 전체 복원</button>
+      </div>
       <button onclick="resetAll()" style="width:100%; margin-top:8px; padding:9px; background:none; color:#bbb; border:1px solid #ddd; border-radius:8px; font-size:12px; font-family:'Noto Sans KR',sans-serif; cursor:pointer;" onmouseover="this.style.color='#dc2626'; this.style.borderColor='#fca5a5';" onmouseout="this.style.color='#bbb'; this.style.borderColor='#ddd';">전체 초기화</button>
     </div>
   </div>
@@ -283,7 +318,7 @@
   <div class="preview-panel">
     <div class="preview-header">
       <span>📄 미리보기</span>
-      <button class="btn-print" onclick="window.print()">🖨️ 인쇄</button>
+      <button class="btn-print" onclick="window.electronAPI ? window.electronAPI.print() : window.print()">🖨️ 인쇄</button>
     </div>
     <div class="preview-body" id="preview-body">
       <div class="placeholder">🌿<br>왼쪽에 정보를 입력하고<br><strong>일보 생성하기</strong>를 눌러주세요</div>
@@ -291,6 +326,184 @@
   </div>
 
 </div>
+<!-- ===== 도움말 플로팅 창 ===== -->
+<div id="help-win" style="display:none;position:fixed;right:20px;top:56px;width:370px;max-height:calc(100vh - 76px);background:white;border-radius:12px;box-shadow:0 4px 28px rgba(0,0,0,0.18);z-index:150;display:none;flex-direction:column;overflow:hidden;border:1px solid #e0e0e0;">
+  <div id="help-win-bar" style="background:#1a3a2a;color:white;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;cursor:grab;user-select:none;">
+    <span style="font-size:13px;font-weight:700;">📖 도움말 <span style="font-size:10px;opacity:0.6;font-weight:400;">— 드래그로 이동</span></span>
+    <button onclick="closeHelp()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:5px;padding:2px 10px;font-size:12px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✕</button>
+  </div>
+  <div style="overflow-y:auto;padding:14px;font-size:11px;line-height:1.9;color:#444;">
+
+    <b style="color:#1a3a2a;">공사명 / 시공사</b><br>
+    드롭다운에서 기존 항목을 선택하거나, 아래 입력란에 새 이름 입력 후 저장합니다. 엔터로도 저장됩니다. 삭제는 드롭다운에서 선택 후 ✕ 버튼.<br><br>
+
+    <b style="color:#1a3a2a;">작성일</b><br>
+    클릭하면 캘린더가 열립니다. 저장된 일보가 있는 날짜에는 초록 점(●)이 표시되며, 해당 날짜 선택 시 <b>불러오기</b> 버튼이 활성화됩니다.<br><br>
+
+    <b style="color:#1a3a2a;">기온 📍자동</b><br>
+    버튼 클릭 시 GPS 위치 기반으로 최저·최고 기온과 날씨를 자동 입력합니다. 브라우저 위치 권한 허용 및 인터넷 연결 필요.<br><br>
+
+    <b style="color:#1a3a2a;">자동완성 목록 관리</b><br>
+    직종·성명·장비명을 미리 등록해두는 곳입니다. 등록하면 인력·장비 입력 행의 드롭다운에 자동으로 나타납니다.<br>
+    • 직종 기본값: 직영, 용역, 특수인부<br>
+    • 장비명 기본값: 굴삭기, 지게차, 카고크레인, 화물트럭<br><br>
+
+    <b style="color:#1a3a2a;">인력 투입 현황</b><br>
+    • 직종·성명: 드롭다운 선택 (목록 관리에서 사전 등록 필요)<br>
+    • 공수: 0.5 = 반일, 1.0 = 전일<br>
+    • 누계: 📄 일보 생성하기 클릭 시 과거 일보 기록을 합산하여 자동 계산<br>
+    • 헤더의 <b>합계 N명</b> 배지: 공수 선택 시 실시간 갱신<br><br>
+
+    <b style="color:#1a3a2a;">⏮ 전날 복사</b><br>
+    인력 섹션 우측 버튼 클릭 시 전날 인력·장비 데이터를 복사합니다.<br><br>
+
+    <b style="color:#1a3a2a;">장비 투입 현황</b><br>
+    • 장비명: 드롭다운 선택 / 규격은 직접 입력 (예: 0.6㎥, 5톤)<br>
+    • 금일: 0.5 = 반일, 1.0 = 전일 / 누계: 자동 계산<br><br>
+
+    <b style="color:#1a3a2a;">자재 반입 현황</b><br>
+    품명·규격·단위·수량·거래처·비고 순으로 입력합니다.<br><br>
+
+    <b style="color:#1a3a2a;">작업내용 템플릿</b><br>
+    • <b>💾 저장</b> — 현재 작업내용·계획을 이름 붙여 저장<br>
+    • <b>📂 불러오기</b> — 저장된 템플릿 선택 후 적용<br><br>
+
+    <b style="color:#1a3a2a;">버튼 안내</b><br>
+    • <b>📄 일보 생성하기</b> — 미리보기 생성 + 데이터 저장 + 누계 계산<br>
+    • <b>📤 내보내기</b> — 최종 제출 (잠금) + JSON 다운로드<br>
+    • <b>📥 불러오기</b> — JSON 파일 → 폼 자동 입력<br>
+    • <b>💾 전체 백업</b> — 모든 데이터를 JSON 파일로 저장<br>
+    • <b>📂 전체 복원</b> — 백업 파일로 전체 복원<br>
+    • <b>🖨️ 인쇄</b> — 미리보기 인쇄 / PDF 저장<br>
+    • <b>📊 정산</b> — 정산 보고서 페이지 이동<br>
+    • <b>🔧 계산기</b> — 현장 계산기 모달 (수목중량·면적·근분표)<br>
+    • <b>전체 초기화</b> — 모든 데이터 삭제 <b style="color:#dc2626;">(되돌릴 수 없음)</b><br><br>
+
+    <b style="color:#dc6a00;">🔄 재작성 안내</b><br>
+    내보내기 후 잠금 배너의 🔄 재작성 버튼 클릭 → 사유 입력 → 잠금 해제 → 수정 → 재제출 시 이력 기록.
+
+  </div>
+</div>
+
+<!-- ===== 계산기 모달 ===== -->
+<div id="calc-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.5);display:none;" onclick="if(event.target===this)closeCalc()">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#f5f5f0;border-radius:14px;width:min(680px,96vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="background:#1a3a2a;color:white;padding:13px 18px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <span style="font-size:15px;font-weight:700;">🔧 현장 계산기</span>
+      <button onclick="closeCalc()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:6px;padding:4px 14px;font-size:13px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">✕ 닫기</button>
+    </div>
+    <div style="display:flex;gap:6px;padding:10px 14px 0;flex-shrink:0;">
+      <button class="ctab" id="ctab-tree" onclick="showCalcTab('tree',this)">🌳 수목 중량</button>
+      <button class="ctab" id="ctab-area" onclick="showCalcTab('area',this)">📐 면적 계산</button>
+      <button class="ctab" id="ctab-ref"  onclick="showCalcTab('ref',this)">🌱 근분 규격표</button>
+    </div>
+    <div style="overflow-y:auto;padding:12px 14px 20px;flex:1;">
+
+      <!-- 수목 중량 -->
+      <div id="cpanel-tree">
+        <div style="background:white;border-radius:10px;padding:16px;margin-bottom:10px;">
+          <div style="font-size:14px;font-weight:700;color:#1a3a2a;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #d8f3dc;">🌳 수목 중량 계산기 <span style="font-size:11px;font-weight:400;color:#888;">크레인 용량 산정용</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div class="fg"><label>규격 유형</label>
+              <select id="ct-type" onchange="ctUpdateType()" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;">
+                <option value="root">근원직경 (R)</option><option value="breast">흉고직경 (B)</option>
+              </select></div>
+            <div class="fg"><label id="ct-diam-label">근원직경 (cm)</label>
+              <input id="ct-diam" type="number" placeholder="예: 15" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div>
+            <div class="fg"><label>근분 형태</label>
+              <select id="ct-shape" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;">
+                <option value="sphere">구형 (일반)</option><option value="cone">원추형</option><option value="cylinder">원통형</option>
+              </select></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+            <div class="fg"><label>토양 단위중량</label>
+              <select id="ct-soil" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;">
+                <option value="1.6">1.6 t/m³ (사질)</option><option value="1.7" selected>1.7 t/m³ (표준)</option><option value="1.8">1.8 t/m³ (점성)</option>
+              </select></div>
+            <div class="fg"><label>안전율</label>
+              <select id="ct-safety" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;">
+                <option value="1.3">1.3 (표준)</option><option value="1.4" selected>1.4 (권장)</option><option value="1.5">1.5 (안전)</option>
+              </select></div>
+          </div>
+          <button onclick="calcTreeM()" style="padding:10px 24px;background:#1a3a2a;color:white;border:none;border-radius:7px;font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;">⚖️ 중량 계산</button>
+          <div id="ct-result" style="display:none;margin-top:12px;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);border-radius:10px;padding:14px;color:white;">
+            <div style="font-size:11px;opacity:.75;margin-bottom:10px;">📊 계산 결과</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr) 2fr;gap:8px;">
+              <div style="background:rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">근분 직경</div><div style="font-size:17px;font-weight:700;" id="ct-r-rdiam">-</div><div style="font-size:10px;opacity:.7;">cm</div></div>
+              <div style="background:rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">근분 깊이</div><div style="font-size:17px;font-weight:700;" id="ct-r-rdepth">-</div><div style="font-size:10px;opacity:.7;">cm</div></div>
+              <div style="background:rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">총 중량</div><div style="font-size:17px;font-weight:700;" id="ct-r-total">-</div><div style="font-size:10px;opacity:.7;">ton</div></div>
+              <div style="background:rgba(255,255,255,.2);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">필요 크레인 (총중량×안전율)</div><div style="font-size:22px;font-weight:700;color:#a8f0c0;" id="ct-r-crane">-</div><div style="font-size:10px;opacity:.7;">ton 이상</div></div>
+            </div>
+            <div id="ct-r-guide" style="margin-top:8px;font-size:11px;background:rgba(255,165,0,.2);padding:6px 8px;border-radius:6px;"></div>
+          </div>
+          <div style="font-size:11px;color:#888;margin-top:8px;line-height:1.7;">※ 근분직경=근원직경×4배(흉고×4.5배) / 깊이=직경×0.7<br>※ 본 계산기는 참고용이며, 실제 시공 시 현장 여건을 반드시 확인하십시오.</div>
+        </div>
+      </div>
+
+      <!-- 면적 계산 -->
+      <div id="cpanel-area" style="display:none;">
+        <div style="background:white;border-radius:10px;padding:16px;margin-bottom:10px;">
+          <div style="font-size:14px;font-weight:700;color:#1a3a2a;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #d8f3dc;">📐 면적 계산기</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+            <button class="ctab-shape active" onclick="selectCShape(this,'rect')">■ 사각형</button>
+            <button class="ctab-shape" onclick="selectCShape(this,'circle')">● 원형</button>
+            <button class="ctab-shape" onclick="selectCShape(this,'triangle')">▲ 삼각형</button>
+            <button class="ctab-shape" onclick="selectCShape(this,'trapezoid')">⬟ 사다리꼴</button>
+            <button class="ctab-shape" onclick="selectCShape(this,'ellipse')">⬭ 타원형</button>
+          </div>
+          <div id="ca-inputs"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button onclick="calcAreaM()" style="padding:9px 20px;background:#1a3a2a;color:white;border:none;border-radius:7px;font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;">📐 면적 계산</button>
+            <button onclick="document.getElementById('ca-inputs').querySelectorAll('input').forEach(i=>i.value='');document.getElementById('ca-result').style.display='none';" style="padding:9px 16px;background:#f0f0f0;color:#666;border:none;border-radius:7px;font-size:13px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;">초기화</button>
+          </div>
+          <div id="ca-result" style="display:none;margin-top:12px;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);border-radius:10px;padding:14px;color:white;">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;">
+              <div style="background:rgba(255,255,255,.2);border-radius:7px;padding:8px 12px;"><div style="font-size:10px;opacity:.8;">면적</div><div style="font-size:22px;font-weight:700;color:#a8f0c0;" id="ca-m2">-</div><div style="font-size:10px;opacity:.7;">m²</div></div>
+              <div style="background:rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">평 (坪)</div><div style="font-size:17px;font-weight:700;" id="ca-pyeong">-</div><div style="font-size:10px;opacity:.7;">평</div></div>
+              <div style="background:rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">ha</div><div style="font-size:17px;font-weight:700;" id="ca-ha">-</div><div style="font-size:10px;opacity:.7;">ha</div></div>
+              <div style="background:rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">둘레</div><div style="font-size:17px;font-weight:700;" id="ca-peri">-</div><div style="font-size:10px;opacity:.7;">m</div></div>
+            </div>
+          </div>
+          <div style="border-top:1px solid #eee;margin:14px 0;"></div>
+          <div style="font-size:12px;font-weight:700;color:#1a3a2a;margin-bottom:8px;">🔄 단위 변환 (m² ↔ 평 ↔ ha)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <div class="fg"><label>m² 입력</label><input id="cc-m2" type="number" placeholder="㎡" oninput="convertAreaM('m2')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div>
+            <div class="fg"><label>평 입력</label><input id="cc-pyeong" type="number" placeholder="평" oninput="convertAreaM('pyeong')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div>
+            <div class="fg"><label>ha 입력</label><input id="cc-ha" type="number" placeholder="ha" oninput="convertAreaM('ha')" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 근분 규격표 -->
+      <div id="cpanel-ref" style="display:none;">
+        <div style="background:white;border-radius:10px;padding:16px;">
+          <div style="font-size:14px;font-weight:700;color:#1a3a2a;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #d8f3dc;">🌱 수목 근분 규격 참고표 <span style="font-size:11px;font-weight:400;color:#888;">조경공사 표준시방서 기준</span></div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <button id="cref-root-btn" onclick="showCRefTable('root')" style="padding:7px 16px;border:2px solid #1a3a2a;border-radius:6px;background:#1a3a2a;color:white;font-size:12px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;">근원직경 기준</button>
+            <button id="cref-breast-btn" onclick="showCRefTable('breast')" style="padding:7px 16px;border:2px solid #ddd;border-radius:6px;background:white;color:#666;font-size:12px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;">흉고직경 기준</button>
+          </div>
+          <table id="cref-table-root" style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead><tr style="background:#1a3a2a;color:white;"><th style="padding:7px 10px;">근원직경</th><th style="padding:7px 10px;">근분직경</th><th style="padding:7px 10px;">근분깊이</th><th style="padding:7px 10px;">예상 중량</th></tr></thead>
+            <tbody id="cref-root-body"></tbody>
+          </table>
+          <table id="cref-table-breast" style="width:100%;border-collapse:collapse;font-size:12px;display:none;">
+            <thead><tr style="background:#1a3a2a;color:white;"><th style="padding:7px 10px;">흉고직경</th><th style="padding:7px 10px;">근분직경</th><th style="padding:7px 10px;">근분깊이</th><th style="padding:7px 10px;">예상 중량</th></tr></thead>
+            <tbody id="cref-breast-body"></tbody>
+          </table>
+          <div style="font-size:11px;color:#888;margin-top:10px;line-height:1.7;">※ 근분직경=근원직경×4배, 흉고직경×4.5배 기준 / 깊이=직경×0.7<br>※ 토양 1.7t/m³, 구형 근분, 수체 25% 기준 추산치</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<style>
+.ctab { padding:8px 16px; border:2px solid #ddd; border-radius:7px; background:white; color:#666; font-size:12px; font-weight:700; font-family:'Noto Sans KR',sans-serif; cursor:pointer; }
+.ctab.active, #ctab-tree { border-color:#1a3a2a; background:#1a3a2a; color:white; }
+.ctab-shape { padding:7px 12px; border:1.5px solid #ddd; border-radius:6px; background:white; font-size:12px; font-family:'Noto Sans KR',sans-serif; cursor:pointer; }
+.ctab-shape.active { background:#1a3a2a; color:white; border-color:#1a3a2a; }
+</style>
+
 <datalist id="names-datalist"></datalist>
 <datalist id="equip-datalist"></datalist>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -304,7 +517,9 @@
       locale: { firstDayOfWeek: 0, weekdays: { shorthand:['일','월','화','수','목','금','토'], longhand:['일','월','화','수','목','금','토'] }, months: { shorthand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'], longhand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'] } },
       onDayCreate(dObj, dStr, fp, dayElem) {
         const d = toDateStr(dayElem.dateObj);
-        if (getDailyLogs()[d]) dayElem.classList.add('has-log');
+        const logs = getDailyLogs();
+        const has = Object.keys(logs).some(k => k === d || k.endsWith('||' + d));
+        if (has) dayElem.classList.add('has-log');
       },
       onChange(dates, dateStr) {
         checkLogExists(dateStr);
@@ -365,9 +580,9 @@
   }
   function selectProject(sel) { document.getElementById('i-project').value = sel.value; }
 
-  // ===== 시공회사 관리 =====
+  // ===== 시공사 관리 =====
   function loadCompanies() {
-    const list = JSON.parse(localStorage.getItem('companies') || '["세명조경건설","제일조경개발","명문조경건설"]');
+    const list = JSON.parse(localStorage.getItem('companies') || '[]');
     const sel = document.getElementById('i-company-select');
     sel.innerHTML = '<option value="">-- 선택 또는 새로 입력 --</option>';
     list.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
@@ -376,7 +591,7 @@
     const inp = document.getElementById('i-company');
     const val = inp.value.trim();
     if (!val) return;
-    const list = JSON.parse(localStorage.getItem('companies') || '["세명조경건설","제일조경개발","명문조경건설"]');
+    const list = JSON.parse(localStorage.getItem('companies') || '[]');
     if (list.includes(val)) return;
     list.push(val);
     localStorage.setItem('companies', JSON.stringify(list));
@@ -387,7 +602,7 @@
   function deleteCompany() {
     const sel = document.getElementById('i-company-select');
     const val = sel.value;
-    if (!val) return alert('삭제할 시공회사를 선택해주세요');
+    if (!val) return alert('삭제할 시공사를 선택해주세요');
     if (!confirm(`"${val}" 을 목록에서 삭제할까요?`)) return;
     const list = JSON.parse(localStorage.getItem('companies') || '[]').filter(c => c !== val);
     localStorage.setItem('companies', JSON.stringify(list));
@@ -495,6 +710,176 @@
     loadSupervisors();
   }
 
+  // ===== 데이터 내보내기/불러오기 =====
+  function exportData() {
+    const date = document.getElementById('i-date').value;
+    const manRows = Array.from(document.getElementById('man-list').querySelectorAll('.trow')).map(row => {
+      const f = row.querySelectorAll('input, select.job-sel, select.gongsu-sel');
+      return { job: f[0]?.value||'', name: f[1]?.value||'', gongsu: f[2]?.value||'', note: f[4]?.value||'' };
+    });
+    const eqRows = Array.from(document.getElementById('eq-list').querySelectorAll('.trow')).map(row => {
+      const inp = row.querySelectorAll('input');
+      const equipSel = row.querySelector('select.equip-sel');
+      const todaySel = row.querySelector('select.today-sel');
+      return { name: equipSel?.value||'', spec: inp[0]?.value||'', driver: inp[1]?.value||'', today: todaySel?.value||'', note: inp[3]?.value||'' };
+    });
+    const mtRows = Array.from(document.getElementById('mt-list').querySelectorAll('.trow')).map(row => {
+      const inp = row.querySelectorAll('input');
+      return { item: inp[0]?.value||'', spec: inp[1]?.value||'', unit: inp[2]?.value||'', qty: inp[3]?.value||'', supplier: inp[4]?.value||'', note: inp[5]?.value||'' };
+    });
+    const data = {
+      date, weather: document.getElementById('i-weather').value,
+      temp: document.getElementById('i-temp').value,
+      project: document.getElementById('i-project').value || document.getElementById('i-project-select').value,
+      company: document.getElementById('i-company').value || document.getElementById('i-company-select').value,
+      work: document.getElementById('i-work').value,
+      plan: document.getElementById('i-plan').value,
+      note: document.getElementById('i-note').value,
+      supervisor: document.getElementById('i-supervisor').value || document.getElementById('supervisor-select').value,
+      man: manRows, eq: eqRows, mt: mtRows
+    };
+    const logs = getDailyLogs();
+    const logKey = data.project ? `${data.project}||${date}` : date;
+    if (logs[logKey]?.locked) {
+      if (!confirm('이미 제출된 일보입니다. 다시 내보내기만 할까요?\n(잠금은 유지됩니다)')) return;
+    } else {
+      if (!confirm('내보내기하면 일보가 잠금됩니다.\n제출 후에는 수정할 수 없습니다. 계속할까요?')) return;
+      const prev = logs[logKey];
+      data.locked = true;
+      data.savedAt = new Date().toISOString();
+      if (prev?.revised) {
+        data.revised = true;
+        data.revisedAt = prev.revisedAt;
+        data.revisionReason = prev.revisionReason;
+      }
+      logs[logKey] = data;
+      localStorage.setItem('daily_logs', JSON.stringify(logs));
+      setPcLockMode(true, data.savedAt, data);
+    }
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `작업일보_${date||'미입력'}.json`; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importData() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json';
+    input.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const d = JSON.parse(e.target.result);
+          loadFromData(d);
+          if (d.locked) setPcLockMode(true, d.savedAt, d);
+        } catch { alert('파일을 읽을 수 없습니다.'); }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
+
+  function setPcLockMode(locked, savedAt, log) {
+    let banner = document.getElementById('pc-lock-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'pc-lock-banner';
+      banner.style.cssText = 'background:#fff3cd;border:1.5px solid #ffc107;border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:11px;color:#856404;font-weight:700;';
+      document.querySelector('.input-body').prepend(banner);
+    }
+    if (locked && savedAt) {
+      const d = new Date(savedAt);
+      const ts = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      let html = `<div style="display:flex;justify-content:space-between;align-items:center;">
+        <span>🔒 제출된 일보 (${ts})</span>
+        <button onclick="requestPcRewrite()" style="padding:2px 8px;background:#dc6a00;color:white;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;">🔄 재작성</button>
+      </div>
+      <span style="font-weight:400;font-size:10px;">수정 불가 — 인쇄·내보내기만 가능</span>`;
+      if (log?.revised) {
+        const rd = new Date(log.revisedAt);
+        const rts = `${rd.getFullYear()}-${String(rd.getMonth()+1).padStart(2,'0')}-${String(rd.getDate()).padStart(2,'0')} ${String(rd.getHours()).padStart(2,'0')}:${String(rd.getMinutes()).padStart(2,'0')}`;
+        html += `<div style="margin-top:4px;padding:4px 6px;background:#fff3e0;border-radius:4px;color:#e65100;font-size:10px;">⚠️ 재작성됨 — ${rts} / 사유: ${log.revisionReason}</div>`;
+      }
+      banner.innerHTML = html;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+    document.querySelectorAll('.input-body input, .input-body select, .input-body textarea').forEach(el => {
+      if (['i-date','i-project-select','i-company-select','supervisor-select','job-select','name-select','equip-select'].includes(el.id)) return;
+      el.disabled = locked;
+    });
+    document.querySelectorAll('.btn-gen, .btn-add, .btn-del, .btn-save, [onclick*="save"], [onclick*="delete"], [onclick*="Delete"], [onclick*="add"], [onclick*="Add"]').forEach(el => {
+      el.disabled = locked; el.style.opacity = locked ? '0.4' : '1';
+    });
+  }
+
+  function requestPcRewrite() {
+    const reason = prompt('재작성 사유를 입력해주세요:\n(예: 인력 공수 오입력, 날짜 오류 등)');
+    if (!reason || !reason.trim()) return;
+    const date = document.getElementById('i-date').value;
+    const project = document.getElementById('i-project').value || document.getElementById('i-project-select').value;
+    const logKey = project ? `${project}||${date}` : date;
+    const logs = getDailyLogs();
+    if (logs[logKey]) {
+      logs[logKey].revised = true;
+      logs[logKey].revisedAt = new Date().toISOString();
+      logs[logKey].revisionReason = reason.trim();
+      logs[logKey].locked = false;
+      localStorage.setItem('daily_logs', JSON.stringify(logs));
+    }
+    setPcLockMode(false, null);
+    alert('잠금이 해제되었습니다.\n수정 후 📤 내보내기로 재제출하면\n재작성 이력이 파일에 기록됩니다.');
+  }
+
+  function loadFromData(d) {
+    if (d.date) { document.getElementById('i-date').value = d.date; if(fpInstance) fpInstance.setDate(d.date); checkLogExists(d.date); }
+    document.getElementById('i-project').value = d.project||'';
+    document.getElementById('i-project-select').value = d.project||'';
+    document.getElementById('i-company').value = d.company||'';
+    document.getElementById('i-company-select').value = d.company||'';
+    document.getElementById('i-weather').value = d.weather||'맑음 ☀️';
+    document.getElementById('i-temp').value = d.temp||'';
+    document.getElementById('i-work').value = d.work||'';
+    document.getElementById('i-plan').value = d.plan||'';
+    document.getElementById('i-note').value = d.note||'';
+    document.getElementById('i-supervisor').value = d.supervisor||'';
+    document.getElementById('supervisor-select').value = d.supervisor||'';
+    const manList = document.getElementById('man-list');
+    manList.innerHTML = '';
+    (d.man?.length ? d.man : [{}]).forEach(m => {
+      addMan();
+      const row = manList.lastElementChild;
+      const f = row.querySelectorAll('input, select.job-sel, select.gongsu-sel');
+      f[0].value = m.job||''; f[1].value = m.name||''; f[2].value = m.gongsu||'';
+      if(f[4]) f[4].value = m.note||'';
+    });
+    const eqList = document.getElementById('eq-list');
+    eqList.innerHTML = '';
+    (d.eq?.length ? d.eq : [{}]).forEach(e => {
+      addEq();
+      const row = eqList.lastElementChild;
+      const inp = row.querySelectorAll('input');
+      const equipSel = row.querySelector('select.equip-sel');
+      const ts = row.querySelector('select.today-sel');
+      if(equipSel) equipSel.value = e.name||''; inp[0].value = e.spec||''; inp[1].value = e.driver||'';
+      if(ts) ts.value = e.today||''; if(inp[3]) inp[3].value = e.note||'';
+    });
+    const mtList = document.getElementById('mt-list');
+    mtList.innerHTML = '';
+    (d.mt?.length ? d.mt : [{}]).forEach(m => {
+      addMt();
+      const row = mtList.lastElementChild;
+      const inp = row.querySelectorAll('input');
+      inp[0].value = m.item||''; inp[1].value = m.spec||''; inp[2].value = m.unit||'';
+      inp[3].value = m.qty||''; inp[4].value = m.supplier||''; inp[5].value = m.note||'';
+    });
+    generate();
+  }
+
   // ===== 전체 초기화 =====
   function resetAll() {
     if (!confirm('모든 데이터를 초기화합니다.\n(공사명·직종·성명·장비명·현장대리인 목록 및 누계 기록 전부 삭제)\n\n계속하시겠습니까?')) return;
@@ -516,17 +901,22 @@
   }
 
   // ===== 장비명 관리 =====
+  const EQUIP_DEFAULT = '["굴삭기","지게차","카고크레인","화물트럭"]';
+  function getEquipOptions() {
+    const list = JSON.parse(localStorage.getItem('equip_names') || EQUIP_DEFAULT);
+    return '<option value="">장비명</option>' + list.map(e => `<option value="${e}">${e}</option>`).join('');
+  }
   function loadEquipNames() {
-    const list = JSON.parse(localStorage.getItem('equip_names') || '[]');
+    const list = JSON.parse(localStorage.getItem('equip_names') || EQUIP_DEFAULT);
     const sel = document.getElementById('equip-select');
     sel.innerHTML = '<option value="">-- 장비명 선택 --</option>' + list.map(n => `<option value="${n}">${n}</option>`).join('');
-    document.getElementById('equip-datalist').innerHTML = list.map(n => `<option value="${n}">`).join('');
+    document.querySelectorAll('.equip-sel').forEach(s => { const cur = s.value; s.innerHTML = getEquipOptions(); s.value = cur; });
   }
   function saveEquip() {
     const inp = document.getElementById('equip-input');
     const val = inp.value.trim();
     if (!val) return;
-    const list = JSON.parse(localStorage.getItem('equip_names') || '[]');
+    const list = JSON.parse(localStorage.getItem('equip_names') || EQUIP_DEFAULT);
     if (list.includes(val)) { inp.select(); return; }
     list.push(val);
     localStorage.setItem('equip_names', JSON.stringify(list));
@@ -539,15 +929,22 @@
     const val = sel.value;
     if (!val) return alert('삭제할 장비명을 선택해주세요');
     if (!confirm(`"${val}" 을 목록에서 삭제할까요?`)) return;
-    const list = JSON.parse(localStorage.getItem('equip_names') || '[]').filter(n => n !== val);
+    const list = JSON.parse(localStorage.getItem('equip_names') || EQUIP_DEFAULT).filter(n => n !== val);
     localStorage.setItem('equip_names', JSON.stringify(list));
     loadEquipNames();
   }
 
   // ===== 과거 일보 불러오기 =====
+  function getLogKey(date) {
+    const proj = document.getElementById('i-project').value || document.getElementById('i-project-select').value;
+    return proj ? `${proj}||${date}` : date;
+  }
+
   function checkLogExists(date) {
     const btn = document.getElementById('btn-load');
-    const has = !!getDailyLogs()[date];
+    const logs = getDailyLogs();
+    const key = getLogKey(date);
+    const has = !!(logs[key] || logs[date]);
     btn.disabled = !has;
     btn.style.background = has ? '#d8f3dc' : '#f0f0f0';
     btn.style.color      = has ? '#2d6a4f' : '#aaa';
@@ -557,7 +954,8 @@
 
   function loadLog() {
     const date = document.getElementById('i-date').value;
-    const log  = getDailyLogs()[date];
+    const logs = getDailyLogs();
+    const log  = logs[getLogKey(date)] || logs[date];
     if (!log) return;
 
     // 기본 필드
@@ -593,12 +991,13 @@
       addEq();
       const row = eqList.lastElementChild;
       const inp = row.querySelectorAll('input');
+      const equipSel = row.querySelector('select.equip-sel');
       const todaySel = row.querySelector('select.today-sel');
-      inp[0].value = e.name   || '';
-      inp[1].value = e.spec   || '';
-      inp[2].value = e.driver || '';
+      if (equipSel) equipSel.value = e.name   || '';
+      inp[0].value = e.spec   || '';
+      inp[1].value = e.driver || '';
       if (todaySel) todaySel.value = e.today || '';
-      if (inp[4]) inp[4].value = e.note || '';
+      if (inp[3]) inp[3].value = e.note || '';
     });
 
     // 자재 행
@@ -617,25 +1016,28 @@
     });
 
     generate();
+    setPcLockMode(!!log.locked, log.savedAt, log);
   }
 
   // ===== 초기 로드 =====
+  if (!localStorage.getItem('equip_names') || JSON.parse(localStorage.getItem('equip_names')).length === 0)
+    localStorage.setItem('equip_names', JSON.stringify(["굴삭기","지게차","카고크레인","화물트럭"]));
   loadProjects(); loadCompanies(); loadJobs(); loadNames(); loadSupervisors(); loadEquipNames(); initDatePicker();
 
   // ===== 행 관리 =====
-  function delRow(btn) { btn.closest('.trow').remove(); }
+  function delRow(btn) { btn.closest('.trow').remove(); updateManTotal(); }
 
   function addMan() {
     const d = document.createElement('div');
     d.className = 'trow manrow';
-    d.innerHTML = `<select class="job-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;">${getJobOptions()}</select><input class="name-sel" list="names-datalist" placeholder="성명"><select class="gongsu-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">공수</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select><input placeholder="누계" readonly style="background:#f0f0f0"><input placeholder="비고"><button class="btn-del" onclick="delRow(this)">✕</button>`;
+    d.innerHTML = `<select class="job-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;">${getJobOptions()}</select><input class="name-sel" list="names-datalist" placeholder="성명"><select class="gongsu-sel" onchange="updateManTotal()" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">공수</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select><input placeholder="누계" readonly style="background:#f0f0f0"><input placeholder="비고"><button class="btn-del" onclick="delRow(this)">✕</button>`;
     document.getElementById('man-list').appendChild(d);
   }
 
   function addEq() {
     const d = document.createElement('div');
     d.className = 'trow eqrow';
-    d.innerHTML = `<input placeholder="장비명" list="equip-datalist"><input placeholder="규격"><input placeholder="성명"><select class="today-sel" onchange="calcEq(this)" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">금일</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select><input placeholder="누계" readonly style="background:#f0f0f0"><input placeholder="비고"><button class="btn-del" onclick="delRow(this)">✕</button>`;
+    d.innerHTML = `<select class="equip-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;">${getEquipOptions()}</select><input placeholder="규격"><input placeholder="성명"><select class="today-sel" onchange="calcEq(this)" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">금일</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select><input placeholder="누계" readonly style="background:#f0f0f0"><input placeholder="비고"><button class="btn-del" onclick="delRow(this)">✕</button>`;
     document.getElementById('eq-list').appendChild(d);
   }
 
@@ -686,7 +1088,7 @@
 
   function generate() {
     const project    = document.getElementById('i-project').value || document.getElementById('i-project-select').value || '';
-    const company    = document.getElementById('i-company').value || '';
+    const company    = document.getElementById('i-company').value || document.getElementById('i-company-select').value || '';
     const date       = document.getElementById('i-date').value;
     const weather    = document.getElementById('i-weather').value;
     const temp       = document.getElementById('i-temp').value;
@@ -704,8 +1106,9 @@
     // 장비 행 수집 (inputs: 장비명, 규격, 성명, 누계readonly, 비고)
     const eqData = Array.from(document.getElementById('eq-list').querySelectorAll('.trow')).map(row => {
       const inp = row.querySelectorAll('input');
+      const equipSel = row.querySelector('select.equip-sel');
       const todaySel = row.querySelector('select.today-sel');
-      return { name: inp[0]?.value||'', spec: inp[1]?.value||'', driver: inp[2]?.value||'', today: todaySel?.value||'', nugyeEl: inp[3], note: inp[4]?.value||'' };
+      return { name: equipSel?.value||'', spec: inp[0]?.value||'', driver: inp[1]?.value||'', today: todaySel?.value||'', nugyeEl: inp[2], note: inp[3]?.value||'' };
     }).filter(r => r.name || r.today);
 
     const mtRows = getRows('mt-list', 6);
@@ -723,7 +1126,8 @@
     // 오늘 데이터 저장 (전체)
     if (date) {
       const logs = getDailyLogs();
-      logs[date] = {
+      const logKey = project ? `${project}||${date}` : date;
+      logs[logKey] = {
         project, company, weather, temp, work, plan, note, supervisor,
         man: manData.map(r => ({ job: r.job, name: r.name, gongsu: r.gongsu, note: r.note })),
         eq:  eqData.map(r => ({ name: r.name, spec: r.spec, driver: r.driver, today: r.today, note: r.note })),
@@ -734,45 +1138,37 @@
       if (fpInstance) fpInstance.redraw();
     }
 
-    const mainRows = Math.max(manData.length, eqData.length, 8);
-    const mtCount  = Math.max(mtRows.length, 5);
+    const manCount = Math.max(manData.length, 24);
+    const eqCount  = Math.max(eqData.length, 10);
+    const mtCount  = Math.max(mtRows.length, 12);
 
-    const manTds = (i) => {
+    let manTableRows = '';
+    for (let i = 0; i < manCount; i++) {
       if (i < manData.length) {
         const r = manData[i];
-        return `${td(r.job,'left')}${td(r.name,'left')}${td(r.gongsu)}${td(r.cumul)}${td(r.note,'left')}`;
+        manTableRows += `<tr>${td(r.job,'left')}${td(r.name,'left')}${td(r.gongsu)}${td(r.cumul)}${td(r.note,'left')}</tr>`;
+      } else {
+        manTableRows += `<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
       }
-      return `<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>`;
-    };
-    const eqTds = (i) => {
+    }
+
+    let eqTableRows = '';
+    for (let i = 0; i < eqCount; i++) {
       if (i < eqData.length) {
         const r = eqData[i];
-        return `${td(r.name,'left')}${td(r.spec)}${td(r.driver,'left')}${td(r.today)}${td(r.cumul)}${td(r.note,'left')}`;
+        eqTableRows += `<tr>${td(r.name,'left')}${td(r.spec)}${td(r.driver,'left')}${td(r.today)}${td(r.cumul)}${td(r.note,'left')}</tr>`;
+      } else {
+        eqTableRows += `<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
       }
-      return `<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>`;
-    };
-
-    let tableRows = '';
-    for (let i = 0; i < mainRows; i++) {
-      tableRows += `<tr>${manTds(i)}${eqTds(i)}</tr>`;
     }
-    tableRows += `
-      <tr>
-        ${manTds(mainRows)}
-        <td colspan="6" class="th-group">자 재 반 입 현 황</td>
-      </tr>
-      <tr>
-        ${manTds(mainRows + 1)}
-        <td class="th-sub">품명</td><td class="th-sub">규격</td><td class="th-sub">단위</td>
-        <td class="th-sub">수량</td><td class="th-sub">거래처</td><td class="th-sub">비고</td>
-      </tr>`;
+
+    let mtTableRows = '';
     for (let i = 0; i < mtCount; i++) {
-      const manIdx = mainRows + 2 + i;
       if (i < mtRows.length) {
         const r = mtRows[i];
-        tableRows += `<tr>${manTds(manIdx)}${td(r[0],'left')}${td(r[1])}${td(r[2])}${td(r[3])}${td(r[4],'left')}${td(r[5],'left')}</tr>`;
+        mtTableRows += `<tr>${td(r[0],'left')}${td(r[1])}${td(r[2])}${td(r[3])}${td(r[4],'left')}${td(r[5],'left')}</tr>`;
       } else {
-        tableRows += `<tr>${manTds(manIdx)}<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
+        mtTableRows += `<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
       }
     }
 
@@ -799,53 +1195,385 @@
           </tr>
         </table>
       </div>
-      <div style="font-size:11px; margin-bottom:3px;"><strong>시공회사 :</strong> ${company}</div>
-      <div style="font-size:11px; margin-bottom:3px; display:flex; justify-content:space-between;">
+      <div style="font-size:13px; margin-bottom:3px;"><strong>시 공 사 :</strong> ${company}</div>
+      <div style="font-size:13px; margin-bottom:3px; display:flex; justify-content:space-between;">
         <span><strong>공 사 명 :</strong> ${project}</span>
-        <span><strong>날 씨 :</strong> ${weather}</span>
+        <span><strong>날 씨 :</strong> ${weather}&nbsp;&nbsp;<strong>기 온 :</strong> ${temp||'-'}</span>
       </div>
-      <div style="font-size:11px; margin-bottom:5px; display:flex; justify-content:space-between;">
+      <div style="font-size:13px; margin-bottom:5px;">
         <span><strong>작 성 일 :</strong> ${dateStr}</span>
-        <span><strong>기 온 :</strong> ${temp||'-'}</span>
       </div>
-      <table class="doc-main">
-        <thead>
-          <tr>
-            <td colspan="5" class="th-group">인 력 투 입 현 황</td>
-            <td colspan="6" class="th-group">장 비 투 입 현 황</td>
-          </tr>
-          <tr>
-            <td class="th-sub" style="width:8%">직종</td>
-            <td class="th-sub" style="width:9%">성명</td>
-            <td class="th-sub" style="width:5%">공수</td>
-            <td class="th-sub" style="width:5%">누계</td>
-            <td class="th-sub" style="width:11%">비고</td>
-            <td class="th-sub" style="width:12%">장비명</td>
-            <td class="th-sub" style="width:7%">규격</td>
-            <td class="th-sub" style="width:9%">성명</td>
-            <td class="th-sub" style="width:5%">금일</td>
-            <td class="th-sub" style="width:5%">누계</td>
-            <td class="th-sub" style="width:9%">비고</td>
-          </tr>
-        </thead>
-        <tbody>
-          ${tableRows}
-          <tr>
-            <td colspan="5" class="th-group" style="letter-spacing:3px">작 업 내 용</td>
-            <td colspan="6" class="th-group" style="letter-spacing:3px">작 업 계 획</td>
-          </tr>
-          <tr>
-            <td colspan="5" style="height:100px; vertical-align:top; text-align:left; padding:6px; white-space:pre-line">${work||''}</td>
-            <td colspan="6" style="height:100px; vertical-align:top; text-align:left; padding:6px; white-space:pre-line">${plan||''}</td>
-          </tr>
-        </tbody>
+      <!-- 상단 70%: 인력(좌) | 장비+자재(우) -->
+      <div style="display:flex; align-items:stretch;">
+        <!-- 인력투입현황 (좌 50%) -->
+        <table class="doc-main man-table" style="width:50%; flex-shrink:0;">
+          <thead>
+            <tr><td colspan="5" class="th-group">인 력 투 입 현 황</td></tr>
+            <tr>
+              <td class="th-sub" style="width:20%">직종</td>
+              <td class="th-sub" style="width:22%">성명</td>
+              <td class="th-sub" style="width:10%">공수</td>
+              <td class="th-sub" style="width:10%">누계</td>
+              <td class="th-sub" style="width:38%">비고</td>
+            </tr>
+          </thead>
+          <tbody>${manTableRows}</tbody>
+        </table>
+        <!-- 우측 50%: 장비(위) + 자재(아래) -->
+        <div style="width:50%; flex-shrink:0; display:flex; flex-direction:column;">
+          <table class="doc-main" style="width:100%;">
+            <thead>
+              <tr><td colspan="6" class="th-group">장 비 투 입 현 황</td></tr>
+              <tr>
+                <td class="th-sub" style="width:24%">장비명</td>
+                <td class="th-sub" style="width:12%">규격</td>
+                <td class="th-sub" style="width:16%">성명</td>
+                <td class="th-sub" style="width:11%">금일</td>
+                <td class="th-sub" style="width:11%">누계</td>
+                <td class="th-sub" style="width:26%">비고</td>
+              </tr>
+            </thead>
+            <tbody>${eqTableRows}</tbody>
+          </table>
+          <table class="doc-main" style="width:100%; margin-top:-1px;">
+            <thead>
+              <tr><td colspan="6" class="th-group">자 재 반 입 현 황</td></tr>
+              <tr>
+                <td class="th-sub" style="width:28%">품명</td>
+                <td class="th-sub" style="width:12%">규격</td>
+                <td class="th-sub" style="width:9%">단위</td>
+                <td class="th-sub" style="width:8%">수량</td>
+                <td class="th-sub" style="width:22%">거래처</td>
+                <td class="th-sub" style="width:21%">비고</td>
+              </tr>
+            </thead>
+            <tbody>${mtTableRows}</tbody>
+          </table>
+        </div>
+      </div>
+      <!-- 하단 30%: 작업내용/계획 -->
+      <table class="doc-main" style="width:100%; margin-top:-1px;">
+        <tr>
+          <td class="th-group" style="width:50%; letter-spacing:3px; border-top:none;">작 업 내 용</td>
+          <td class="th-group" style="width:50%; letter-spacing:3px; border-top:none;">작 업 계 획</td>
+        </tr>
+        <tr>
+          <td style="width:50%; height:45mm; vertical-align:top; text-align:left; padding:6px; white-space:pre-line; border-top:none;">${work||''}</td>
+          <td style="width:50%; height:45mm; vertical-align:top; text-align:left; padding:6px; white-space:pre-line; border-top:none;">${plan||''}</td>
+        </tr>
       </table>
-      <div style="margin-top:6px; font-size:11px; border-top:1px solid #333; padding-top:5px; display:flex; justify-content:space-between; align-items:center;">
-        <span><strong>비 고 :</strong> ${note||''}</span>
-        <span><strong>현장대리인 :</strong>&nbsp;${supervisor}&nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size:10px">(인)</span></span>
-      </div>
+      <!-- 비고/현장대리인 -->
+      <table style="width:100%; border-collapse:collapse; margin-top:-1px; font-size:11px;">
+        <tr>
+          <td style="border:0.5px solid #222; padding:6px 8px; width:62%; height:50px; vertical-align:middle;">
+            <strong>비 고 :</strong>&nbsp;${note||''}
+          </td>
+          <td style="border:0.5px solid #222; border-left:none; padding:6px 8px; width:38%; height:36px; text-align:center; vertical-align:middle;">
+            <strong>현 장 대 리 인 :</strong>&nbsp;${supervisor}&nbsp;&nbsp;<span style="font-size:10px">(인)</span>
+          </td>
+        </tr>
+      </table>
       <div style="text-align:right; font-size:11px; font-weight:700; margin-top:4px;">${company}</div>
     </div>`;
+  }
+
+  // ===== 도움말 =====
+  function openHelp() {
+    const win = document.getElementById('help-win');
+    win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
+  }
+  function closeHelp() {
+    document.getElementById('help-win').style.display = 'none';
+  }
+  (function initDrag() {
+    const win = document.getElementById('help-win');
+    const bar = document.getElementById('help-win-bar');
+    let dragging = false, ox = 0, oy = 0;
+    function start(cx, cy) {
+      dragging = true;
+      const r = win.getBoundingClientRect();
+      win.style.right = 'auto'; win.style.bottom = 'auto';
+      win.style.left = r.left + 'px'; win.style.top = r.top + 'px';
+      ox = cx - r.left; oy = cy - r.top;
+      bar.style.cursor = 'grabbing';
+    }
+    function move(cx, cy) {
+      if (!dragging) return;
+      win.style.left = Math.max(0, Math.min(cx - ox, window.innerWidth  - win.offsetWidth )) + 'px';
+      win.style.top  = Math.max(0, Math.min(cy - oy, window.innerHeight - win.offsetHeight)) + 'px';
+    }
+    function end() { dragging = false; bar.style.cursor = 'grab'; }
+    bar.addEventListener('mousedown',  e => { start(e.clientX, e.clientY); e.preventDefault(); });
+    document.addEventListener('mousemove',  e => move(e.clientX, e.clientY));
+    document.addEventListener('mouseup',    end);
+    bar.addEventListener('touchstart', e => { const t=e.touches[0]; start(t.clientX,t.clientY); e.preventDefault(); }, { passive:false });
+    document.addEventListener('touchmove',  e => { if(dragging){const t=e.touches[0];move(t.clientX,t.clientY);e.preventDefault();} }, { passive:false });
+    document.addEventListener('touchend',   end);
+  })();
+
+  // ===== 인력 총 공수 합계 =====
+  function updateManTotal() {
+    let total = 0;
+    document.querySelectorAll('#man-list .gongsu-sel').forEach(sel => {
+      total += parseFloat(sel.value) || 0;
+    });
+    const badge = document.getElementById('man-total-badge');
+    if (!badge) return;
+    if (total > 0) {
+      badge.textContent = `합계 ${total}명`;
+      badge.style.display = 'inline';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // ===== 전날 인력·장비 복사 =====
+  function copyPrevDay() {
+    const dateEl = document.getElementById('i-date');
+    if (!dateEl.value) { alert('날짜를 먼저 선택해주세요.'); return; }
+    const d = new Date(dateEl.value);
+    d.setDate(d.getDate() - 1);
+    const prevDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const project = document.getElementById('i-project').value || document.getElementById('i-project-select').value;
+    const logs = getDailyLogs();
+    const log = logs[project ? `${project}||${prevDate}` : prevDate] || logs[prevDate];
+    if (!log) { alert(`${prevDate} 저장된 일보가 없습니다.\n전날 일보 생성하기를 먼저 눌러야 복사할 수 있습니다.`); return; }
+    if (!confirm(`${prevDate} 인력·장비 데이터를 복사할까요?\n현재 인력·장비 입력 내용은 초기화됩니다.`)) return;
+    const manList = document.getElementById('man-list');
+    manList.innerHTML = '';
+    (log.man?.length ? log.man : [{}]).forEach(m => {
+      addMan();
+      const row = manList.lastElementChild;
+      const f = row.querySelectorAll('input, select.job-sel, select.gongsu-sel');
+      f[0].value = m.job || ''; f[1].value = m.name || ''; f[2].value = m.gongsu || '';
+    });
+    if (!manList.children.length) addMan();
+    const eqList = document.getElementById('eq-list');
+    eqList.innerHTML = '';
+    (log.eq?.length ? log.eq : [{}]).forEach(e => {
+      addEq();
+      const row = eqList.lastElementChild;
+      const inp = row.querySelectorAll('input');
+      const equipSel = row.querySelector('select.equip-sel');
+      const todaySel = row.querySelector('select.today-sel');
+      if (equipSel) equipSel.value = e.name || '';
+      inp[0].value = e.spec || ''; inp[1].value = e.driver || '';
+      if (todaySel) todaySel.value = e.today || '';
+    });
+    if (!eqList.children.length) addEq();
+    updateManTotal();
+  }
+
+  // ===== 작업내용 템플릿 =====
+  function getWorkTemplates() {
+    return JSON.parse(localStorage.getItem('work_templates') || '[]');
+  }
+  function saveWorkTemplate() {
+    const work = document.getElementById('i-work').value.trim();
+    const plan = document.getElementById('i-plan').value.trim();
+    if (!work && !plan) { alert('작업내용 또는 계획을 먼저 입력해주세요.'); return; }
+    const name = prompt('템플릿 이름을 입력하세요:\n(예: 토공사, 철근콘크리트 등)');
+    if (!name || !name.trim()) return;
+    const templates = getWorkTemplates();
+    const idx = templates.findIndex(t => t.name === name.trim());
+    if (idx >= 0) {
+      if (!confirm(`"${name.trim()}" 템플릿을 덮어쓸까요?`)) return;
+      templates[idx] = { name: name.trim(), work, plan };
+    } else {
+      templates.push({ name: name.trim(), work, plan });
+    }
+    localStorage.setItem('work_templates', JSON.stringify(templates));
+    alert('템플릿이 저장되었습니다.');
+  }
+  function toggleTplModal() {
+    const modal = document.getElementById('tpl-modal');
+    const isHidden = modal.style.display === 'none' || modal.style.display === '';
+    if (isHidden) {
+      const templates = getWorkTemplates();
+      if (templates.length === 0) { alert('저장된 템플릿이 없습니다.\n작업내용 입력 후 💾 저장 버튼을 눌러보세요.'); return; }
+      document.getElementById('tpl-select').innerHTML = '<option value="">-- 템플릿 선택 --</option>' + templates.map((t, i) => `<option value="${i}">${t.name}</option>`).join('');
+    }
+    modal.style.display = isHidden ? 'block' : 'none';
+  }
+  function applyTemplate() {
+    const idx = document.getElementById('tpl-select').value;
+    if (idx === '') { alert('템플릿을 선택해주세요.'); return; }
+    const t = getWorkTemplates()[parseInt(idx)];
+    if (!t) return;
+    const work = document.getElementById('i-work').value;
+    const plan = document.getElementById('i-plan').value;
+    if ((work || plan) && !confirm('현재 작업내용/계획을 템플릿으로 덮어쓸까요?')) return;
+    document.getElementById('i-work').value = t.work || '';
+    document.getElementById('i-plan').value = t.plan || '';
+    document.getElementById('tpl-modal').style.display = 'none';
+  }
+  function deleteTemplate() {
+    const idx = document.getElementById('tpl-select').value;
+    if (idx === '') { alert('삭제할 템플릿을 선택해주세요.'); return; }
+    const templates = getWorkTemplates();
+    if (!confirm(`"${templates[parseInt(idx)].name}" 템플릿을 삭제할까요?`)) return;
+    templates.splice(parseInt(idx), 1);
+    localStorage.setItem('work_templates', JSON.stringify(templates));
+    document.getElementById('tpl-select').innerHTML = '<option value="">-- 템플릿 선택 --</option>' + templates.map((t, i) => `<option value="${i}">${t.name}</option>`).join('');
+    if (templates.length === 0) document.getElementById('tpl-modal').style.display = 'none';
+  }
+
+  // ===== 전체 백업/복원 =====
+  function backupAll() {
+    const backup = { _backupDate: new Date().toISOString() };
+    ['projects','companies','jobs','names','equip_names','supervisors','daily_logs','unit_prices','work_templates'].forEach(k => {
+      const v = localStorage.getItem(k);
+      if (v) { try { backup[k] = JSON.parse(v); } catch { backup[k] = v; } }
+    });
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `공사일지_백업_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  function restoreAll() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json';
+    input.onchange = e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const backup = JSON.parse(ev.target.result);
+          if (!confirm('백업 파일로 전체 데이터를 복원합니다.\n현재 저장된 모든 데이터가 교체됩니다. 계속할까요?')) return;
+          ['projects','companies','jobs','names','equip_names','supervisors','daily_logs','unit_prices','work_templates'].forEach(k => {
+            if (backup[k] !== undefined) localStorage.setItem(k, JSON.stringify(backup[k]));
+          });
+          alert('복원이 완료되었습니다. 페이지를 새로고침합니다.');
+          location.reload();
+        } catch { alert('올바른 백업 파일이 아닙니다.'); }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
+
+  // ===== 계산기 모달 =====
+  function openCalc() {
+    const m = document.getElementById('calc-modal');
+    m.style.display = 'block';
+    buildCRefTables();
+    // 첫 탭 활성화
+    document.getElementById('ctab-tree').className = 'ctab active';
+    document.getElementById('ctab-area').className = 'ctab';
+    document.getElementById('ctab-ref').className  = 'ctab';
+    document.getElementById('cpanel-tree').style.display = 'block';
+    document.getElementById('cpanel-area').style.display = 'none';
+    document.getElementById('cpanel-ref').style.display  = 'none';
+  }
+  function closeCalc() { document.getElementById('calc-modal').style.display = 'none'; }
+  function showCalcTab(id) {
+    ['tree','area','ref'].forEach(t => {
+      document.getElementById('cpanel-' + t).style.display = t === id ? 'block' : 'none';
+      document.getElementById('ctab-' + t).className = 'ctab' + (t === id ? ' active' : '');
+    });
+    if (id === 'area') initCAreaInputs();
+  }
+
+  // -- 수목 중량 --
+  function ctUpdateType() {
+    const t = document.getElementById('ct-type').value;
+    document.getElementById('ct-diam-label').textContent = t === 'root' ? '근원직경 (cm)' : '흉고직경 (cm)';
+    document.getElementById('ct-diam').placeholder = t === 'root' ? '예: 15' : '예: 10';
+  }
+  function calcTreeM() {
+    const diam = parseFloat(document.getElementById('ct-diam').value);
+    if (!diam || diam <= 0) { alert('직경을 입력해주세요.'); return; }
+    const type = document.getElementById('ct-type').value;
+    const shape = document.getElementById('ct-shape').value;
+    const soil = parseFloat(document.getElementById('ct-soil').value);
+    const safety = parseFloat(document.getElementById('ct-safety').value);
+    const mult = type === 'root' ? 4.0 : 4.5;
+    const rd = diam * mult, rh = rd * 0.7;
+    const r = rd / 2 / 100, h = rh / 100;
+    let vol;
+    if (shape === 'sphere')   vol = (4/3) * Math.PI * r * r * r * 0.5;
+    else if (shape === 'cylinder') vol = Math.PI * r * r * h;
+    else vol = (Math.PI / 3) * r * r * h;
+    const soilWt = vol * soil, total = soilWt * 1.25, crane = total * safety;
+    document.getElementById('ct-r-rdiam').textContent  = rd.toFixed(0);
+    document.getElementById('ct-r-rdepth').textContent = rh.toFixed(0);
+    document.getElementById('ct-r-total').textContent  = total.toFixed(3);
+    document.getElementById('ct-r-crane').textContent  = crane.toFixed(2);
+    const c = crane;
+    const g = c<=3?`3톤 크레인`:c<=5?`5톤 크레인`:c<=8?`8톤 크레인`:c<=12?`12톤 크레인`:c<=16?`16톤 크레인`:c<=25?`25톤 크레인`:c<=50?`50톤 크레인`:`대형 크레인 (전문업체 문의)`;
+    document.getElementById('ct-r-guide').textContent = `🏗️ 크레인 선정: ${g} (${crane.toFixed(2)}t)`;
+    document.getElementById('ct-result').style.display = 'block';
+  }
+
+  // -- 면적 계산 --
+  let cCurrentShape = 'rect';
+  const cShapeInputs = {
+    rect: `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div class="fg"><label>가로 (m)</label><input id="ca-w" type="number" step="0.1" placeholder="가로" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div><div class="fg"><label>세로 (m)</label><input id="ca-h" type="number" step="0.1" placeholder="세로" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div></div>`,
+    circle: `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div class="fg"><label>반지름 (m)</label><input id="ca-r" type="number" step="0.1" placeholder="반지름" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div><div class="fg"><label>또는 지름 (m)</label><input id="ca-d" type="number" step="0.1" placeholder="지름" oninput="document.getElementById('ca-r').value=(parseFloat(this.value)||0)/2||''" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div></div>`,
+    triangle: `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div class="fg"><label>밑변 (m)</label><input id="ca-b" type="number" step="0.1" placeholder="밑변" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div><div class="fg"><label>높이 (m)</label><input id="ca-h" type="number" step="0.1" placeholder="높이" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div></div>`,
+    trapezoid: `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;"><div class="fg"><label>윗변 (m)</label><input id="ca-t" type="number" step="0.1" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div><div class="fg"><label>아랫변 (m)</label><input id="ca-b" type="number" step="0.1" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div><div class="fg"><label>높이 (m)</label><input id="ca-h" type="number" step="0.1" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div></div>`,
+    ellipse: `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div class="fg"><label>장축 전체 길이 (m)</label><input id="ca-ra" type="number" step="0.1" placeholder="가로 전체" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div><div class="fg"><label>단축 전체 길이 (m)</label><input id="ca-rb" type="number" step="0.1" placeholder="세로 전체" style="width:100%;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;font-family:'Noto Sans KR',sans-serif;"></div></div><div style="font-size:11px;color:#888;margin-top:4px;">※ 타원의 가로·세로 전체 길이를 입력하세요 (반지름 아님)</div>`
+  };
+  function initCAreaInputs() {
+    document.getElementById('ca-inputs').innerHTML = cShapeInputs[cCurrentShape];
+    document.getElementById('ca-result').style.display = 'none';
+  }
+  function selectCShape(btn, shape) {
+    document.querySelectorAll('.ctab-shape').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    cCurrentShape = shape;
+    initCAreaInputs();
+  }
+  function calcAreaM() {
+    let area = 0, peri = 0;
+    const g = id => parseFloat(document.getElementById(id)?.value) || 0;
+    if (cCurrentShape === 'rect')      { area=g('ca-w')*g('ca-h'); peri=2*(g('ca-w')+g('ca-h')); }
+    else if (cCurrentShape === 'circle')    { const r=g('ca-r'); area=Math.PI*r*r; peri=2*Math.PI*r; }
+    else if (cCurrentShape === 'triangle')  { area=0.5*g('ca-b')*g('ca-h'); }
+    else if (cCurrentShape === 'trapezoid') { area=0.5*(g('ca-t')+g('ca-b'))*g('ca-h'); }
+    else if (cCurrentShape === 'ellipse')   { const a=g('ca-ra')/2, b=g('ca-rb')/2; area=Math.PI*a*b; peri=2*Math.PI*Math.sqrt((a*a+b*b)/2); }
+    if (area <= 0) { alert('값을 입력해주세요.'); return; }
+    document.getElementById('ca-m2').textContent     = area.toFixed(2);
+    document.getElementById('ca-pyeong').textContent = (area/3.30579).toFixed(2);
+    document.getElementById('ca-ha').textContent     = (area/10000).toFixed(5);
+    document.getElementById('ca-peri').textContent   = peri > 0 ? peri.toFixed(2) : '-';
+    document.getElementById('ca-result').style.display = 'block';
+  }
+  function convertAreaM(from) {
+    const M=3.30579, H=10000;
+    let m2 = from==='m2' ? parseFloat(document.getElementById('cc-m2').value)||0
+            : from==='pyeong' ? (parseFloat(document.getElementById('cc-pyeong').value)||0)*M
+            : (parseFloat(document.getElementById('cc-ha').value)||0)*H;
+    if (from!=='m2')     document.getElementById('cc-m2').value     = m2 ? m2.toFixed(2)       : '';
+    if (from!=='pyeong') document.getElementById('cc-pyeong').value = m2 ? (m2/M).toFixed(3)   : '';
+    if (from!=='ha')     document.getElementById('cc-ha').value     = m2 ? (m2/H).toFixed(5)   : '';
+  }
+
+  // -- 근분 규격표 --
+  let cRefBuilt = false;
+  function buildCRefTables() {
+    if (cRefBuilt) return; cRefBuilt = true;
+    const rootDs   = [3,4,5,6,7,8,9,10,12,15,18,20,25,30,40,50,60,70,80,100];
+    const breastDs = [5,6,7,8,9,10,12,15,18,20,25,30,40,50,60,70,80,100];
+    function wt(d, mult) {
+      const rd=d*mult, r=(rd/2)/100;
+      return ((4/3)*Math.PI*r*r*r*0.5*1.7*1.25).toFixed(3);
+    }
+    const b1 = document.getElementById('cref-root-body');
+    rootDs.forEach((d,i)   => { b1.innerHTML += `<tr style="background:${i%2?'#f9f9f9':'white'}"><td style="padding:6px 10px;text-align:center;border:1px solid #eee;">R${d}</td><td style="padding:6px 10px;text-align:center;border:1px solid #eee;">${d*4}cm</td><td style="padding:6px 10px;text-align:center;border:1px solid #eee;">${Math.round(d*4*0.7)}cm</td><td style="padding:6px 10px;text-align:center;border:1px solid #eee;">${wt(d,4)}t</td></tr>`; });
+    const b2 = document.getElementById('cref-breast-body');
+    breastDs.forEach((d,i) => { b2.innerHTML += `<tr style="background:${i%2?'#f9f9f9':'white'}"><td style="padding:6px 10px;text-align:center;border:1px solid #eee;">B${d}</td><td style="padding:6px 10px;text-align:center;border:1px solid #eee;">${Math.round(d*4.5)}cm</td><td style="padding:6px 10px;text-align:center;border:1px solid #eee;">${Math.round(d*4.5*0.7)}cm</td><td style="padding:6px 10px;text-align:center;border:1px solid #eee;">${wt(d,4.5)}t</td></tr>`; });
+    initCAreaInputs();
+  }
+  function showCRefTable(type) {
+    document.getElementById('cref-table-root').style.display   = type==='root'?'table':'none';
+    document.getElementById('cref-table-breast').style.display = type==='breast'?'table':'none';
+    const on  = 'padding:7px 16px;border:2px solid #1a3a2a;border-radius:6px;background:#1a3a2a;color:white;font-size:12px;font-weight:700;font-family:"Noto Sans KR",sans-serif;cursor:pointer;';
+    const off = 'padding:7px 16px;border:2px solid #ddd;border-radius:6px;background:white;color:#666;font-size:12px;font-weight:700;font-family:"Noto Sans KR",sans-serif;cursor:pointer;';
+    document.getElementById('cref-root-btn').style.cssText   = type==='root'   ? on : off;
+    document.getElementById('cref-breast-btn').style.cssText = type==='breast' ? on : off;
   }
 </script>
 </body>
