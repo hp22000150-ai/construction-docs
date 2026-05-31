@@ -113,12 +113,17 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     </div>
   </div>
 
+  <!-- 데이터 없을때 안내 -->
+  <div id="no-data-msg" style="display:none;background:#fff3cd;border:1.5px solid #ffc107;border-radius:8px;padding:10px 16px;margin-bottom:12px;font-size:13px;color:#856404;font-weight:700;">
+    ⚠️ 먼저 <b>📥 데이터 불러오기</b> 또는 <b>📂 data 폴더 불러오기</b>로 데이터를 가져와 주세요.
+  </div>
+
   <!-- 필터 -->
   <div class="filter-panel">
     <div class="fg"><label>공사명</label><select id="r-project"><option value="">전체</option></select></div>
-    <div class="fg"><label>시작일</label><input id="r-from" placeholder="시작일"></div>
-    <div class="fg"><label>종료일</label><input id="r-to" placeholder="종료일"></div>
-    <button class="btn-calc" onclick="calculate()">📊 정산하기</button>
+    <div class="fg"><label>시작일</label><input id="r-from" placeholder="시작일" disabled></div>
+    <div class="fg"><label>종료일</label><input id="r-to" placeholder="종료일" disabled></div>
+    <button class="btn-calc" id="btn-calculate" onclick="calculate()" disabled style="opacity:0.4;cursor:not-allowed;">📊 정산하기</button>
     <button class="btn-save-price" onclick="savePrices()">💾 단가 저장</button>
     <button class="btn-save-price" onclick="document.getElementById('import-transfer-input').click()" style="background:#fff3cd;color:#856404;border-color:#ffc107;">📥 데이터 불러오기</button>
     <input type="file" id="import-transfer-input" accept=".json" multiple style="display:none" onchange="importTransferData(this)">
@@ -232,7 +237,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
       reader.onload = e => {
         try { totalCnt += mergeLogData(JSON.parse(e.target.result)); } catch { /* skip */ }
         if (++doneCnt === files.length) {
-          loadProjects();
+          checkDataReady();
           input.value = '';
           alert(`✅ ${files.length}개 파일에서 ${totalCnt}건의 일보 데이터를 불러왔습니다.\n정산하기를 눌러 확인하세요.`);
         }
@@ -258,7 +263,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
         totalCnt += mergeLogData(data);
       } catch { /* skip invalid */ }
     }
-    loadProjects();
+    checkDataReady();
     const dirPath = await window.electronAPI.dataDirPath();
     alert(`✅ data 폴더에서 ${files.length}개 파일, ${totalCnt}건 불러왔습니다.\n경로: ${dirPath}`);
   }
@@ -577,7 +582,20 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     alert('단가가 저장되었습니다.');
   }
 
+  function checkDataReady() {
+    const hasData = Object.keys(getDailyLogs()).length > 0;
+    document.getElementById('r-from').disabled = !hasData;
+    document.getElementById('r-to').disabled = !hasData;
+    const btn = document.getElementById('btn-calculate');
+    btn.disabled = !hasData;
+    btn.style.opacity = hasData ? '1' : '0.4';
+    btn.style.cursor = hasData ? 'pointer' : 'not-allowed';
+    document.getElementById('no-data-msg').style.display = hasData ? 'none' : 'block';
+    if (hasData) loadProjects();
+  }
+
   loadProjects();
+  checkDataReady();
 
   // ===== 도움말 플로팅 창 =====
   function openReportHelp() {
