@@ -1429,6 +1429,10 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       const nameSel=card.querySelector('select.name-sel');
       const gongsuSel=card.querySelector('.gongsu-sel');
       const inps=card.querySelectorAll('input');
+      if(jobSel && m.job && !Array.from(jobSel.options).some(o=>o.value===m.job))
+        jobSel.insertAdjacentHTML('beforeend',`<option value="${m.job}">${m.job}</option>`);
+      if(nameSel && m.name && !Array.from(nameSel.options).some(o=>o.value===m.name))
+        nameSel.insertAdjacentHTML('beforeend',`<option value="${m.name}">${m.name}</option>`);
       if(jobSel) jobSel.value=m.job||'';
       if(nameSel) nameSel.value=m.name||'';
       if(gongsuSel) gongsuSel.value=m.gongsu||'';
@@ -1441,6 +1445,8 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       const inps=card.querySelectorAll('input');
       const equipSel=card.querySelector('select.equip-sel');
       const ts=card.querySelector('select.today-sel');
+      if(equipSel && e.name && !Array.from(equipSel.options).some(o=>o.value===e.name))
+        equipSel.insertAdjacentHTML('beforeend',`<option value="${e.name}">${e.name}</option>`);
       if(equipSel) equipSel.value=e.name||''; inps[0].value=e.driver||'';
       if(ts) ts.value=e.today||''; if(inps[1]) inps[1].value=e.note||'';
       const amtInp2=card.querySelector('input.eq-amount'); if(amtInp2) amtInp2.value=e.amount||'';
