@@ -118,12 +118,6 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     <div class="fg"><label>공사명</label><select id="r-project"><option value="">전체</option></select></div>
     <div class="fg"><label>시작일</label><input id="r-from" placeholder="시작일"></div>
     <div class="fg"><label>종료일</label><input id="r-to" placeholder="종료일"></div>
-    <div class="fg" style="justify-content:flex-end;">
-      <label style="font-size:11px;font-weight:700;color:#2d6a4f;">부가세</label>
-      <label style="display:flex;align-items:center;gap:4px;padding:7px 8px;border:1.5px solid #ddd;border-radius:6px;background:#fafafa;cursor:pointer;font-size:12px;white-space:nowrap;">
-        <input type="checkbox" id="vat-check" onchange="updateSummary()" style="width:14px;height:14px;cursor:pointer;"> 장비 10%
-      </label>
-    </div>
     <button class="btn-calc" onclick="calculate()">📊 정산하기</button>
     <button class="btn-save-price" onclick="savePrices()">💾 단가 저장</button>
     <button class="btn-save-price" onclick="document.getElementById('import-transfer-input').click()" style="background:#fff3cd;color:#856404;border-color:#ffc107;">📥 데이터 불러오기</button>
@@ -156,7 +150,12 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     </table>
 
     <!-- 장비 정산 -->
-    <div class="sec-title">🚜 장비 투입 정산</div>
+    <div class="sec-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>🚜 장비 투입 정산</span>
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#856404;cursor:pointer;border:1.5px solid #ffc107;border-radius:5px;padding:3px 8px;background:#fff3cd;">
+        <input type="checkbox" id="vat-check" onchange="updateSummary()" style="width:13px;height:13px;cursor:pointer;"> 부가세 10%
+      </label>
+    </div>
     <table class="tbl" id="eq-tbl">
       <thead>
         <tr>
