@@ -1005,7 +1005,7 @@
     const btn = document.getElementById('btn-load');
     const logs = getDailyLogs();
     const key = getLogKey(date);
-    const has = !!(logs[key] || logs[date]);
+    const has = !!(logs[key] || logs[date] || Object.keys(logs).some(k => k === date || k.endsWith('||' + date)));
     btn.disabled = !has;
     btn.style.background = has ? '#d8f3dc' : '#f0f0f0';
     btn.style.color      = has ? '#2d6a4f' : '#aaa';
