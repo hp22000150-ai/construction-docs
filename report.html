@@ -180,11 +180,13 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
 
     <div class="action-bar">
       <button class="btn-print" onclick="window.print()">🖨️ 인쇄 / PDF</button>
+      <button class="btn-print" onclick="exportExcel()" style="background:#1a6496;">📊 엑셀 내보내기</button>
     </div>
   </div>
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script>
   const fpOpts = {
     dateFormat:'Y-m-d',
@@ -492,6 +494,69 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     document.getElementById('sum-man').textContent   = fmt(manTotal) + ' 원';
     document.getElementById('sum-eq').textContent    = fmt(eqTotal)  + ' 원';
     document.getElementById('sum-total').textContent = fmt(manTotal + eqTotal + vat) + ' 원';
+  }
+
+  function exportExcel() {
+    if (!window.XLSX) { alert('엑셀 라이브러리를 불러오는 중입니다. 잠시 후 다시 시도하세요.'); return; }
+    const proj  = document.getElementById('r-project').value || '전체';
+    const from  = document.getElementById('r-from').value  || '';
+    const to    = document.getElementById('r-to').value    || '';
+    const vatOn = document.getElementById('vat-check')?.checked;
+    const header = `공사명: ${proj}  기간: ${from||'전체'} ~ ${to||'전체'}`;
+
+    const wb = XLSX.utils.book_new();
+
+    // ── 인력 정산 시트 ──
+    const manRows = [['공사명: ' + proj + '  기간: ' + (from||'전체') + ' ~ ' + (to||'전체')], [],
+      ['직종', '성명', '공수', '단가(원)', '금액(원)']];
+    let manTotal = 0;
+    document.querySelectorAll('#man-body tr[data-type="man"]').forEach(tr => {
+      const tds = tr.querySelectorAll('td');
+      const price = parseFloat(tr.querySelector('.price-input')?.value) || 0;
+      const gongsu = parseFloat(tds[2]?.textContent) || 0;
+      const amt = price * gongsu;
+      manTotal += amt;
+      manRows.push([tds[0]?.textContent, tds[1]?.textContent, gongsu, price, amt]);
+    });
+    manRows.push([]);
+    manRows.push(['', '', '', '인력 소계', manTotal]);
+
+    // ── 장비 정산 시트 ──
+    const eqRows = [['공사명: ' + proj + '  기간: ' + (from||'전체') + ' ~ ' + (to||'전체')], [],
+      ['장비명', '규격', '투입일수', '단가(원)', '금액(원)']];
+    let eqTotal = 0;
+    document.querySelectorAll('#eq-body tr[data-type="eq"]').forEach(tr => {
+      const tds = tr.querySelectorAll('td');
+      const direct = parseFloat(tr.querySelector('.amount-direct')?.value) || 0;
+      const price  = parseFloat(tr.querySelector('.price-input')?.value) || 0;
+      const days   = parseFloat(tds[2]?.textContent) || 0;
+      const amt    = direct > 0 ? direct : price * days;
+      eqTotal += amt;
+      eqRows.push([tds[0]?.textContent, tds[1]?.textContent, days,
+        direct > 0 ? '직접금액' : price, amt]);
+    });
+    const vat = vatOn ? Math.round(eqTotal * 0.1) : 0;
+    eqRows.push([]);
+    eqRows.push(['', '', '', '장비 소계', eqTotal]);
+    if (vatOn) eqRows.push(['', '', '', '부가세(10%)', vat]);
+
+    // ── 합계 시트 ──
+    const sumRows = [['항목', '금액(원)'],
+      ['인력 소계', manTotal],
+      ['장비 소계', eqTotal]];
+    if (vatOn) sumRows.push(['부가세(10%)', vat]);
+    sumRows.push(['합 계', manTotal + eqTotal + vat]);
+
+    // 시트 생성
+    const wsMan = XLSX.utils.aoa_to_sheet(manRows);
+    const wsEq  = XLSX.utils.aoa_to_sheet(eqRows);
+    const wsSum = XLSX.utils.aoa_to_sheet(sumRows);
+    XLSX.utils.book_append_sheet(wb, wsMan, '인력정산');
+    XLSX.utils.book_append_sheet(wb, wsEq,  '장비정산');
+    XLSX.utils.book_append_sheet(wb, wsSum, '합계');
+
+    const fname = `정산보고서_${proj}_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(wb, fname);
   }
 
   function savePrices() {
