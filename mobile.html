@@ -63,7 +63,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f0f0eb; color:#111; fo
 .btn-save-log { background:var(--green); color:white; }
 .btn-export { background:#1a6496; color:white; }
 .btn-import { background:#f0f0f0; color:#444; border:1.5px solid #ccc; }
-.load-log-btn { display:none; width:100%; margin-top:6px; padding:10px; background:#fff3cd; color:#856404; border:1.5px solid #ffc107; border-radius:8px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; }
+.load-log-btn { width:100%; margin-top:6px; padding:10px; border-radius:8px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; }
 .lock-banner { display:none; background:#fff3cd; border:1.5px solid #ffc107; border-radius:8px; padding:10px 14px; margin-bottom:10px; font-size:13px; color:#856404; font-weight:700; }
 .lock-banner span { font-weight:400; font-size:12px; color:#a07000; }
 input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !important; color:#888 !important; cursor:not-allowed !important; opacity:1 !important; }
@@ -72,10 +72,10 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
 #print-wrap { display:none; }
 .doc-wrap { width:100%; font-family:'Noto Sans KR',sans-serif; font-size:11px; }
 .doc-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
-.doc-main-title { font-family:'Nanum Gothic',sans-serif; font-size:26px; font-weight:800; letter-spacing:10px; padding-top:8px; }
+.doc-main-title { font-family:'Nanum Gothic',sans-serif; font-size:30px; font-weight:800; letter-spacing:10px; padding-top:8px; }
 .approval-table { border-collapse:collapse; font-size:10px; }
 .approval-table td { border:0.5px solid #222; padding:3px 6px; text-align:center; min-width:44px; height:24px; }
-.approval-table .ap-title { background:#f0f0f0; font-weight:700; }
+.approval-table .ap-title { background:#f0f0f0; font-weight:700; vertical-align:middle; }
 .approval-table .ap-sign { height:46px; }
 .doc-main { border-collapse:collapse; width:100%; font-size:11px; }
 .doc-main td, .doc-main th { border:0.5px solid #222; padding:3px 4px; text-align:center; vertical-align:middle; }
@@ -84,14 +84,16 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
 .doc-main td.left { text-align:left; padding-left:5px; }
 .man-table td:last-child, .man-table th:last-child { border-right:none; }
 
+.page-break { border-top:1px dashed #ccc; margin-top:24px; padding-top:20px; }
 @media print {
   * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
   body { background:white; margin:0; padding:0; }
   .app-header, .content, .bottom-bar { display:none !important; }
   #print-wrap { display:block !important; padding:0; margin:0; }
-  @page { size:A4 portrait; margin:17mm 14mm 7mm 14mm; }
+  .page-break { border-top:none; margin-top:0; padding-top:0; page-break-before:always; }
+  @page { size:A4 portrait; margin:22mm 14mm 1mm 14mm; }
   .doc-wrap { font-size:9px; }
-  .doc-main-title { font-size:22px; }
+  .doc-main-title { font-size:26px; }
   .approval-table td { min-width:48px; padding:3px 6px; font-size:9px; border:0.5px solid #222; }
   .approval-table .ap-sign { height:54px; }
   .doc-main td, .doc-main th { padding:4px 3px; font-size:10px; border:0.5px solid #222; }
@@ -223,11 +225,129 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
 .cshape-btn.active { background:var(--green); color:white; border-color:var(--green); }
 </style>
 
+<!-- ===== 기본설정 모달 (바텀시트) ===== -->
+<div id="settings-modal-m" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.5);" onclick="if(event.target===this)closeSettingsM()">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:#f5f5f0;border-radius:16px 16px 0 0;max-height:92vh;display:flex;flex-direction:column;">
+    <div style="background:var(--green);color:white;padding:13px 16px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+      <span style="font-size:15px;font-weight:700;">⚙️ 기본설정</span>
+      <button onclick="closeSettingsM()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:6px;padding:4px 12px;font-size:14px;cursor:pointer;font-family:inherit;">✕ 닫기</button>
+    </div>
+    <div style="overflow-y:auto;padding:12px;flex:1;">
+
+      <div style="background:white;border-radius:10px;padding:13px;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:9px;padding-bottom:5px;border-bottom:1.5px solid var(--green-light);">🏗️ 공사명</div>
+        <div class="saved-row" style="margin-bottom:6px;">
+          <select id="sm-project-select" style="flex:1;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;background:#fafafa;-webkit-appearance:none;"><option value="">-- 선택 후 삭제 --</option></select>
+          <button class="btn-x" onclick="smProjectDel()">✕</button>
+        </div>
+        <div class="save-row">
+          <input id="sm-project-input" placeholder="새 공사명" onkeydown="if(event.key==='Enter')smProjectAdd()">
+          <button class="btn-save" onclick="smProjectAdd()">추가</button>
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:10px;padding:13px;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:9px;padding-bottom:5px;border-bottom:1.5px solid var(--green-light);">🏢 시공사</div>
+        <div class="saved-row" style="margin-bottom:6px;">
+          <select id="sm-company-select" style="flex:1;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;background:#fafafa;-webkit-appearance:none;"><option value="">-- 선택 후 삭제 --</option></select>
+          <button class="btn-x" onclick="smCompanyDel()">✕</button>
+        </div>
+        <div class="save-row">
+          <input id="sm-company-input" placeholder="새 시공사" onkeydown="if(event.key==='Enter')smCompanyAdd()">
+          <button class="btn-save" onclick="smCompanyAdd()">추가</button>
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:10px;padding:13px;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:9px;padding-bottom:5px;border-bottom:1.5px solid var(--green-light);">👷 직종</div>
+        <div class="saved-row" style="margin-bottom:6px;">
+          <select id="job-select" style="flex:1;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;background:#fafafa;-webkit-appearance:none;"><option value="">-- 선택 후 삭제 --</option></select>
+          <button class="btn-x" onclick="deleteJob()">✕</button>
+        </div>
+        <div class="save-row">
+          <input id="job-input" placeholder="새 직종" onkeydown="if(event.key==='Enter') saveJob()">
+          <button class="btn-save" onclick="saveJob()">추가</button>
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:10px;padding:13px;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:9px;padding-bottom:5px;border-bottom:1.5px solid var(--green-light);">👤 성명</div>
+        <div class="saved-row" style="margin-bottom:6px;">
+          <select id="name-select" style="flex:1;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;background:#fafafa;-webkit-appearance:none;"><option value="">-- 선택 후 삭제 --</option></select>
+          <button class="btn-x" onclick="deleteName()">✕</button>
+        </div>
+        <div class="save-row">
+          <input id="name-input" placeholder="새 성명" onkeydown="if(event.key==='Enter') saveName()">
+          <button class="btn-save" onclick="saveName()">추가</button>
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:10px;padding:13px;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:9px;padding-bottom:5px;border-bottom:1.5px solid var(--green-light);">🚜 장비명</div>
+        <div class="saved-row" style="margin-bottom:6px;">
+          <select id="equip-select" style="flex:1;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;background:#fafafa;-webkit-appearance:none;"><option value="">-- 선택 후 삭제 --</option></select>
+          <button class="btn-x" onclick="deleteEquip()">✕</button>
+        </div>
+        <div class="save-row">
+          <input id="equip-input" placeholder="새 장비명" onkeydown="if(event.key==='Enter') saveEquip()">
+          <button class="btn-save" onclick="saveEquip()">추가</button>
+        </div>
+      </div>
+
+      <div style="background:white;border-radius:10px;padding:13px;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:9px;padding-bottom:5px;border-bottom:1.5px solid var(--green-light);">🪪 현장대리인</div>
+        <div class="saved-row" style="margin-bottom:6px;">
+          <select id="sm-supervisor-select" style="flex:1;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;background:#fafafa;-webkit-appearance:none;"><option value="">-- 선택 후 삭제 --</option></select>
+          <button class="btn-x" onclick="smSupervisorDel()">✕</button>
+        </div>
+        <div class="save-row">
+          <input id="sm-supervisor-input" placeholder="새 현장대리인" onkeydown="if(event.key==='Enter')smSupervisorAdd()">
+          <button class="btn-save" onclick="smSupervisorAdd()">추가</button>
+        </div>
+      </div>
+
+      <!-- ===== 데이터 전송 ===== -->
+      <div style="background:white;border-radius:10px;padding:13px;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;color:#1a6496;margin-bottom:9px;padding-bottom:5px;border-bottom:1.5px solid #bdd7ee;">📦 데이터 전송 (PC 정산용)</div>
+
+        <div style="margin-bottom:8px;">
+          <div style="font-size:11px;color:#888;margin-bottom:5px;">전송 범위</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+            <button onclick="setTransferMode('range')" id="tm-range" style="padding:9px 4px;border:1.5px solid #9bc8e8;border-radius:8px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;background:#1a6496;color:white;">📅 기간</button>
+            <button onclick="setTransferMode('month')" id="tm-month" style="padding:9px 4px;border:1.5px solid #9bc8e8;border-radius:8px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;background:#e8f4fd;color:#1a6496;">📆 월</button>
+            <button onclick="setTransferMode('all')"   id="tm-all"   style="padding:9px 4px;border:1.5px solid #9bc8e8;border-radius:8px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;background:#e8f4fd;color:#1a6496;">📋 전체</button>
+          </div>
+        </div>
+
+        <div id="tm-range-area" style="margin-bottom:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div><div style="font-size:11px;color:#888;margin-bottom:3px;">시작일</div><input type="date" id="tm-from" style="width:100%;padding:9px 8px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;"></div>
+            <div><div style="font-size:11px;color:#888;margin-bottom:3px;">종료일</div><input type="date" id="tm-to"   style="width:100%;padding:9px 8px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;"></div>
+          </div>
+        </div>
+
+        <div id="tm-month-area" style="display:none;margin-bottom:8px;">
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">월 선택</div>
+          <input type="month" id="tm-month-val" style="width:100%;padding:10px 8px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;">
+        </div>
+
+        <div style="margin-bottom:10px;">
+          <div style="font-size:11px;color:#888;margin-bottom:3px;">공사명 (선택)</div>
+          <select id="tm-project" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;background:#fafafa;-webkit-appearance:none;"></select>
+        </div>
+
+        <button onclick="transferData()" style="width:100%;padding:13px;background:#1a6496;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📤 데이터 전송</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div class="app-header">
-  <h1>📋 작업일보</h1>
-  <a href="index.html" class="header-link" style="margin-right:4px;">PC 버전</a>
-  <button onclick="openCalc()" class="header-link" style="background:none;border:1px solid rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;">🔧 계산기</button>
+  <h1>📋 작업일보<br><span style="font-size:11px;font-weight:400;opacity:0.6;margin-left:30px;">V 0.530.1</span></h1>
+<button onclick="openCalc()" class="header-link" style="background:none;border:1px solid rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;">🔧 계산기</button>
   <button onclick="openHelpMobile()" class="header-link" style="background:none;border:1px solid rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;">📖 도움말</button>
+  <button onclick="openSettingsM()" class="header-link" style="background:none;border:1px solid rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;">⚙️ 기본설정</button>
 </div>
 
 <div class="content">
@@ -255,7 +375,7 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
         <div class="fg">
           <label>작성일</label>
           <input id="i-date" placeholder="날짜 선택" readonly>
-          <button id="btn-load-log" class="load-log-btn" onclick="loadFromDate()">📂 저장된 일보 불러오기</button>
+          <button id="btn-load-log" onclick="loadFromDate()" style="display:block;width:100%;margin-top:6px;padding:10px;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;border:1.5px solid #ccc;background:#f0f0f0;color:#aaa;">📂 불러오기</button>
         </div>
         <div class="fg">
           <label>날씨</label>
@@ -274,69 +394,18 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
 
       <div class="fg">
         <label>공사명</label>
-        <div class="saved-row">
-          <select id="i-project-select" onchange="selectProject(this)"><option value="">-- 선택 --</option></select>
-          <button class="btn-x" onclick="deleteProject()">✕</button>
-        </div>
-        <div class="save-row">
-          <input id="i-project" placeholder="새 공사명 입력" onkeydown="if(event.key==='Enter') saveProject()">
-          <button class="btn-save" onclick="saveProject()">저장</button>
-        </div>
+        <select id="i-project-select" onchange="selectProject(this)" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;background:#fafafa;-webkit-appearance:none;outline:none;"><option value="">-- 선택 --</option></select>
+        <input id="i-project" type="hidden">
       </div>
 
       <div class="fg">
         <label>시공사</label>
-        <div class="saved-row">
-          <select id="i-company-select" onchange="selectCompany(this)"><option value="">-- 선택 --</option></select>
-          <button class="btn-x" onclick="deleteCompany()">✕</button>
-        </div>
-        <div class="save-row">
-          <input id="i-company" placeholder="새 시공사 입력" onkeydown="if(event.key==='Enter') saveCompany()">
-          <button class="btn-save" onclick="saveCompany()">저장</button>
-        </div>
+        <select id="i-company-select" onchange="selectCompany(this)" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;background:#fafafa;-webkit-appearance:none;outline:none;"><option value="">-- 선택 --</option></select>
+        <input id="i-company" type="hidden">
       </div>
     </div>
   </div>
 
-  <!-- 목록 관리 -->
-  <div class="section">
-    <div class="sec-hd" onclick="toggleList()" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
-      <span>📋 목록 관리 (직종 · 성명 · 장비명)</span><span id="list-icon">▼</span>
-    </div>
-    <div id="list-body" class="sec-body" style="display:none;">
-
-      <div style="font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:6px;margin-top:2px;">직종</div>
-      <div class="saved-row">
-        <select id="job-select"><option value="">-- 직종 선택 --</option></select>
-        <button class="btn-x" onclick="deleteJob()">✕</button>
-      </div>
-      <div class="save-row" style="margin-bottom:14px;">
-        <input id="job-input" placeholder="새 직종 입력" onkeydown="if(event.key==='Enter') saveJob()">
-        <button class="btn-save" onclick="saveJob()">저장</button>
-      </div>
-
-      <div style="font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:6px;">성명</div>
-      <div class="saved-row">
-        <select id="name-select"><option value="">-- 성명 선택 --</option></select>
-        <button class="btn-x" onclick="deleteName()">✕</button>
-      </div>
-      <div class="save-row" style="margin-bottom:14px;">
-        <input id="name-input" placeholder="새 성명 입력" onkeydown="if(event.key==='Enter') saveName()">
-        <button class="btn-save" onclick="saveName()">저장</button>
-      </div>
-
-      <div style="font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:6px;">장비명</div>
-      <div class="saved-row">
-        <select id="equip-select"><option value="">-- 장비명 선택 --</option></select>
-        <button class="btn-x" onclick="deleteEquip()">✕</button>
-      </div>
-      <div class="save-row">
-        <input id="equip-input" placeholder="새 장비명 입력" onkeydown="if(event.key==='Enter') saveEquip()">
-        <button class="btn-save" onclick="saveEquip()">저장</button>
-      </div>
-
-    </div>
-  </div>
 
   <!-- 인력 -->
   <div class="section">
@@ -404,7 +473,11 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
     <div class="sec-body">
       <div class="fg"><label>작업 내용</label><textarea id="i-work" placeholder="금일 작업 내용"></textarea></div>
       <div class="fg"><label>작업 계획</label><textarea id="i-plan" placeholder="내일 작업 계획"></textarea></div>
-      <div class="fg"><label>비고</label><textarea id="i-note" placeholder="특이사항" style="min-height:50px;"></textarea></div>
+      <div class="fg">
+        <label>비고</label>
+        <textarea id="i-note" placeholder="특이사항" maxlength="80" style="min-height:50px;" oninput="document.getElementById('note-counter-m').textContent=this.value.length+'/80'"></textarea>
+        <div id="note-counter-m" style="font-size:11px;color:#bbb;text-align:right;margin-top:2px;">0/80</div>
+      </div>
     </div>
   </div>
 
@@ -412,16 +485,10 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
   <div class="section">
     <div class="sec-hd">👤 현장대리인</div>
     <div class="sec-body">
-      <div class="saved-row">
-        <select id="supervisor-select" onchange="document.getElementById('i-supervisor').value=this.value">
-          <option value="">-- 선택 --</option>
-        </select>
-        <button class="btn-x" onclick="deleteSupervisor()">✕</button>
-      </div>
-      <div class="save-row">
-        <input id="i-supervisor" placeholder="새 현장대리인 이름" onkeydown="if(event.key==='Enter') saveSupervisor()">
-        <button class="btn-save" onclick="saveSupervisor()">저장</button>
-      </div>
+      <select id="supervisor-select" onchange="document.getElementById('i-supervisor').value=this.value" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;background:#fafafa;-webkit-appearance:none;outline:none;">
+        <option value="">-- 선택 --</option>
+      </select>
+      <input id="i-supervisor" type="hidden">
     </div>
   </div>
 
@@ -446,17 +513,23 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
   </div>
   <div style="overflow-y:auto;padding:14px;font-size:13px;line-height:1.9;color:#444;">
 
+    <b style="color:var(--green);">⚙️ 기본설정</b><br>
+    헤더 버튼 클릭 → 공사명·시공사·직종·성명·장비명·현장대리인 목록 추가·삭제.<br>
+    기본값: 직영/용역/특수인부, 굴삭기/지게차/카고크레인/화물트럭.<br><br>
+
     <b style="color:var(--green);">📅 기본 정보</b><br>
-    <b>작성일</b> — 날짜 선택. 임시저장 일보가 있으면 노란 버튼이 나타납니다.<br>
+    <b>작성일</b> — 날짜 선택. 달력에서 저장된 일보 날짜는 초록 점(●)으로 표시. 해당 날짜 선택 시 불러오기 버튼 활성화.<br>
     <b>기온 📍자동</b> — GPS 기반 날씨·기온 자동 입력.<br>
-    <b>공사명·시공사</b> — 선택하거나 새로 입력 후 저장.<br><br>
+    <b>공사명·시공사</b> — 기본설정에서 등록 후 드롭다운에서 선택.<br><br>
 
-    <b style="color:var(--green);">📋 목록 관리</b><br>
-    직종·성명·장비명을 미리 등록. 기본값: 직영/용역/특수인부, 굴삭기/지게차/카고크레인/화물트럭.<br><br>
+    <b style="color:var(--green);">👷 인력 투입</b><br>
+    직종·성명·공수 입력. 공수 선택 시 헤더에 <b>합계 N명</b> 배지 실시간 표시.<br><br>
 
-    <b style="color:var(--green);">👷 인력 / 🚜 장비 / 📦 자재</b><br>
-    항목당 카드 하나씩 작성. + 버튼으로 추가, ✕로 삭제.<br>
-    공수 선택 시 헤더에 <b>합계 N명</b> 배지 실시간 표시.<br><br>
+    <b style="color:var(--green);">🚜 장비 투입</b><br>
+    장비명·기사명·시간(0.5/1.0) 입력. 누계 자동 계산.<br><br>
+
+    <b style="color:var(--green);">📦 자재 반입</b><br>
+    품명·규격·단위·수량·거래처 입력.<br><br>
 
     <b style="color:var(--green);">⏮ 전날 복사</b><br>
     인력 섹션 상단 버튼 → 전날 인력·장비 데이터 복사.<br><br>
@@ -468,9 +541,9 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
     💾 저장 → 이름 지정 저장 / 📂 템플릿 → 저장된 목록 적용.<br><br>
 
     <b style="color:var(--green);">하단 버튼</b><br>
-    <b>💾 임시저장</b> — 언제든 수정 가능하게 저장.<br>
-    <b>📤 내보내기</b> — 최종 제출·잠금. 카카오톡·이메일 공유.<br>
-    <b>🖨️ PDF 인쇄</b> — 일보 + 사진 인쇄/PDF 저장.<br><br>
+    <b>💾 임시저장</b> — 월별 번들로 저장. 언제든 수정 가능.<br>
+    <b>📤 내보내기</b> — 그날 하루치만 추출해 최종 제출·잠금. 카카오톡·이메일 공유.<br>
+    <b>🖨️ PDF 인쇄</b> — 작업일지 + 사진 인쇄/PDF 저장.<br><br>
 
     <b style="color:var(--green);">💾 전체 백업 / 📂 복원</b><br>
     모든 데이터 JSON 백업·복원. 폰 교체 전 권장.<br><br>
@@ -499,8 +572,56 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
 <datalist id="equip-datalist"></datalist>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
+  // ===== 월별 저장 구조 =====
+  function _migrateToMonthly() {
+    const logs = JSON.parse(localStorage.getItem('daily_logs')||'{}');
+    let changed = false;
+    const migrated = {};
+    Object.entries(logs).forEach(([k,v]) => {
+      if (v && typeof v==='object' && (v.date||v.man!==undefined)) {
+        changed = true;
+        const hasP=k.includes('||'), proj=hasP?k.split('||')[0]:'', dateStr=hasP?k.split('||')[1]:k;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)){migrated[k]=v;return;}
+        const month=dateStr.slice(0,7), day=dateStr.slice(8,10), mKey=proj?`${proj}||${month}`:month;
+        if(!migrated[mKey])migrated[mKey]={};
+        migrated[mKey][day]=v;
+      } else { migrated[k]=v; }
+    });
+    if(changed)localStorage.setItem('daily_logs',JSON.stringify(migrated));
+  }
+  _migrateToMonthly();
+
+  function _mKey(date,proj){const m=date.slice(0,7);return proj?`${proj}||${m}`:m;}
+  function _dKey(date){return date.slice(8,10);}
+
+  function saveDayLog(date,data,proj){
+    const logs=JSON.parse(localStorage.getItem('daily_logs')||'{}');
+    const mk=_mKey(date,proj),dk=_dKey(date);
+    if(!logs[mk])logs[mk]={};
+    logs[mk][dk]=data;
+    localStorage.setItem('daily_logs',JSON.stringify(logs));
+  }
+
+  function getDayLog(date,proj){
+    const logs=JSON.parse(localStorage.getItem('daily_logs')||'{}');
+    return logs[_mKey(date,proj)]?.[_dKey(date)]||null;
+  }
+
   // ===== 로컬 저장소 =====
-  function getDailyLogs() { return JSON.parse(localStorage.getItem('daily_logs')||'{}'); }
+  function getDailyLogs() {
+    const logs=JSON.parse(localStorage.getItem('daily_logs')||'{}');
+    const flat={};
+    Object.entries(logs).forEach(([k,v])=>{
+      if(v&&typeof v==='object'&&!v.date&&!v.man){
+        const hasP=k.includes('||'),proj=hasP?k.split('||')[0]:'',month=hasP?k.split('||')[1]:k;
+        Object.entries(v).forEach(([day,dd])=>{
+          const date=`${month}-${day.padStart(2,'0')}`;
+          flat[proj?`${proj}||${date}`:date]=dd;
+        });
+      } else {flat[k]=v;}
+    });
+    return flat;
+  }
 
   let isLocked = false;
 
@@ -526,6 +647,9 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       if (el.id === 'i-date') return;
       el.disabled = locked;
     });
+    // 날짜 입력과 불러오기 버튼은 항상 활성화
+    document.getElementById('i-date').disabled = false;
+    document.getElementById('btn-load-log').disabled = false;
     const saveBtn = document.querySelector('.btn-save-log');
     saveBtn.disabled = locked;
     saveBtn.style.opacity = locked ? '0.4' : '1';
@@ -538,13 +662,13 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
     const date = document.getElementById('i-date').value;
     const logs = getDailyLogs();
     const project = document.getElementById('i-project').value || document.getElementById('i-project-select').value;
-    const logKey = project ? `${project}||${date}` : date;
-    if (logs[logKey]) {
-      logs[logKey].revised = true;
-      logs[logKey].revisedAt = new Date().toISOString();
-      logs[logKey].revisionReason = reason.trim();
-      logs[logKey].locked = false;
-      localStorage.setItem('daily_logs', JSON.stringify(logs));
+    const existing = getDayLog(date, project);
+    if (existing) {
+      existing.revised = true;
+      existing.revisedAt = new Date().toISOString();
+      existing.revisionReason = reason.trim();
+      existing.locked = false;
+      saveDayLog(date, existing, project);
     }
     setLockMode(false, null);
     alert('잠금이 해제되었습니다.\n수정 후 📤 내보내기로 재제출하면\n재작성 이력이 파일에 기록됩니다.');
@@ -558,11 +682,9 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
   function saveToLog() {
     const data = collectData();
     if (!data.date) { alert('날짜를 선택해주세요.'); return; }
-    const logs = getDailyLogs();
-    const logKey = data.project ? `${data.project}||${data.date}` : data.date;
-    if (logs[logKey]?.locked) { alert('이미 제출된 일보는 수정할 수 없습니다.'); return; }
-    logs[logKey] = data; // 잠금 없이 저장
-    localStorage.setItem('daily_logs', JSON.stringify(logs));
+    const existing = getDayLog(data.date, data.project);
+    if (existing?.locked) { alert('이미 제출된 일보는 수정할 수 없습니다.'); return; }
+    saveDayLog(data.date, data, data.project);
     checkSavedLog(data.date);
     const btn = document.querySelector('.btn-save-log');
     btn.textContent = '✓ 저장됨';
@@ -570,31 +692,77 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
   }
 
   function checkSavedLog(date) {
+    if (!date) return;
     const btn = document.getElementById('btn-load-log');
     const logs = getDailyLogs();
-    const key = getMobileLogKey(date);
-    const has = !!(logs[key] || logs[date]);
-    btn.style.display = has ? 'block' : 'none';
+    const has = Object.keys(logs).some(k => k === date || k.endsWith('||' + date));
+    if (has) {
+      btn.style.background = '#fff3cd';
+      btn.style.color = '#856404';
+      btn.style.borderColor = '#ffc107';
+      btn.style.cursor = 'pointer';
+      btn.disabled = false;
+      btn.textContent = '📂 저장된 일보 불러오기';
+    } else {
+      btn.style.background = '#f0f0f0';
+      btn.style.color = '#aaa';
+      btn.style.borderColor = '#ccc';
+      btn.style.cursor = 'default';
+      btn.disabled = true;
+      btn.textContent = '📂 불러오기';
+    }
   }
 
   function loadFromDate() {
     const date = document.getElementById('i-date').value;
-    const logs = getDailyLogs();
-    const key = getMobileLogKey(date);
-    const log = logs[key] || logs[date];
-    if (!log) return;
+    const proj = document.getElementById('i-project').value || document.getElementById('i-project-select').value;
+    const log = getDayLog(date, proj) || (() => {
+      const flat = getDailyLogs();
+      return flat[getMobileLogKey(date)] || flat[date] ||
+        flat[Object.keys(flat).find(k => k.endsWith('||' + date))];
+    })();
+    if (!log) { alert('저장된 일보가 없습니다.'); return; }
     setLockMode(false, null);
     loadFromData(log);
     if (log.locked) setLockMode(true, log.savedAt, log);
+    document.getElementById('i-date').disabled = false;
+    document.getElementById('btn-load-log').disabled = false;
+    initFpMobile();
+    const btn = document.getElementById('btn-load-log');
+    btn.textContent = '✓ 불러왔습니다';
+    setTimeout(() => checkSavedLog(date), 1500);
+    window.scrollTo(0, 0);
   }
 
   // ===== 날짜 =====
-  flatpickr('#i-date', {
-    dateFormat:'Y-m-d', defaultDate:'today',
-    locale:{ firstDayOfWeek:0, weekdays:{shorthand:['일','월','화','수','목','금','토'],longhand:['일','월','화','수','목','금','토']}, months:{shorthand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],longhand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월']} },
-    onChange(dates, dateStr) { checkSavedLog(dateStr); },
-    onReady(dates, dateStr) { checkSavedLog(dateStr); }
-  });
+  let fpMobile;
+  function initFpMobile() {
+    if (fpMobile) fpMobile.destroy();
+    const logs = getDailyLogs();
+    const logDates = Object.keys(logs).map(k => k.includes('||') ? k.split('||')[1] : k);
+    const curDate = document.getElementById('i-date').value || (() => {
+      const t = new Date();
+      return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+    })();
+    fpMobile = flatpickr('#i-date', {
+      dateFormat: 'Y-m-d',
+      defaultDate: curDate,
+      disableMobile: true,
+      locale: { firstDayOfWeek:0, weekdays:{shorthand:['일','월','화','수','목','금','토'],longhand:['일','월','화','수','목','금','토']}, months:{shorthand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],longhand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월']} },
+      onDayCreate(dObj, dStr, fp, dayElem) {
+        const d = dayElem.dateObj;
+        const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        if (logDates.includes(ds)) {
+          const dot = document.createElement('span');
+          dot.style.cssText = 'display:block;width:5px;height:5px;background:#52b788;border-radius:50%;margin:1px auto 0;';
+          dayElem.appendChild(dot);
+        }
+      },
+      onChange(dates, dateStr) { checkSavedLog(dateStr); }
+    });
+    checkSavedLog(curDate);
+  }
+  initFpMobile();
 
   // ===== 날씨 =====
   function getWeather() {
@@ -616,6 +784,132 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
         status.textContent='✓'; setTimeout(()=>status.textContent='',2000);
       } catch { status.textContent='실패'; }
     }, ()=>{ status.textContent='위치 거부됨'; });
+  }
+
+  // ===== 기본설정 모달 =====
+  function openSettingsM() {
+    document.getElementById('settings-modal-m').style.display = 'block';
+    loadJobs(); loadNames(); loadEquipNames();
+    [['projects','sm-project-select'],['companies','sm-company-select'],['supervisors','sm-supervisor-select']].forEach(([key,id]) => {
+      const list = JSON.parse(localStorage.getItem(key)||'[]');
+      const el = document.getElementById(id); if (!el) return;
+      el.innerHTML = '<option value="">-- 선택 후 삭제 --</option>' + list.map(v=>`<option value="${v}">${v}</option>`).join('');
+    });
+    // 데이터 전송 공사명 드롭다운
+    const projects = JSON.parse(localStorage.getItem('projects')||'[]');
+    const tmProj = document.getElementById('tm-project');
+    if (tmProj) tmProj.innerHTML = '<option value="">전체 공사</option>' + projects.map(v=>`<option value="${v}">${v}</option>`).join('');
+    // 오늘 날짜 기본값
+    const today = new Date().toISOString().slice(0,10);
+    const tmFrom = document.getElementById('tm-from'); if (tmFrom && !tmFrom.value) tmFrom.value = today;
+    const tmTo   = document.getElementById('tm-to');   if (tmTo   && !tmTo.value)   tmTo.value   = today;
+    const tmMon  = document.getElementById('tm-month-val'); if (tmMon && !tmMon.value) tmMon.value = today.slice(0,7);
+  }
+  function closeSettingsM() { document.getElementById('settings-modal-m').style.display = 'none'; }
+
+  // ===== 데이터 전송 =====
+  function setTransferMode(mode) {
+    ['range','month','all'].forEach(m => {
+      const btn = document.getElementById(`tm-${m}`);
+      if (btn) { btn.style.background = m===mode ? '#1a6496' : '#e8f4fd'; btn.style.color = m===mode ? 'white' : '#1a6496'; }
+      const area = document.getElementById(`tm-${m}-area`);
+      if (area) area.style.display = m===mode ? 'block' : 'none';
+    });
+  }
+
+  function transferData() {
+    const activeBtn = ['range','month','all'].find(m => {
+      const btn = document.getElementById(`tm-${m}`);
+      return btn && btn.style.background.includes('rgb(26') || btn.style.background === '#1a6496';
+    }) || 'range';
+    const mode = document.getElementById('tm-range-area').style.display !== 'none' ? 'range'
+               : document.getElementById('tm-month-area').style.display !== 'none' ? 'month' : 'all';
+    const proj = document.getElementById('tm-project').value;
+    const allLogs = getDailyLogs(); // flat: "공사명||YYYY-MM-DD" or "YYYY-MM-DD"
+    const filtered = {};
+
+    Object.entries(allLogs).forEach(([k, v]) => {
+      const hasP = k.includes('||');
+      const logProj = hasP ? k.split('||')[0] : '';
+      const date    = hasP ? k.split('||')[1] : k;
+      if (proj && logProj !== proj) return;
+      if (mode === 'range') {
+        const from = document.getElementById('tm-from').value;
+        const to   = document.getElementById('tm-to').value;
+        if (from && date < from) return;
+        if (to   && date > to)   return;
+      } else if (mode === 'month') {
+        const mon = document.getElementById('tm-month-val').value;
+        if (mon && !date.startsWith(mon)) return;
+      }
+      filtered[k] = v;
+    });
+
+    if (!Object.keys(filtered).length) { alert('해당 범위에 저장된 일보가 없습니다.'); return; }
+
+    const payload = {
+      _type: 'daily_logs_transfer',
+      _date: new Date().toISOString(),
+      daily_logs: filtered,
+      projects:  JSON.parse(localStorage.getItem('projects')||'[]'),
+      companies: JSON.parse(localStorage.getItem('companies')||'[]'),
+    };
+
+    const dateStr = new Date().toISOString().slice(0,10);
+    const fname = `일보전송_${proj||'전체'}_{$dateStr}.json`.replace('{$','').replace('}','');
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    const file = new File([blob], `일보전송_${proj||'전체'}_${dateStr}.json`, {type:'application/json'});
+    if (navigator.canShare && navigator.canShare({files:[file]})) {
+      navigator.share({files:[file], title:'공사일지 데이터 전송'}).catch(()=>downloadBlob(blob, file.name));
+    } else {
+      downloadBlob(blob, file.name);
+    }
+  }
+  function _refreshSettingsSelsMobile() {
+    [['projects','sm-project-select'],['companies','sm-company-select'],['supervisors','sm-supervisor-select']].forEach(([key,id]) => {
+      const list = JSON.parse(localStorage.getItem(key)||'[]');
+      const el = document.getElementById(id); if (!el) return;
+      el.innerHTML = '<option value="">-- 선택 후 삭제 --</option>' + list.map(v=>`<option value="${v}">${v}</option>`).join('');
+    });
+  }
+  function smProjectAdd() {
+    const inp=document.getElementById('sm-project-input'), val=inp.value.trim(); if(!val) return;
+    const list=JSON.parse(localStorage.getItem('projects')||'[]');
+    if(!list.includes(val)){list.push(val);localStorage.setItem('projects',JSON.stringify(list));}
+    inp.value=''; loadProjects(); _refreshSettingsSelsMobile();
+  }
+  function smProjectDel() {
+    const sel=document.getElementById('sm-project-select'), val=sel.value;
+    if(!val) return alert('삭제할 공사명을 선택해주세요');
+    if(!confirm(`"${val}" 삭제?`)) return;
+    localStorage.setItem('projects',JSON.stringify(JSON.parse(localStorage.getItem('projects')||'[]').filter(p=>p!==val)));
+    loadProjects(); _refreshSettingsSelsMobile();
+  }
+  function smCompanyAdd() {
+    const inp=document.getElementById('sm-company-input'), val=inp.value.trim(); if(!val) return;
+    const list=JSON.parse(localStorage.getItem('companies')||'[]');
+    if(!list.includes(val)){list.push(val);localStorage.setItem('companies',JSON.stringify(list));}
+    inp.value=''; loadCompanies(); _refreshSettingsSelsMobile();
+  }
+  function smCompanyDel() {
+    const sel=document.getElementById('sm-company-select'), val=sel.value;
+    if(!val) return alert('삭제할 시공사를 선택해주세요');
+    if(!confirm(`"${val}" 삭제?`)) return;
+    localStorage.setItem('companies',JSON.stringify(JSON.parse(localStorage.getItem('companies')||'[]').filter(c=>c!==val)));
+    loadCompanies(); _refreshSettingsSelsMobile();
+  }
+  function smSupervisorAdd() {
+    const inp=document.getElementById('sm-supervisor-input'), val=inp.value.trim(); if(!val) return;
+    const list=JSON.parse(localStorage.getItem('supervisors')||'[]');
+    if(!list.includes(val)){list.push(val);localStorage.setItem('supervisors',JSON.stringify(list));}
+    inp.value=''; loadSupervisors(); _refreshSettingsSelsMobile();
+  }
+  function smSupervisorDel() {
+    const sel=document.getElementById('sm-supervisor-select'), val=sel.value;
+    if(!val) return alert('삭제할 현장대리인을 선택해주세요');
+    if(!confirm(`"${val}" 삭제?`)) return;
+    localStorage.setItem('supervisors',JSON.stringify(JSON.parse(localStorage.getItem('supervisors')||'[]').filter(n=>n!==val)));
+    loadSupervisors(); _refreshSettingsSelsMobile();
   }
 
   // ===== 공사명 =====
@@ -978,12 +1272,11 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       <button class="btn-del-card" onclick="this.closest('.card').remove()">✕</button>
       <div class="card-row2">
         <div class="card-field"><label>장비명</label><select class="equip-sel">${getEquipOptions()}</select></div>
-        <div class="card-field"><label>규격</label><input placeholder="규격"></div>
+        <div class="card-field"><label>기사명</label><input placeholder="기사명"></div>
       </div>
-      <div class="card-row3" style="margin-top:6px;">
-        <div class="card-field"><label>성명</label><input placeholder="성명"></div>
-        <div class="card-field"><label>금일</label>
-          <select class="today-sel"><option value="">금일</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select>
+      <div class="card-row2" style="margin-top:6px;">
+        <div class="card-field"><label>시간</label>
+          <select class="today-sel"><option value="">시간</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select>
         </div>
         <div class="card-field"><label>비고</label><input placeholder="비고"></div>
       </div>`;
@@ -1003,8 +1296,7 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
         <div class="card-field"><label>단위</label><input placeholder="단위"></div>
         <div class="card-field"><label>수량</label><input placeholder="수량"></div>
         <div class="card-field"><label>거래처</label><input placeholder="거래처"></div>
-      </div>
-      <div class="card-field" style="margin-top:6px;"><label>비고</label><input placeholder="비고"></div>`;
+      </div>`;
     document.getElementById('mt-list').appendChild(d);
   }
 
@@ -1021,11 +1313,11 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       const inps = card.querySelectorAll('input');
       const equipSel = card.querySelector('select.equip-sel');
       const ts = card.querySelector('select.today-sel');
-      return { name:equipSel?.value||'', spec:inps[0]?.value||'', driver:inps[1]?.value||'', today:ts?.value||'', note:inps[2]?.value||'' };
+      return { name:equipSel?.value||'', driver:inps[0]?.value||'', today:ts?.value||'', note:inps[1]?.value||'' };
     });
     const mt = Array.from(document.getElementById('mt-list').querySelectorAll('.card')).map(card => {
       const inps = card.querySelectorAll('input');
-      return { item:inps[0]?.value||'', spec:inps[1]?.value||'', unit:inps[2]?.value||'', qty:inps[3]?.value||'', supplier:inps[4]?.value||'', note:inps[5]?.value||'' };
+      return { item:inps[0]?.value||'', spec:inps[1]?.value||'', unit:inps[2]?.value||'', qty:inps[3]?.value||'', supplier:inps[4]?.value||'' };
     });
     return {
       date: document.getElementById('i-date').value,
@@ -1046,13 +1338,11 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
   async function exportData() {
     const data = collectData();
     if (!data.date) { alert('날짜를 선택해주세요.'); return; }
-    const logs = getDailyLogs();
-    const logKey = data.project ? `${data.project}||${data.date}` : data.date;
-    if (logs[logKey]?.locked) {
+    const prev = getDayLog(data.date, data.project);
+    if (prev?.locked) {
       if (!confirm('이미 제출된 일보입니다. 다시 내보내기만 할까요?\n(잠금은 유지됩니다)')) return;
     } else {
       if (!confirm('내보내기하면 일보가 잠금됩니다.\n제출 후에는 수정할 수 없습니다. 계속할까요?')) return;
-      const prev = logs[logKey];
       data.locked = true;
       data.savedAt = new Date().toISOString();
       if (prev?.revised) {
@@ -1060,8 +1350,7 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
         data.revisedAt = prev.revisedAt;
         data.revisionReason = prev.revisionReason;
       }
-      logs[logKey] = data;
-      localStorage.setItem('daily_logs', JSON.stringify(logs));
+      saveDayLog(data.date, data, data.project);
       checkSavedLog(data.date);
       setLockMode(true, data.savedAt, data);
     }
@@ -1108,8 +1397,7 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
   }
 
   function loadFromData(d) {
-    if(d.date) flatpickr('#i-date', {}).setDate(d.date);
-    document.getElementById('i-date').value = d.date||'';
+    if(d.date) document.getElementById('i-date').value = d.date;
     document.getElementById('i-project').value = d.project||'';
     document.getElementById('i-project-select').value = d.project||'';
     document.getElementById('i-company').value = d.company||'';
@@ -1141,8 +1429,8 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       const inps=card.querySelectorAll('input');
       const equipSel=card.querySelector('select.equip-sel');
       const ts=card.querySelector('select.today-sel');
-      if(equipSel) equipSel.value=e.name||''; inps[0].value=e.spec||''; inps[1].value=e.driver||'';
-      if(ts) ts.value=e.today||''; if(inps[2]) inps[2].value=e.note||'';
+      if(equipSel) equipSel.value=e.name||''; inps[0].value=e.driver||'';
+      if(ts) ts.value=e.today||''; if(inps[1]) inps[1].value=e.note||'';
     });
     document.getElementById('mt-list').innerHTML='';
     (d.mt?.length?d.mt:[{}]).forEach(m => {
@@ -1166,28 +1454,25 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
 
   function generateAndPrint() {
     const d = collectData();
-    const manCount = Math.max(d.man.filter(r=>r.name||r.job).length, 22);
-    const eqCount  = Math.max(d.eq.filter(r=>r.name).length, 10);
+    const manCount = Math.max(d.man.filter(r=>r.name||r.job).length, 24);
+    const eqCount  = Math.max(d.eq.filter(r=>r.name).length, 12);
     const mtCount  = Math.max(d.mt.filter(r=>r.item).length, 10);
 
-    let manTableRows = '';
-    for (let i=0; i<manCount; i++) {
-      const r = d.man[i];
-      if (r?.name||r?.job) manTableRows += `<tr>${td(r.job,'left')}${td(r.name,'left')}${td(r.gongsu)}${td('')}${td(r.note,'left')}</tr>`;
-      else manTableRows += `<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
-    }
-    let eqTableRows = '';
-    for (let i=0; i<eqCount; i++) {
-      const r = d.eq[i];
-      if (r?.name) eqTableRows += `<tr>${td(r.name,'left')}${td(r.spec)}${td(r.driver,'left')}${td(r.today)}${td('')}${td(r.note,'left')}</tr>`;
-      else eqTableRows += `<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
-    }
-    let mtTableRows = '';
-    for (let i=0; i<mtCount; i++) {
-      const r = d.mt[i];
-      if (r?.item) mtTableRows += `<tr>${td(r.item,'left')}${td(r.spec)}${td(r.unit)}${td(r.qty)}${td(r.supplier,'left')}${td(r.note,'left')}</tr>`;
-      else mtTableRows += `<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>`;
-    }
+    const EQ_ROWS=9, MT_ROWS=13;
+    const Em = `<td>&nbsp;</td>`;
+    const EmB = `<td style="border-right:1px solid #222;">&nbsp;</td>`;
+    const tdBm = (v,c='') => `<td class="${c}" style="border-right:1px solid #222;">${v||'&nbsp;'}</td>`;
+    const manR = i => { const r=d.man[i]; return (r?.name||r?.job)?`${td(r.job,'left')}${td(r.name,'left')}${td(r.gongsu)}${td('')}${tdBm(r.note,'left')}`:Em+Em+Em+Em+EmB; };
+    const eqR  = i => { const r=d.eq[i];  return r?.name?`${td(r.name,'left')}${td(r.driver,'left')}${td(r.today)}${td('')}${td(r.note,'left')}`:Em+Em+Em+Em+Em; };
+    const mtR  = i => { const r=d.mt[i];  return r?.item?`${td(r.item,'left')}${td(r.spec)}${td(r.unit)}${td(r.qty)}${td(r.supplier,'left')}`:Em+Em+Em+Em+Em; };
+
+    let combinedRows = '';
+    combinedRows += `<tr><td colspan="5" class="th-group" style="border-right:1px solid #222;">인 력 투 입 현 황</td><td colspan="5" class="th-group">장 비 투 입 현 황</td></tr>`;
+    combinedRows += `<tr><td class="th-sub">직종</td><td class="th-sub">성명</td><td class="th-sub">공수</td><td class="th-sub">누계</td><td class="th-sub" style="border-right:1px solid #222;">비고</td><td class="th-sub">장비명</td><td class="th-sub">기사명</td><td class="th-sub">시간</td><td class="th-sub">누계</td><td class="th-sub">비고</td></tr>`;
+    for (let i=0; i<EQ_ROWS; i++) combinedRows += `<tr>${manR(i)}${eqR(i)}</tr>`;
+    combinedRows += `<tr>${manR(EQ_ROWS)}<td colspan="5" class="th-group">자 재 반 입 현 황</td></tr>`;
+    combinedRows += `<tr>${manR(EQ_ROWS+1)}<td class="th-sub">품명</td><td class="th-sub">규격</td><td class="th-sub">단위</td><td class="th-sub">수량</td><td class="th-sub">거래처</td></tr>`;
+    for (let i=0; i<MT_ROWS; i++) combinedRows += `<tr>${manR(EQ_ROWS+2+i)}${mtR(i)}</tr>`;
 
     const dateStr = d.date ? (() => {
       const dt = new Date(d.date);
@@ -1195,13 +1480,13 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       return `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 (${days[dt.getDay()]})`;
     })() : '202   년   월   일';
 
-    document.getElementById('print-wrap').innerHTML = `
+    let printHtml = `
     <div class="doc-wrap">
       <div class="doc-top">
-        <div class="doc-main-title">작 업 일 보</div>
+        <div class="doc-main-title">작 업 일 지</div>
         <table class="approval-table">
-          <tr><td class="ap-title">결</td><td class="ap-title">담당</td><td class="ap-title">주임</td><td class="ap-title">과장</td><td class="ap-title">차장</td><td class="ap-title">부장</td><td class="ap-title">이사</td><td class="ap-title">상무</td><td class="ap-title">대표</td></tr>
-          <tr><td class="ap-title">재</td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td></tr>
+          <tr><td class="ap-title" style="border-bottom:none; padding-top:8px;">결</td><td class="ap-title">담당</td><td class="ap-title">주임</td><td class="ap-title">과장</td><td class="ap-title">차장</td><td class="ap-title">부장</td><td class="ap-title">이사</td><td class="ap-title">상무</td><td class="ap-title">대표</td></tr>
+          <tr><td class="ap-title" style="border-top:none;">재</td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td></tr>
         </table>
       </div>
       <div style="font-size:13px;margin-bottom:3px;"><strong>시 공 사 :</strong> ${d.company||''}</div>
@@ -1210,45 +1495,30 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
         <span><strong>날 씨 :</strong> ${d.weather||''}&nbsp;&nbsp;<strong>기 온 :</strong> ${d.temp||'-'}</span>
       </div>
       <div style="font-size:13px;margin-bottom:5px;"><strong>작 성 일 :</strong> ${dateStr}</div>
-      <div style="display:flex;align-items:stretch;">
-        <table class="doc-main man-table" style="width:50%;flex-shrink:0;">
-          <thead>
-            <tr><td colspan="5" class="th-group">인 력 투 입 현 황</td></tr>
-            <tr><td class="th-sub" style="width:20%">직종</td><td class="th-sub" style="width:22%">성명</td><td class="th-sub" style="width:10%">공수</td><td class="th-sub" style="width:10%">누계</td><td class="th-sub" style="width:38%">비고</td></tr>
-          </thead>
-          <tbody>${manTableRows}</tbody>
-        </table>
-        <div style="width:50%;flex-shrink:0;display:flex;flex-direction:column;">
-          <table class="doc-main" style="width:100%;">
-            <thead>
-              <tr><td colspan="6" class="th-group">장 비 투 입 현 황</td></tr>
-              <tr><td class="th-sub" style="width:24%">장비명</td><td class="th-sub" style="width:12%">규격</td><td class="th-sub" style="width:16%">성명</td><td class="th-sub" style="width:11%">금일</td><td class="th-sub" style="width:11%">누계</td><td class="th-sub" style="width:26%">비고</td></tr>
-            </thead>
-            <tbody>${eqTableRows}</tbody>
-          </table>
-          <table class="doc-main" style="width:100%;margin-top:-1px;">
-            <thead>
-              <tr><td colspan="6" class="th-group">자 재 반 입 현 황</td></tr>
-              <tr><td class="th-sub" style="width:28%">품명</td><td class="th-sub" style="width:12%">규격</td><td class="th-sub" style="width:9%">단위</td><td class="th-sub" style="width:8%">수량</td><td class="th-sub" style="width:22%">거래처</td><td class="th-sub" style="width:21%">비고</td></tr>
-            </thead>
-            <tbody>${mtTableRows}</tbody>
-          </table>
-        </div>
-      </div>
-      <table class="doc-main" style="width:100%;margin-top:-1px;">
+      <div style="border:1px solid #222;">
+      <table class="doc-main" style="width:100%;table-layout:fixed;">
+        <colgroup>
+          <col style="width:10%"><col style="width:11%"><col style="width:5%"><col style="width:7%"><col style="width:17%">
+          <col style="width:15%"><col style="width:8%"><col style="width:7%"><col style="width:7%"><col style="width:13%">
+        </colgroup>
+        <tbody>${combinedRows}</tbody>
+      </table>
+      <table class="doc-main" style="width:100%;table-layout:fixed;border-top:1px solid #222;">
+        <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
         <tr>
-          <td class="th-group" style="width:50%;letter-spacing:3px;border-top:none;">작 업 내 용</td>
-          <td class="th-group" style="width:50%;letter-spacing:3px;border-top:none;">작 업 계 획</td>
+          <td class="th-group" style="letter-spacing:3px;border-right:1px solid #222;">작 업 내 용</td>
+          <td class="th-group" style="letter-spacing:3px;">작 업 계 획</td>
         </tr>
         <tr>
-          <td style="width:50%;height:45mm;vertical-align:top;text-align:left;padding:6px;white-space:pre-line;border-top:none;">${d.work||''}</td>
-          <td style="width:50%;height:45mm;vertical-align:top;text-align:left;padding:6px;white-space:pre-line;border-top:none;">${d.plan||''}</td>
+          <td style="height:38mm;vertical-align:top;text-align:left;padding:6px;white-space:pre-line;border-top:none;border-right:1px solid #222;">${d.work||''}</td>
+          <td style="height:38mm;vertical-align:top;text-align:left;padding:6px;white-space:pre-line;border-top:none;">${d.plan||''}</td>
         </tr>
       </table>
-      <table style="width:100%;border-collapse:collapse;margin-top:-1px;font-size:11px;">
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;border-top:1px solid #222;">
         <tr>
-          <td style="border:0.5px solid #222;padding:6px 8px;width:62%;height:50px;vertical-align:middle;"><strong>비 고 :</strong>&nbsp;${d.note||''}</td>
-          <td style="border:0.5px solid #222;border-left:none;padding:6px 8px;width:38%;height:50px;text-align:center;vertical-align:middle;"><strong>현 장 대 리 인 :</strong>&nbsp;${d.supervisor||''}&nbsp;&nbsp;<span style="font-size:10px">(인)</span></td>
+          <td style="padding:6px 8px;width:62%;height:50px;vertical-align:middle;">${d.note ? `<strong>비 고 :</strong>&nbsp;${d.note}` : ''}</td>
+          <td style="padding:6px 8px;width:38%;height:50px;text-align:center;vertical-align:middle;"><strong>현 장 대 리 인 :</strong>&nbsp;<span style="display:inline-block;min-width:7em;">${d.supervisor||''}</span><span style="font-size:10px">(인)</span></td>
         </tr>
       </table>
       <div style="text-align:right;font-size:11px;font-weight:700;margin-top:4px;">${d.company||''}</div>
@@ -1260,6 +1530,49 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
         </div>
       </div>` : ''}
     </div>`;
+
+    // ===== 2페이지: 장비/자재 초과 데이터 =====
+    const eqOverflow = d.eq.filter(r=>r.name).length > 10;
+    const mtOverflow = d.mt.filter(r=>r.item).length > 10;
+    if (eqOverflow || mtOverflow) {
+      let p2 = `<div class="page-break doc-wrap">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-family:'Nanum Gothic',sans-serif;font-size:20px;font-weight:800;letter-spacing:8px;">작 업 일 지</div>
+          <div style="font-size:11px;text-align:right;font-weight:700;">${d.project||''}&nbsp;&nbsp;${dateStr}&nbsp;&nbsp;<span style="color:#888;">(계속)</span></div>
+        </div>`;
+      if (eqOverflow) {
+        let rows = d.eq.slice(9).filter(r=>r.name).map(r => `<tr>${td(r.name,'left')}${td(r.driver,'left')}${td(r.today)}${td('')}${td(r.note,'left')}</tr>`).join('');
+        p2 += `<table class="doc-main" style="width:100%;margin-bottom:8px;">
+          <thead>
+            <tr><td colspan="5" class="th-group">장 비 투 입 현 황 (계속)</td></tr>
+            <tr>
+              <td class="th-sub" style="width:30%">장비명</td><td class="th-sub" style="width:22%">기사명</td>
+              <td class="th-sub" style="width:18%">시간</td><td class="th-sub" style="width:12%">누계</td>
+              <td class="th-sub" style="width:18%">비고</td>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+      }
+      if (mtOverflow) {
+        let rows = d.mt.slice(10).filter(r=>r.item).map(r => `<tr>${td(r.item,'left')}${td(r.spec)}${td(r.unit)}${td(r.qty)}${td(r.supplier,'left')}</tr>`).join('');
+        p2 += `<table class="doc-main" style="width:100%;">
+          <thead>
+            <tr><td colspan="5" class="th-group">자 재 반 입 현 황 (계속)</td></tr>
+            <tr>
+              <td class="th-sub" style="width:35%">품명</td><td class="th-sub" style="width:15%">규격</td>
+              <td class="th-sub" style="width:11%">단위</td><td class="th-sub" style="width:10%">수량</td>
+              <td class="th-sub" style="width:29%">거래처</td>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+      }
+      p2 += `</div>`;
+      printHtml += p2;
+    }
+
+    document.getElementById('print-wrap').innerHTML = printHtml;
     window.print();
   }
 
@@ -1302,6 +1615,7 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
 
   loadProjects(); loadCompanies(); loadSupervisors(); loadJobs(); loadNames(); loadEquipNames();
   addMan(); addEq(); addMt();
+
 
   // ===== 계산기 모달 =====
   function openCalc() {

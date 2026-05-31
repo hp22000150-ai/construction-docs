@@ -117,6 +117,8 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     <div class="fg"><label>종료일</label><input id="r-to" placeholder="종료일"></div>
     <button class="btn-calc" onclick="calculate()">📊 정산하기</button>
     <button class="btn-save-price" onclick="savePrices()">💾 단가 저장</button>
+    <button class="btn-save-price" onclick="document.getElementById('import-transfer-input').click()" style="background:#fff3cd;color:#856404;border-color:#ffc107;">📥 데이터 불러오기</button>
+    <input type="file" id="import-transfer-input" accept=".json" multiple style="display:none" onchange="importTransferData(this)">
   </div>
 
   <!-- 결과 -->
@@ -184,8 +186,73 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
   flatpickr('#r-to', fpOpts);
 
   function fmt(n) { return Math.round(n).toLocaleString('ko-KR'); }
-  function getDailyLogs() { return JSON.parse(localStorage.getItem('daily_logs')||'{}'); }
+  function getDailyLogs() {
+    const logs = JSON.parse(localStorage.getItem('daily_logs')||'{}');
+    const flat = {};
+    Object.entries(logs).forEach(([k, v]) => {
+      if (v && typeof v === 'object' && !v.date && !v.man) {
+        // 월별 중첩 구조: "공사명||YYYY-MM" 또는 "YYYY-MM" → { "DD": 데이터 }
+        const hasP = k.includes('||'), proj = hasP ? k.split('||')[0] : '', month = hasP ? k.split('||')[1] : k;
+        if (/^\d{4}-\d{2}$/.test(month)) {
+          Object.entries(v).forEach(([day, dd]) => {
+            const date = `${month}-${day.padStart(2,'0')}`;
+            flat[proj ? `${proj}||${date}` : date] = dd;
+          });
+          return;
+        }
+      }
+      flat[k] = v;
+    });
+    return flat;
+  }
   function getPrices() { return JSON.parse(localStorage.getItem('unit_prices')||'{"man":{},"eq":{}}'); }
+
+  // 모바일 전송 데이터 불러오기 (daily_logs 병합)
+  function importTransferData(input) {
+    const files = [...input.files]; if (!files.length) return;
+    let totalCnt = 0, doneCnt = 0;
+
+    function mergeOne(data) {
+      const incoming = data._type === 'daily_logs_transfer' ? data.daily_logs : data.daily_logs || data;
+      if (!incoming || typeof incoming !== 'object') return 0;
+      const existing = JSON.parse(localStorage.getItem('daily_logs')||'{}');
+      Object.entries(incoming).forEach(([k, v]) => {
+        const hasP = k.includes('||'), proj = hasP ? k.split('||')[0] : '', date = hasP ? k.split('||')[1] : k;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { existing[k] = v; return; }
+        const month = date.slice(0,7), day = date.slice(8,10);
+        const mKey = proj ? `${proj}||${month}` : month;
+        if (!existing[mKey] || typeof existing[mKey] !== 'object') existing[mKey] = {};
+        existing[mKey][day] = v;
+      });
+      localStorage.setItem('daily_logs', JSON.stringify(existing));
+      if (data.projects) {
+        const cur = JSON.parse(localStorage.getItem('projects')||'[]');
+        localStorage.setItem('projects', JSON.stringify([...new Set([...cur, ...data.projects])]));
+      }
+      if (data.companies) {
+        const cur = JSON.parse(localStorage.getItem('companies')||'[]');
+        localStorage.setItem('companies', JSON.stringify([...new Set([...cur, ...data.companies])]));
+      }
+      return Object.keys(incoming).length;
+    }
+
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          totalCnt += mergeOne(data);
+        } catch { /* skip invalid file */ }
+        doneCnt++;
+        if (doneCnt === files.length) {
+          loadProjects();
+          input.value = '';
+          alert(`✅ ${files.length}개 파일에서 ${totalCnt}건의 일보 데이터를 불러왔습니다.\n정산하기를 눌러 확인하세요.`);
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
 
   // 공사명 목록 로드
   function loadProjects() {
