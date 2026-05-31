@@ -1471,12 +1471,12 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
     const EmB = `<td style="border-right:1px solid #222;">&nbsp;</td>`;
     const tdBm = (v,c='') => `<td class="${c}" style="border-right:1px solid #222;">${v||'&nbsp;'}</td>`;
     const manR = i => { const r=d.man[i]; return (r?.name||r?.job)?`${td(r.job,'left')}${td(r.name,'left')}${td(r.gongsu)}${td('')}${tdBm(r.note,'left')}`:Em+Em+Em+Em+EmB; };
-    const eqR  = i => { const r=d.eq[i];  return r?.name?`${td(r.name,'left')}${td(r.driver,'left')}${td(r.today)}${td('')}${td(r.note,'left')}`:Em+Em+Em+Em+Em; };
+    const eqR  = i => { const r=d.eq[i];  return r?.name?`${td(r.name,'left')}${td(r.driver,'left')}${td(r.today)}${td('')}${td((r.amount?r.amount+'원':r.note)||'','left')}`:Em+Em+Em+Em+Em; };
     const mtR  = i => { const r=d.mt[i];  return r?.item?`${td(r.item,'left')}${td(r.spec)}${td(r.unit)}${td(r.qty)}${td(r.supplier,'left')}`:Em+Em+Em+Em+Em; };
 
     let combinedRows = '';
     combinedRows += `<tr><td colspan="5" class="th-group" style="border-right:1px solid #222;">인 력 투 입 현 황</td><td colspan="5" class="th-group">장 비 투 입 현 황</td></tr>`;
-    combinedRows += `<tr><td class="th-sub">직종</td><td class="th-sub">성명</td><td class="th-sub">공수</td><td class="th-sub">누계</td><td class="th-sub" style="border-right:1px solid #222;">비고</td><td class="th-sub">장비명</td><td class="th-sub">기사명</td><td class="th-sub">시간</td><td class="th-sub">누계</td><td class="th-sub">비고</td></tr>`;
+    combinedRows += `<tr><td class="th-sub">직종</td><td class="th-sub">성명</td><td class="th-sub">공수</td><td class="th-sub">누계</td><td class="th-sub" style="border-right:1px solid #222;">비고</td><td class="th-sub">장비명</td><td class="th-sub">기사명</td><td class="th-sub">시간</td><td class="th-sub">누계</td><td class="th-sub">비고/금액</td></tr>`;
     for (let i=0; i<EQ_ROWS; i++) combinedRows += `<tr>${manR(i)}${eqR(i)}</tr>`;
     combinedRows += `<tr>${manR(EQ_ROWS)}<td colspan="5" class="th-group">자 재 반 입 현 황</td></tr>`;
     combinedRows += `<tr>${manR(EQ_ROWS+1)}<td class="th-sub">품명</td><td class="th-sub">규격</td><td class="th-sub">단위</td><td class="th-sub">수량</td><td class="th-sub">거래처</td></tr>`;

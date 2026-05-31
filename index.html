@@ -1327,7 +1327,8 @@
       const inp = row.querySelectorAll('input');
       const equipSel = row.querySelector('select.equip-sel');
       const todaySel = row.querySelector('select.today-sel');
-      return { name: equipSel?.value||'', driver: inp[0]?.value||'', today: todaySel?.value||'', nugyeEl: inp[1], note: inp[2]?.value||'' };
+      const amt = row.querySelector('input.eq-amount')?.value||'';
+      return { name: equipSel?.value||'', driver: inp[0]?.value||'', today: todaySel?.value||'', nugyeEl: inp[1], note: inp[2]?.value||'', amount: amt };
     }).filter(r => r.name || r.today);
 
     const mtRows = getRows('mt-list', 5);
@@ -1359,13 +1360,13 @@
     const EB = `<td style="border-right:1px solid #222;">&nbsp;</td>`;
     const tdB = (v,c='') => `<td class="${c}" style="border-right:1px solid #222;">${v||'&nbsp;'}</td>`;
     const manR = i => { const r = manData[i]; return r ? `${td(r.job,'left')}${td(r.name,'left')}${td(r.gongsu)}${td(r.cumul)}${tdB(r.note,'left')}` : E+E+E+E+EB; };
-    const eqR  = i => { const r = eqData[i];  return r ? `${td(r.name,'left')}${td(r.driver,'left')}${td(r.today)}${td(r.cumul)}${td(r.note,'left')}` : E+E+E+E+E; };
+    const eqR  = i => { const r = eqData[i];  return r ? `${td(r.name,'left')}${td(r.driver,'left')}${td(r.today)}${td(r.cumul)}${td((r.amount ? r.amount+'원' : r.note)||'','left')}` : E+E+E+E+E; };
     const mtR  = i => { const r = mtRows[i];   return r ? `${td(r[0],'left')}${td(r[1])}${td(r[2])}${td(r[3])}${td(r[4],'left')}` : E+E+E+E+E; };
 
     let combinedRows = '';
     // 헤더행
     combinedRows += `<tr><td colspan="5" class="th-group" style="border-right:1px solid #222;">인 력 투 입 현 황</td><td colspan="5" class="th-group">장 비 투 입 현 황</td></tr>`;
-    combinedRows += `<tr><td class="th-sub">직종</td><td class="th-sub">성명</td><td class="th-sub">공수</td><td class="th-sub">누계</td><td class="th-sub" style="border-right:1px solid #222;">비고</td><td class="th-sub">장비명</td><td class="th-sub">기사명</td><td class="th-sub">시간</td><td class="th-sub">누계</td><td class="th-sub">비고</td></tr>`;
+    combinedRows += `<tr><td class="th-sub">직종</td><td class="th-sub">성명</td><td class="th-sub">공수</td><td class="th-sub">누계</td><td class="th-sub" style="border-right:1px solid #222;">비고</td><td class="th-sub">장비명</td><td class="th-sub">기사명</td><td class="th-sub">시간</td><td class="th-sub">누계</td><td class="th-sub">비고/금액</td></tr>`;
     // 인력 0~8 | 장비 0~8 (9행)
     for (let i = 0; i < EQ_ROWS; i++) combinedRows += `<tr>${manR(i)}${eqR(i)}</tr>`;
     // 인력 9 | 자재 헤더
