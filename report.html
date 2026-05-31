@@ -119,6 +119,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     <button class="btn-save-price" onclick="savePrices()">💾 단가 저장</button>
     <button class="btn-save-price" onclick="document.getElementById('import-transfer-input').click()" style="background:#fff3cd;color:#856404;border-color:#ffc107;">📥 데이터 불러오기</button>
     <input type="file" id="import-transfer-input" accept=".json" multiple style="display:none" onchange="importTransferData(this)">
+    <button id="btn-data-folder" class="btn-save-price" onclick="loadFromDataDir()" style="display:none;background:#e8f4fd;color:#1a6496;border-color:#9bc8e8;">📂 data 폴더 불러오기</button>
     <button class="btn-save-price" onclick="exportMerged()" style="background:#f3e8fd;color:#5a1a8a;border-color:#c8a0e8;">📦 통합 파일로 저장</button>
   </div>
 
@@ -212,40 +213,11 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
   function importTransferData(input) {
     const files = [...input.files]; if (!files.length) return;
     let totalCnt = 0, doneCnt = 0;
-
-    function mergeOne(data) {
-      const incoming = data._type === 'daily_logs_transfer' ? data.daily_logs : data.daily_logs || data;
-      if (!incoming || typeof incoming !== 'object') return 0;
-      const existing = JSON.parse(localStorage.getItem('daily_logs')||'{}');
-      Object.entries(incoming).forEach(([k, v]) => {
-        const hasP = k.includes('||'), proj = hasP ? k.split('||')[0] : '', date = hasP ? k.split('||')[1] : k;
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { existing[k] = v; return; }
-        const month = date.slice(0,7), day = date.slice(8,10);
-        const mKey = proj ? `${proj}||${month}` : month;
-        if (!existing[mKey] || typeof existing[mKey] !== 'object') existing[mKey] = {};
-        existing[mKey][day] = v;
-      });
-      localStorage.setItem('daily_logs', JSON.stringify(existing));
-      if (data.projects) {
-        const cur = JSON.parse(localStorage.getItem('projects')||'[]');
-        localStorage.setItem('projects', JSON.stringify([...new Set([...cur, ...data.projects])]));
-      }
-      if (data.companies) {
-        const cur = JSON.parse(localStorage.getItem('companies')||'[]');
-        localStorage.setItem('companies', JSON.stringify([...new Set([...cur, ...data.companies])]));
-      }
-      return Object.keys(incoming).length;
-    }
-
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = e => {
-        try {
-          const data = JSON.parse(e.target.result);
-          totalCnt += mergeOne(data);
-        } catch { /* skip invalid file */ }
-        doneCnt++;
-        if (doneCnt === files.length) {
+        try { totalCnt += mergeLogData(JSON.parse(e.target.result)); } catch { /* skip */ }
+        if (++doneCnt === files.length) {
           loadProjects();
           input.value = '';
           alert(`✅ ${files.length}개 파일에서 ${totalCnt}건의 일보 데이터를 불러왔습니다.\n정산하기를 눌러 확인하세요.`);
@@ -255,7 +227,53 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     });
   }
 
-  function exportMerged() {
+  // Electron 환경 감지 후 버튼 표시
+  window.addEventListener('DOMContentLoaded', () => {
+    if (window.electronAPI) document.getElementById('btn-data-folder').style.display = '';
+  });
+
+  async function loadFromDataDir() {
+    if (!window.electronAPI) return;
+    const files = await window.electronAPI.dataList();
+    if (!files.length) { alert('data 폴더에 JSON 파일이 없습니다.'); return; }
+    let totalCnt = 0;
+    for (const fname of files) {
+      try {
+        const raw = await window.electronAPI.dataRead(fname);
+        const data = JSON.parse(raw);
+        totalCnt += mergeLogData(data);
+      } catch { /* skip invalid */ }
+    }
+    loadProjects();
+    const dirPath = await window.electronAPI.dataDirPath();
+    alert(`✅ data 폴더에서 ${files.length}개 파일, ${totalCnt}건 불러왔습니다.\n경로: ${dirPath}`);
+  }
+
+  function mergeLogData(data) {
+    const incoming = data._type === 'daily_logs_transfer' ? data.daily_logs : data.daily_logs || data;
+    if (!incoming || typeof incoming !== 'object') return 0;
+    const existing = JSON.parse(localStorage.getItem('daily_logs')||'{}');
+    Object.entries(incoming).forEach(([k, v]) => {
+      const hasP = k.includes('||'), proj = hasP ? k.split('||')[0] : '', date = hasP ? k.split('||')[1] : k;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { existing[k] = v; return; }
+      const month = date.slice(0,7), day = date.slice(8,10);
+      const mKey = proj ? `${proj}||${month}` : month;
+      if (!existing[mKey] || typeof existing[mKey] !== 'object') existing[mKey] = {};
+      existing[mKey][day] = v;
+    });
+    localStorage.setItem('daily_logs', JSON.stringify(existing));
+    if (data.projects) {
+      const cur = JSON.parse(localStorage.getItem('projects')||'[]');
+      localStorage.setItem('projects', JSON.stringify([...new Set([...cur, ...data.projects])]));
+    }
+    if (data.companies) {
+      const cur = JSON.parse(localStorage.getItem('companies')||'[]');
+      localStorage.setItem('companies', JSON.stringify([...new Set([...cur, ...data.companies])]));
+    }
+    return Object.keys(incoming).length;
+  }
+
+  async function exportMerged() {
     const logs = getDailyLogs();
     if (!Object.keys(logs).length) { alert('저장된 일보 데이터가 없습니다.'); return; }
     const payload = {
@@ -266,12 +284,18 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
       companies: JSON.parse(localStorage.getItem('companies')||'[]'),
     };
     const fname = `일보통합_${new Date().toISOString().slice(0,10)}.json`;
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = fname;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    const content = JSON.stringify(payload, null, 2);
+    if (window.electronAPI) {
+      const dirPath = await window.electronAPI.dataSave(fname, content);
+      alert(`✅ data 폴더에 저장됐습니다.\n경로: ${dirPath}\\${fname}`);
+    } else {
+      const blob = new Blob([content], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = fname;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
   }
 
   // 공사명 목록 로드

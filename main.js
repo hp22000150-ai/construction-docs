@@ -5,6 +5,14 @@ const os = require('os');
 
 let mainWindow;
 
+function getDataDir() {
+  const dir = app.isPackaged
+    ? path.join(path.dirname(app.getPath('exe')), 'data')
+    : path.join(__dirname, 'data');
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -44,6 +52,24 @@ ipcMain.on('print-window', () => {
     console.error('PDF 생성 실패:', err);
   });
 });
+
+ipcMain.handle('data-save', (e, filename, content) => {
+  const dir = getDataDir();
+  fs.writeFileSync(path.join(dir, filename), content, 'utf8');
+  return dir;
+});
+
+ipcMain.handle('data-list', () => {
+  const dir = getDataDir();
+  return fs.readdirSync(dir).filter(f => f.endsWith('.json')).sort().reverse();
+});
+
+ipcMain.handle('data-read', (e, filename) => {
+  const dir = getDataDir();
+  return fs.readFileSync(path.join(dir, filename), 'utf8');
+});
+
+ipcMain.handle('data-dir-path', () => getDataDir());
 
 app.on('window-all-closed', () => {
   app.quit();
