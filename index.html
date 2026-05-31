@@ -1042,7 +1042,7 @@
     document.getElementById('i-supervisor').value        = log.supervisor || '';
     document.getElementById('supervisor-select').value   = log.supervisor || '';
 
-    // 일보의 직종·성명·장비명을 PC 목록에 자동 병합
+    // 직종·성명·장비명 PC 목록 자동 병합 (loadFromData 전에 실행)
     if (log.man?.length) {
       const jobs = JSON.parse(localStorage.getItem('jobs') || '["직영","용역","특수인부"]');
       const names = JSON.parse(localStorage.getItem('names') || '[]');
@@ -1060,55 +1060,8 @@
       if (changed) { localStorage.setItem('equip_names', JSON.stringify(equips)); loadEquipNames(); }
     }
 
-    // 인력 행
-    const manList = document.getElementById('man-list');
-    manList.innerHTML = '';
-    (log.man?.length ? log.man : [{}]).forEach(m => {
-      addMan();
-      const row = manList.lastElementChild;
-      const f = row.querySelectorAll('input, select.job-sel, select.gongsu-sel');
-      const jobSel = f[0];
-      if (m.job && jobSel && !Array.from(jobSel.options).some(o => o.value === m.job))
-        jobSel.insertAdjacentHTML('beforeend', `<option value="${m.job}">${m.job}</option>`);
-      f[0].value = m.job    || '';
-      f[1].value = m.name   || '';
-      f[2].value = m.gongsu || '';
-      if (f[4]) f[4].value = m.note || '';
-    });
-
-    // 장비 행
-    const eqList = document.getElementById('eq-list');
-    eqList.innerHTML = '';
-    (log.eq?.length ? log.eq : [{}]).forEach(e => {
-      addEq();
-      const row = eqList.lastElementChild;
-      const inp = row.querySelectorAll('input');
-      const equipSel = row.querySelector('select.equip-sel');
-      const todaySel = row.querySelector('select.today-sel');
-      if (equipSel && e.name && !Array.from(equipSel.options).some(o => o.value === e.name))
-        equipSel.insertAdjacentHTML('beforeend', `<option value="${e.name}">${e.name}</option>`);
-      if (equipSel) equipSel.value = e.name || '';
-      inp[0].value = e.driver || '';
-      if (todaySel) todaySel.value = e.today || '';
-      if (inp[2]) inp[2].value = e.note || '';
-      const amtInp = row.querySelector('input.eq-amount');
-      if (amtInp) amtInp.value = e.amount || '';
-    });
-
-    // 자재 행
-    const mtList = document.getElementById('mt-list');
-    mtList.innerHTML = '';
-    (log.mt?.length ? log.mt : [{}]).forEach(m => {
-      addMt();
-      const row = mtList.lastElementChild;
-      const inp = row.querySelectorAll('input');
-      inp[0].value = m.item     || '';
-      inp[1].value = m.spec     || '';
-      inp[2].value = m.unit     || '';
-      inp[3].value = m.qty      || '';
-      inp[4].value = m.supplier || '';
-    });
-
+    // 제일아래 불러오기(importData)와 동일한 방식으로 폼 채우기
+    loadFromData(log);
     generate();
     setPcLockMode(!!log.locked, log.savedAt, log);
   }
