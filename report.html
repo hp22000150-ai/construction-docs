@@ -418,27 +418,14 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
       const tr = document.createElement('tr');
       tr.dataset.type = 'eq';
       tr.dataset.key = priceKey;
-      if (r.directAmount > 0) {
-        tr.dataset.directAmount = r.directAmount;
-        tr.innerHTML = `
-          <td class="left">${r.name}</td>
-          <td>${r.spec}</td>
-          <td style="color:#888;">${r.hours > 0 ? (r.hours % 1 === 0 ? r.hours.toFixed(0) : r.hours.toFixed(1)) : '-'}</td>
-          <td style="text-align:center;color:#856404;font-size:11px;font-weight:700;">직접금액</td>
-          <td class="amount-cell" style="font-weight:700;color:#1a6496;">${fmt(r.directAmount)}</td>
-          <td></td>`;
-        const amtCell = tr.querySelector('.amount-cell');
-        amtCell.dataset.amt = r.directAmount;
-        updateSummary();
-      } else {
-        tr.innerHTML = `
-          <td class="left">${r.name}</td>
-          <td>${r.spec}</td>
-          <td>${r.hours % 1 === 0 ? r.hours.toFixed(0) : r.hours.toFixed(1)}</td>
-          <td><input class="price-input" type="number" placeholder="단가 입력" value="${saved}" onchange="recalcRow(this)" oninput="recalcRow(this)"></td>
-          <td class="amount-cell" style="font-weight:700;"></td>
-          <td></td>`;
-      }
+      tr.dataset.directAmount = r.directAmount > 0 ? r.directAmount : '';
+      tr.innerHTML = `
+        <td class="left">${r.name}</td>
+        <td>${r.spec}</td>
+        <td>${r.hours > 0 ? (r.hours % 1 === 0 ? r.hours.toFixed(0) : r.hours.toFixed(1)) : '-'}</td>
+        <td><input class="price-input" type="number" placeholder="단가 입력" value="${saved}" onchange="recalcRow(this)" oninput="recalcRow(this)"></td>
+        <td><input class="amount-direct" type="number" placeholder="금액" value="${r.directAmount > 0 ? r.directAmount : ''}" onchange="updateSummary()" oninput="updateSummary()" style="width:100%;padding:5px 6px;border:1px solid ${r.directAmount > 0 ? '#9bc8e8' : '#ddd'};border-radius:4px;font-size:12px;font-family:inherit;text-align:right;background:${r.directAmount > 0 ? '#e8f4fd' : '#fffde7'};"></td>
+        <td></td>`;
       tbody.appendChild(tr);
       recalcRow(tr.querySelector('.price-input'));
     });
@@ -479,8 +466,9 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
       manTotal += price * qty;
     });
     document.querySelectorAll('#eq-body tr[data-type="eq"]').forEach(tr => {
-      if (tr.dataset.directAmount) {
-        eqTotal += parseFloat(tr.dataset.directAmount) || 0;
+      const direct = parseFloat(tr.querySelector('.amount-direct')?.value) || 0;
+      if (direct > 0) {
+        eqTotal += direct;
       } else {
         const price = parseFloat(tr.querySelector('.price-input')?.value) || 0;
         const qty = parseFloat(tr.querySelectorAll('td')[2].textContent) || 0;
