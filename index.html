@@ -180,7 +180,7 @@
         <div class="trow manrow">
           <select class="job-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">직종</option></select>
           <input class="name-sel" list="names-datalist" placeholder="성명">
-          <select class="gongsu-sel" onchange="updateManTotal()" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">공수</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select>
+          <input class="gongsu-sel" type="number" step="0.5" min="0" max="99" list="gongsu-opts" placeholder="공수" oninput="updateManTotal()" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;">
           <input placeholder="누계" readonly style="background:#f0f0f0">
           <input placeholder="비고">
           <button class="btn-del" onclick="delRow(this)">✕</button>
@@ -562,6 +562,7 @@
 
 <datalist id="names-datalist"></datalist>
 <datalist id="equip-datalist"></datalist>
+<datalist id="gongsu-opts"><option value="0.5"><option value="1.0"></datalist>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
   let fpInstance;
@@ -1197,7 +1198,7 @@
   function addMan() {
     const d = document.createElement('div');
     d.className = 'trow manrow';
-    d.innerHTML = `<select class="job-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;">${getJobOptions()}</select><input class="name-sel" list="names-datalist" placeholder="성명"><select class="gongsu-sel" onchange="updateManTotal()" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">공수</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select><input placeholder="누계" readonly style="background:#f0f0f0"><input placeholder="비고"><button class="btn-del" onclick="delRow(this)">✕</button>`;
+    d.innerHTML = `<select class="job-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;">${getJobOptions()}</select><input class="name-sel" list="names-datalist" placeholder="성명"><input class="gongsu-sel" type="number" step="0.5" min="0" max="99" list="gongsu-opts" placeholder="공수" oninput="updateManTotal()" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><input placeholder="누계" readonly style="background:#f0f0f0"><input placeholder="비고"><button class="btn-del" onclick="delRow(this)">✕</button>`;
     document.getElementById('man-list').appendChild(d);
   }
 
