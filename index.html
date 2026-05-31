@@ -915,6 +915,8 @@
       const inp = row.querySelectorAll('input');
       const equipSel = row.querySelector('select.equip-sel');
       const ts = row.querySelector('select.today-sel');
+      if(equipSel && e.name && !Array.from(equipSel.options).some(o=>o.value===e.name))
+        equipSel.insertAdjacentHTML('beforeend',`<option value="${e.name}">${e.name}</option>`);
       if(equipSel) equipSel.value = e.name||''; inp[0].value = e.driver||'';
       if(ts) ts.value = e.today||''; if(inp[2]) inp[2].value = e.note||'';
       const amtInpX = row.querySelector('input.eq-amount'); if(amtInpX) amtInpX.value = e.amount||'';
@@ -1329,7 +1331,7 @@
       const todaySel = row.querySelector('select.today-sel');
       const amt = row.querySelector('input.eq-amount')?.value||'';
       return { name: equipSel?.value||'', driver: inp[0]?.value||'', today: todaySel?.value||'', nugyeEl: inp[1], note: inp[2]?.value||'', amount: amt };
-    }).filter(r => r.name || r.today);
+    }).filter(r => r.name || r.today || r.amount);
 
     const mtRows = getRows('mt-list', 5);
 
