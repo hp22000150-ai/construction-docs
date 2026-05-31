@@ -140,7 +140,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
           <th style="width:12%">직종</th>
           <th style="width:14%">성명</th>
           <th style="width:9%">공수</th>
-          <th style="width:9%">투입일수</th>
+          <th style="width:9%">횟수/건수</th>
           <th style="width:18%">단가 (원/일)</th>
           <th style="width:18%">금액 (원)</th>
           <th style="width:20%">비고</th>
@@ -161,7 +161,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
         <tr>
           <th style="width:18%">장비명</th>
           <th style="width:12%">규격</th>
-          <th style="width:9%">일수</th>
+          <th style="width:9%">횟수/건수</th>
           <th style="width:18%">단가 (원/일)</th>
           <th style="width:18%">금액 (원)</th>
           <th style="width:25%">비고</th>
@@ -523,7 +523,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
 
     // ── 장비 정산 시트 ──
     const eqRows = [['공사명: ' + proj + '  기간: ' + (from||'전체') + ' ~ ' + (to||'전체')], [],
-      ['장비명', '규격', '투입일수', '단가(원)', '금액(원)']];
+      ['장비명', '규격', '횟수/건수', '단가(원)', '금액(원)']];
     let eqTotal = 0;
     document.querySelectorAll('#eq-body tr[data-type="eq"]').forEach(tr => {
       const tds = tr.querySelectorAll('td');
