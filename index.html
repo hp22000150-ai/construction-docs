@@ -1016,7 +1016,10 @@
   function loadLog() {
     const date = document.getElementById('i-date').value;
     const proj = document.getElementById('i-project').value || document.getElementById('i-project-select').value;
-    const log  = getDayLog(date, proj) || getDailyLogs()[getLogKey(date)] || getDailyLogs()[date];
+    const logs = getDailyLogs();
+    // 현재 공사명으로 먼저 찾고, 없으면 해당 날짜의 어떤 일보든 로드
+    const log = getDayLog(date, proj) || logs[getLogKey(date)] || logs[date]
+      || (() => { const k = Object.keys(logs).find(k => k === date || k.endsWith('||' + date)); return k ? logs[k] : null; })();
     if (!log) return;
 
     // 기본 필드
