@@ -1069,6 +1069,9 @@
       addMan();
       const row = manList.lastElementChild;
       const f = row.querySelectorAll('input, select.job-sel, select.gongsu-sel');
+      const jobSel = f[0];
+      if (m.job && jobSel && !Array.from(jobSel.options).some(o => o.value === m.job))
+        jobSel.insertAdjacentHTML('beforeend', `<option value="${m.job}">${m.job}</option>`);
       f[0].value = m.job    || '';
       f[1].value = m.name   || '';
       f[2].value = m.gongsu || '';
@@ -1084,6 +1087,8 @@
       const inp = row.querySelectorAll('input');
       const equipSel = row.querySelector('select.equip-sel');
       const todaySel = row.querySelector('select.today-sel');
+      if (equipSel && e.name && !Array.from(equipSel.options).some(o => o.value === e.name))
+        equipSel.insertAdjacentHTML('beforeend', `<option value="${e.name}">${e.name}</option>`);
       if (equipSel) equipSel.value = e.name || '';
       inp[0].value = e.driver || '';
       if (todaySel) todaySel.value = e.today || '';
