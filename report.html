@@ -118,6 +118,12 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     <div class="fg"><label>공사명</label><select id="r-project"><option value="">전체</option></select></div>
     <div class="fg"><label>시작일</label><input id="r-from" placeholder="시작일"></div>
     <div class="fg"><label>종료일</label><input id="r-to" placeholder="종료일"></div>
+    <div class="fg" style="justify-content:flex-end;">
+      <label style="font-size:11px;font-weight:700;color:#2d6a4f;">부가세</label>
+      <label style="display:flex;align-items:center;gap:5px;padding:8px 10px;border:1.5px solid #ddd;border-radius:6px;background:#fafafa;cursor:pointer;font-size:13px;white-space:nowrap;">
+        <input type="checkbox" id="vat-check" onchange="updateSummary()" style="width:15px;height:15px;cursor:pointer;"> 장비 10%
+      </label>
+    </div>
     <button class="btn-calc" onclick="calculate()">📊 정산하기</button>
     <button class="btn-save-price" onclick="savePrices()">💾 단가 저장</button>
     <button class="btn-save-price" onclick="document.getElementById('import-transfer-input').click()" style="background:#fff3cd;color:#856404;border-color:#ffc107;">📥 데이터 불러오기</button>
@@ -169,6 +175,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     <div class="summary-box" id="summary-box">
       <div class="summary-row"><span>👷 인력 소계</span><span id="sum-man">0 원</span></div>
       <div class="summary-row"><span>🚜 장비 소계</span><span id="sum-eq">0 원</span></div>
+      <div class="summary-row" id="sum-vat-row" style="display:none;color:#856404;"><span>　부가세 (10%)</span><span id="sum-vat">0 원</span></div>
       <div class="summary-row"><span>합 계</span><span id="sum-total">0 원</span></div>
     </div>
 
@@ -476,14 +483,22 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
       }
     });
 
+    const vatChecked = document.getElementById('vat-check')?.checked;
+    const vat = vatChecked ? Math.round(eqTotal * 0.1) : 0;
+
     const manSubEl = document.getElementById('man-sub-amt');
     const eqSubEl  = document.getElementById('eq-sub-amt');
     if (manSubEl) manSubEl.textContent = fmt(manTotal) + ' 원';
     if (eqSubEl)  eqSubEl.textContent  = fmt(eqTotal)  + ' 원';
 
+    const vatRow = document.getElementById('sum-vat-row');
+    if (vatRow) vatRow.style.display = vatChecked ? '' : 'none';
+    const vatEl = document.getElementById('sum-vat');
+    if (vatEl) vatEl.textContent = fmt(vat) + ' 원';
+
     document.getElementById('sum-man').textContent   = fmt(manTotal) + ' 원';
     document.getElementById('sum-eq').textContent    = fmt(eqTotal)  + ' 원';
-    document.getElementById('sum-total').textContent = fmt(manTotal + eqTotal) + ' 원';
+    document.getElementById('sum-total').textContent = fmt(manTotal + eqTotal + vat) + ' 원';
   }
 
   function savePrices() {
