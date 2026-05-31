@@ -1044,6 +1044,24 @@
     document.getElementById('i-supervisor').value        = log.supervisor || '';
     document.getElementById('supervisor-select').value   = log.supervisor || '';
 
+    // 일보의 직종·성명·장비명을 PC 목록에 자동 병합
+    if (log.man?.length) {
+      const jobs = JSON.parse(localStorage.getItem('jobs') || '["직영","용역","특수인부"]');
+      const names = JSON.parse(localStorage.getItem('names') || '[]');
+      let changed = false;
+      log.man.forEach(m => {
+        if (m.job  && !jobs.includes(m.job))   { jobs.push(m.job);   changed = true; }
+        if (m.name && !names.includes(m.name)) { names.push(m.name); changed = true; }
+      });
+      if (changed) { localStorage.setItem('jobs', JSON.stringify(jobs)); localStorage.setItem('names', JSON.stringify(names)); loadJobs(); loadNames(); }
+    }
+    if (log.eq?.length) {
+      const equips = JSON.parse(localStorage.getItem('equip_names') || '["굴삭기","지게차","카고크레인","화물트럭"]');
+      let changed = false;
+      log.eq.forEach(e => { if (e.name && !equips.includes(e.name)) { equips.push(e.name); changed = true; } });
+      if (changed) { localStorage.setItem('equip_names', JSON.stringify(equips)); loadEquipNames(); }
+    }
+
     // 인력 행
     const manList = document.getElementById('man-list');
     manList.innerHTML = '';
