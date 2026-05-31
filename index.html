@@ -1359,9 +1359,9 @@
     const E = `<td>&nbsp;</td>`;
     const EB = `<td style="border-right:1px solid #222;">&nbsp;</td>`;
     const tdB = (v,c='') => `<td class="${c}" style="border-right:1px solid #222;">${v||'&nbsp;'}</td>`;
-    const manR = i => { const r = manData[i]; return r ? `${td(r.job,'left')}${td(r.name,'left')}${td(r.gongsu)}${td(r.cumul)}${tdB(r.note,'left')}` : E+E+E+E+EB; };
-    const eqR  = i => { const r = eqData[i];  return r ? `${td(r.name,'left')}${td(r.driver,'left')}${td(r.today)}${td(r.cumul)}${td((r.amount ? r.amount+'원' : r.note)||'','left')}` : E+E+E+E+E; };
-    const mtR  = i => { const r = mtRows[i];   return r ? `${td(r[0],'left')}${td(r[1])}${td(r[2])}${td(r[3])}${td(r[4],'left')}` : E+E+E+E+E; };
+    const manR = i => { const r = manData[i]; return r ? `${td(r.job)}${td(r.name)}${td(r.gongsu)}${td(r.cumul)}${tdB(r.note,'left')}` : E+E+E+E+EB; };
+    const eqR  = i => { const r = eqData[i];  return r ? `${td(r.name)}${td(r.driver)}${td(r.today)}${td(r.cumul)}${td((r.amount ? r.amount+'원' : r.note)||'')}` : E+E+E+E+E; };
+    const mtR  = i => { const r = mtRows[i];   return r ? `${td(r[0])}${td(r[1])}${td(r[2])}${td(r[3])}${td(r[4])}` : E+E+E+E+E; };
 
     let combinedRows = '';
     // 헤더행
@@ -1453,21 +1453,21 @@
           <div style="font-size:11px;text-align:right;font-weight:700;">${project}&nbsp;&nbsp;${dateStr}&nbsp;&nbsp;<span style="color:#888;">(계속)</span></div>
         </div>`;
       if (eqOverflow) {
-        let rows = eqData.slice(9).map(r => `<tr>${td(r.name,'left')}${td(r.driver,'left')}${td(r.today)}${td(r.cumul)}${td(r.note,'left')}</tr>`).join('');
+        let rows = eqData.slice(9).map(r => `<tr>${td(r.name)}${td(r.driver)}${td(r.today)}${td(r.cumul)}${td((r.amount?r.amount+'원':r.note)||'')}</tr>`).join('');
         p2 += `<table class="doc-main" style="width:100%;margin-bottom:8px;">
           <thead>
             <tr><td colspan="5" class="th-group">장 비 투 입 현 황 (계속)</td></tr>
             <tr>
               <td class="th-sub" style="width:30%">장비명</td><td class="th-sub" style="width:22%">기사명</td>
               <td class="th-sub" style="width:18%">시간</td><td class="th-sub" style="width:12%">누계</td>
-              <td class="th-sub" style="width:18%">비고</td>
+              <td class="th-sub" style="width:18%">비고/금액</td>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>`;
       }
       if (mtOverflow) {
-        let rows = mtRows.slice(10).map(r => `<tr>${td(r[0],'left')}${td(r[1])}${td(r[2])}${td(r[3])}${td(r[4],'left')}</tr>`).join('');
+        let rows = mtRows.slice(10).map(r => `<tr>${td(r[0])}${td(r[1])}${td(r[2])}${td(r[3])}${td(r[4])}</tr>`).join('');
         p2 += `<table class="doc-main" style="width:100%;">
           <thead>
             <tr><td colspan="5" class="th-group">자 재 반 입 현 황 (계속)</td></tr>
