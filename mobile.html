@@ -1080,8 +1080,10 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       const equipSel = card.querySelector('select.equip-sel');
       const ts = card.querySelector('select.today-sel');
       if (equipSel) equipSel.value = e.name || '';
-      inps[0].value = e.spec || ''; inps[1].value = e.driver || '';
+      inps[0].value = e.driver || ''; inps[1].value = e.note || '';
       if (ts) ts.value = e.today || '';
+      const amtInp = card.querySelector('input.eq-amount');
+      if (amtInp) amtInp.value = e.amount || '';
     });
     if (!document.getElementById('man-list').children.length) addMan();
     if (!document.getElementById('eq-list').children.length) addEq();
@@ -1278,11 +1280,12 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
         <div class="card-field"><label>장비명</label><select class="equip-sel">${getEquipOptions()}</select></div>
         <div class="card-field"><label>기사명</label><input placeholder="기사명"></div>
       </div>
-      <div class="card-row2" style="margin-top:6px;">
+      <div class="card-row3" style="margin-top:6px;">
         <div class="card-field"><label>시간</label>
           <select class="today-sel"><option value="">시간</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select>
         </div>
-        <div class="card-field"><label>비고</label><input placeholder="비고"></div>
+        <div class="card-field"><label>비고/금액</label><input placeholder="비고"></div>
+        <div class="card-field"><label>금액(원)</label><input class="eq-amount" type="number" min="0" placeholder="직접입력" style="background:#fffde7;"></div>
       </div>`;
     document.getElementById('eq-list').appendChild(d);
   }
@@ -1317,7 +1320,8 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       const inps = card.querySelectorAll('input');
       const equipSel = card.querySelector('select.equip-sel');
       const ts = card.querySelector('select.today-sel');
-      return { name:equipSel?.value||'', driver:inps[0]?.value||'', today:ts?.value||'', note:inps[1]?.value||'' };
+      const amtInp = card.querySelector('input.eq-amount');
+      return { name:equipSel?.value||'', driver:inps[0]?.value||'', today:ts?.value||'', note:inps[1]?.value||'', amount:amtInp?.value||'' };
     });
     const mt = Array.from(document.getElementById('mt-list').querySelectorAll('.card')).map(card => {
       const inps = card.querySelectorAll('input');
@@ -1435,6 +1439,7 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       const ts=card.querySelector('select.today-sel');
       if(equipSel) equipSel.value=e.name||''; inps[0].value=e.driver||'';
       if(ts) ts.value=e.today||''; if(inps[1]) inps[1].value=e.note||'';
+      const amtInp2=card.querySelector('input.eq-amount'); if(amtInp2) amtInp2.value=e.amount||'';
     });
     document.getElementById('mt-list').innerHTML='';
     (d.mt?.length?d.mt:[{}]).forEach(m => {
