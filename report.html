@@ -371,7 +371,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
         const h = parseFloat(e.today||0);
         eqMap[key].hours += h;
         const amt = parseFloat(e.amount||0);
-        if (h > 0 || amt > 0) eqMap[key].days++;
+        eqMap[key].days++;
         eqMap[key].directAmount += amt;
       });
     });
