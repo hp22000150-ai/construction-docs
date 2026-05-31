@@ -1010,14 +1010,22 @@
     const month = date.slice(0, 7);
     // raw 구조에서 해당 날짜 직접 검색 (공사명 무관)
     const raw = JSON.parse(localStorage.getItem('daily_logs') || '{}');
-    let log = null;
+    // 해당 날짜 모든 후보 수집 후 가장 완전한 데이터(savedAt 최신 or eq.amount 있는) 선택
+    const candidates = [];
     for (const [mk, mv] of Object.entries(raw)) {
       const mPart = mk.includes('||') ? mk.split('||')[1] : mk;
-      if (mPart === month && mv && typeof mv === 'object' && mv[day]) {
-        log = mv[day]; break;
-      }
+      if (mPart === month && mv && typeof mv === 'object' && mv[day]) candidates.push(mv[day]);
     }
-    if (!log) log = raw[date]; // 구형 flat 포맷 fallback
+    if (raw[date]) candidates.push(raw[date]);
+    if (!candidates.length) return;
+    // savedAt 최신 우선, 없으면 eq.amount 있는 것 우선
+    candidates.sort((a, b) => {
+      const aHasAmt = (a.eq||[]).some(e => e.amount > 0 || parseFloat(e.amount) > 0);
+      const bHasAmt = (b.eq||[]).some(e => e.amount > 0 || parseFloat(e.amount) > 0);
+      if (aHasAmt !== bHasAmt) return aHasAmt ? -1 : 1;
+      return (b.savedAt||'') > (a.savedAt||'') ? 1 : -1;
+    });
+    let log = candidates[0];
     if (!log) return;
 
     // 기본 필드
