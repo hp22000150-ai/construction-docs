@@ -1067,7 +1067,7 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       const card = document.getElementById('man-list').lastElementChild;
       const jobSel = card.querySelector('select.job-sel');
       const nameSel = card.querySelector('select.name-sel');
-      const gongsuSel = card.querySelector('select.gongsu-sel');
+      const gongsuSel = card.querySelector('.gongsu-sel');
       if (jobSel) jobSel.value = m.job || '';
       if (nameSel) nameSel.value = m.name || '';
       if (gongsuSel) gongsuSel.value = m.gongsu || '';
@@ -1312,7 +1312,7 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
     const man = Array.from(document.getElementById('man-list').querySelectorAll('.card')).map(card => {
       const jobSel = card.querySelector('select.job-sel');
       const nameSel = card.querySelector('select.name-sel');
-      const gongsuSel = card.querySelector('select.gongsu-sel');
+      const gongsuSel = card.querySelector('.gongsu-sel');
       const inps = card.querySelectorAll('input');
       return { job:jobSel?.value||'', name:nameSel?.value||'', gongsu:gongsuSel?.value||'', note:inps[0]?.value||'' };
     });
@@ -1423,7 +1423,7 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       const card = document.getElementById('man-list').lastElementChild;
       const jobSel=card.querySelector('select.job-sel');
       const nameSel=card.querySelector('select.name-sel');
-      const gongsuSel=card.querySelector('select.gongsu-sel');
+      const gongsuSel=card.querySelector('.gongsu-sel');
       const inps=card.querySelectorAll('input');
       if(jobSel) jobSel.value=m.job||'';
       if(nameSel) nameSel.value=m.name||'';
