@@ -131,7 +131,7 @@
   <!-- 입력 패널 -->
   <div class="input-panel">
     <div class="input-panel-header" style="display:flex;justify-content:space-between;align-items:center;">
-      <span>📋 작업일보<br><span style="font-size:10px;font-weight:400;opacity:0.6;margin-left:30px;">V 0.531.2</span></span>
+      <span>📋 작업일보<br><span style="font-size:10px;font-weight:400;opacity:0.6;margin-left:30px;">V 0.531.3</span></span>
 <a href="report.html" style="color:rgba(255,255,255,0.75);font-size:11px;text-decoration:none;border:1px solid rgba(255,255,255,0.4);border-radius:4px;padding:2px 8px;margin-left:4px;">📊 정산</a>
       <button onclick="openCalc()" style="color:rgba(255,255,255,0.75);font-size:11px;background:none;border:1px solid rgba(255,255,255,0.4);border-radius:4px;padding:2px 8px;margin-left:4px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🔧 계산기</button>
       <button onclick="openHelp()" style="color:rgba(255,255,255,0.75);font-size:11px;background:none;border:1px solid rgba(255,255,255,0.4);border-radius:4px;padding:2px 8px;margin-left:4px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📖 도움말</button>
@@ -288,9 +288,9 @@
     <b style="color:#1a3a2a;">⚙️ 기본설정</b><br>
     공사명·시공사·직종·성명·장비명·현장대리인 목록 추가·삭제. 공사명별로 일보가 분리 저장됩니다.<br><br>
 
-    <b style="color:#1a3a2a;">📅 작성일 / 불러오기</b><br>
-    저장된 날짜는 초록 점(●) 표시. 해당 날짜 선택 시 <b>불러오기</b> 버튼 활성화 → 공사명 무관하게 해당 날짜 일보 자동 로드.<br>
-    불러오기 시 일보에 있는 직종·성명·장비명이 목록에 없으면 자동 추가됩니다.<br><br>
+    <b style="color:#1a3a2a;">📅 작성일</b><br>
+    저장된 날짜는 초록 점(●) 표시. 날짜 선택 후 <b>📥 불러오기</b>로 JSON 파일을 가져오면 해당 일보가 폼에 자동 입력됩니다.<br>
+    불러올 때 일보의 직종·성명·장비명이 목록에 없으면 자동 추가됩니다.<br><br>
 
     <b style="color:#1a3a2a;">기온 📍자동</b><br>
     GPS 기반 최저·최고 기온·날씨 자동 입력. 위치 권한 및 인터넷 연결 필요.<br><br>
@@ -300,7 +300,7 @@
     ⏮ 전날 복사: 전날 인력·장비 한번에 복사. 누계: 일보 생성 시 과거 기록 합산 자동 계산.<br><br>
 
     <b style="color:#1a3a2a;">🚜 장비 투입</b><br>
-    장비명·기사명·시간 입력. <b>금액(원)</b> 직접 입력 시 정산에서 단가 계산 대신 해당 금액 사용.<br><br>
+    장비명·기사명·시간 입력. <b>금액(원)</b> 직접 입력 시 미리보기에 표시되고 정산 시 단가 계산 대신 해당 금액 사용. 금액은 천단위 콤마로 표시됩니다.<br><br>
 
     <b style="color:#1a3a2a;">📦 자재 반입</b><br>
     품명·규격·단위·수량·거래처 입력.<br><br>
