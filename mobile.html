@@ -1467,12 +1467,13 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
     const mtCount  = Math.max(d.mt.filter(r=>r.item).length, 10);
 
     const EQ_ROWS=9, MT_ROWS=13;
+    const fmtN = v => { const n=parseFloat(String(v).replace(/,/g,'')); return (v!==''&&v!=null&&!isNaN(n))?n.toLocaleString('ko-KR'):(v||''); };
     const Em = `<td>&nbsp;</td>`;
     const EmB = `<td style="border-right:1px solid #222;">&nbsp;</td>`;
     const tdBm = (v,c='') => `<td class="${c}" style="border-right:1px solid #222;">${v||'&nbsp;'}</td>`;
     const manR = i => { const r=d.man[i]; return (r?.name||r?.job)?`${td(r.job)}${td(r.name)}${td(r.gongsu)}${td('')}${tdBm(r.note,'left')}`:Em+Em+Em+Em+EmB; };
-    const eqR  = i => { const r=d.eq[i];  return r?.name?`${td(r.name)}${td(r.driver)}${td(r.today)}${td('')}${td((r.amount?r.amount+'원':r.note)||'')}`:Em+Em+Em+Em+Em; };
-    const mtR  = i => { const r=d.mt[i];  return r?.item?`${td(r.item)}${td(r.spec)}${td(r.unit)}${td(r.qty)}${td(r.supplier)}`:Em+Em+Em+Em+Em; };
+    const eqR  = i => { const r=d.eq[i];  return r?.name?`${td(r.name)}${td(r.driver)}${td(r.today)}${td('')}${td((r.amount?fmtN(r.amount)+'원':r.note)||'')}`:Em+Em+Em+Em+Em; };
+    const mtR  = i => { const r=d.mt[i];  return r?.item?`${td(r.item)}${td(r.spec)}${td(r.unit)}${td(fmtN(r.qty))}${td(r.supplier)}`:Em+Em+Em+Em+Em; };
 
     let combinedRows = '';
     combinedRows += `<tr><td colspan="5" class="th-group" style="border-right:1px solid #222;">인 력 투 입 현 황</td><td colspan="5" class="th-group">장 비 투 입 현 황</td></tr>`;

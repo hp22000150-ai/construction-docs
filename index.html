@@ -1347,12 +1347,13 @@
     }
 
     const EQ_ROWS = 9, MT_ROWS = 13, MAN_ROWS = 24;
+    const fmtN = v => { const n = parseFloat(String(v).replace(/,/g,'')); return (v!==''&&v!=null&&!isNaN(n)) ? n.toLocaleString('ko-KR') : (v||''); };
     const E = `<td>&nbsp;</td>`;
     const EB = `<td style="border-right:1px solid #222;">&nbsp;</td>`;
     const tdB = (v,c='') => `<td class="${c}" style="border-right:1px solid #222;">${v||'&nbsp;'}</td>`;
     const manR = i => { const r = manData[i]; return r ? `${td(r.job)}${td(r.name)}${td(r.gongsu)}${td(r.cumul)}${tdB(r.note,'left')}` : E+E+E+E+EB; };
-    const eqR  = i => { const r = eqData[i];  return r ? `${td(r.name)}${td(r.driver)}${td(r.today)}${td(r.cumul)}${td((r.amount ? r.amount+'원' : r.note)||'')}` : E+E+E+E+E; };
-    const mtR  = i => { const r = mtRows[i];   return r ? `${td(r[0])}${td(r[1])}${td(r[2])}${td(r[3])}${td(r[4])}` : E+E+E+E+E; };
+    const eqR  = i => { const r = eqData[i];  return r ? `${td(r.name)}${td(r.driver)}${td(r.today)}${td(r.cumul)}${td((r.amount ? fmtN(r.amount)+'원' : r.note)||'')}` : E+E+E+E+E; };
+    const mtR  = i => { const r = mtRows[i];   return r ? `${td(r[0])}${td(r[1])}${td(r[2])}${td(fmtN(r[3]))}${td(r[4])}` : E+E+E+E+E; };
 
     let combinedRows = '';
     // 헤더행
@@ -1444,7 +1445,7 @@
           <div style="font-size:11px;text-align:right;font-weight:700;">${project}&nbsp;&nbsp;${dateStr}&nbsp;&nbsp;<span style="color:#888;">(계속)</span></div>
         </div>`;
       if (eqOverflow) {
-        let rows = eqData.slice(9).map(r => `<tr>${td(r.name)}${td(r.driver)}${td(r.today)}${td(r.cumul)}${td((r.amount?r.amount+'원':r.note)||'')}</tr>`).join('');
+        let rows = eqData.slice(9).map(r => `<tr>${td(r.name)}${td(r.driver)}${td(r.today)}${td(r.cumul)}${td((r.amount?fmtN(r.amount)+'원':r.note)||'')}</tr>`).join('');
         p2 += `<table class="doc-main" style="width:100%;margin-bottom:8px;">
           <thead>
             <tr><td colspan="5" class="th-group">장 비 투 입 현 황 (계속)</td></tr>
