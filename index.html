@@ -1015,11 +1015,19 @@
 
   function loadLog() {
     const date = document.getElementById('i-date').value;
-    const proj = document.getElementById('i-project').value || document.getElementById('i-project-select').value;
-    const logs = getDailyLogs();
-    // 현재 공사명으로 먼저 찾고, 없으면 해당 날짜의 어떤 일보든 로드
-    const log = getDayLog(date, proj) || logs[getLogKey(date)] || logs[date]
-      || (() => { const k = Object.keys(logs).find(k => k === date || k.endsWith('||' + date)); return k ? logs[k] : null; })();
+    if (!date) return;
+    const day = date.slice(8, 10);
+    const month = date.slice(0, 7);
+    // raw 구조에서 해당 날짜 직접 검색 (공사명 무관)
+    const raw = JSON.parse(localStorage.getItem('daily_logs') || '{}');
+    let log = null;
+    for (const [mk, mv] of Object.entries(raw)) {
+      const mPart = mk.includes('||') ? mk.split('||')[1] : mk;
+      if (mPart === month && mv && typeof mv === 'object' && mv[day]) {
+        log = mv[day]; break;
+      }
+    }
+    if (!log) log = raw[date]; // 구형 flat 포맷 fallback
     if (!log) return;
 
     // 기본 필드
