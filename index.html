@@ -153,7 +153,7 @@
           <input id="i-company" type="hidden">
         </div>
       </div>
-      <div class="row3">
+      <div class="row3" style="grid-template-columns: 1.4fr 1fr 0.6fr;">
         <div class="fg">
           <label>작성일</label>
           <div style="display:flex; gap:4px;">
@@ -1391,8 +1391,8 @@
     const dateStr = date ? (() => {
       const dt = new Date(date);
       const days = ['일','월','화','수','목','금','토'];
-      return `${String(dt.getFullYear()).slice(2)}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 (${days[dt.getDay()]})`;
-    })() : '   년   월   일';
+      return `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 (${days[dt.getDay()]})`;
+    })() : '202   년   월   일';
 
     let previewHtml = `
     <div class="doc-wrap">

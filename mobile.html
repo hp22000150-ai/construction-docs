@@ -1487,8 +1487,8 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
     const dateStr = d.date ? (() => {
       const dt = new Date(d.date);
       const days=['일','월','화','수','목','금','토'];
-      return `${String(dt.getFullYear()).slice(2)}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 (${days[dt.getDay()]})`;
-    })() : '   년   월   일';
+      return `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 (${days[dt.getDay()]})`;
+    })() : '202   년   월   일';
 
     let printHtml = `
     <div class="doc-wrap">
