@@ -44,7 +44,7 @@
   .trow-header { display: grid; gap: 4px; margin-bottom: 3px; font-size: 10px; font-weight: 700; color: #888; text-align: center; }
 
   .manrow { grid-template-columns: 0.9fr 1.1fr 0.5fr 0.6fr 1.2fr 24px; }
-  .eqrow  { grid-template-columns: 1.8fr 1.2fr 1fr 0.8fr 1.2fr 24px; }
+  .eqrow  { grid-template-columns: 1.6fr 1fr 0.8fr 0.7fr 1fr 0.9fr 24px; }
   .mtrow  { grid-template-columns: 1.4fr 0.9fr 0.7fr 0.7fr 1.5fr 24px; }
 
   .btn-add { width: 100%; padding: 6px; background: #d8f3dc; color: #2d6a4f; border: 1.5px dashed #52b788; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; margin-top: 2px; font-family: 'Noto Sans KR', sans-serif; }
@@ -193,7 +193,7 @@
 
       <!-- 장비 -->
       <div class="sec-title">🚜 장비 투입 현황</div>
-      <div class="trow-header eqrow"><span>장비명</span><span>기사명</span><span>시간</span><span>누계</span><span>비고</span><span></span></div>
+      <div class="trow-header eqrow"><span>장비명</span><span>기사명</span><span>시간</span><span>누계</span><span>비고/금액</span><span>금액(원)</span><span></span></div>
       <div id="eq-list">
         <div class="trow eqrow">
           <select class="equip-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">장비명</option></select>
@@ -201,6 +201,7 @@
           <select class="today-sel" onchange="calcEq(this)" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">시간</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select>
           <input placeholder="누계" readonly style="background:#f0f0f0">
           <input placeholder="비고">
+          <input class="eq-amount" type="number" min="0" placeholder="금액" style="padding:5px 4px;border:1.5px solid #ddd;border-radius:5px;font-size:11px;font-family:'Noto Sans KR',sans-serif;background:#fffde7;width:100%;">
           <button class="btn-del" onclick="delRow(this)">✕</button>
         </div>
       </div>
@@ -769,7 +770,7 @@
       const inp = row.querySelectorAll('input');
       const equipSel = row.querySelector('select.equip-sel');
       const todaySel = row.querySelector('select.today-sel');
-      return { name: equipSel?.value||'', driver: inp[0]?.value||'', today: todaySel?.value||'', note: inp[2]?.value||'' };
+      return { name: equipSel?.value||'', driver: inp[0]?.value||'', today: todaySel?.value||'', note: inp[2]?.value||'', amount: row.querySelector('input.eq-amount')?.value||'' };
     });
     const mtRows = Array.from(document.getElementById('mt-list').querySelectorAll('.trow')).map(row => {
       const inp = row.querySelectorAll('input');
@@ -916,6 +917,7 @@
       const ts = row.querySelector('select.today-sel');
       if(equipSel) equipSel.value = e.name||''; inp[0].value = e.driver||'';
       if(ts) ts.value = e.today||''; if(inp[2]) inp[2].value = e.note||'';
+      const amtInpX = row.querySelector('input.eq-amount'); if(amtInpX) amtInpX.value = e.amount||'';
     });
     const mtList = document.getElementById('mt-list');
     mtList.innerHTML = '';
@@ -1081,6 +1083,8 @@
       inp[0].value = e.driver || '';
       if (todaySel) todaySel.value = e.today || '';
       if (inp[2]) inp[2].value = e.note || '';
+      const amtInp = row.querySelector('input.eq-amount');
+      if (amtInp) amtInp.value = e.amount || '';
     });
 
     // 자재 행
@@ -1230,7 +1234,7 @@
   function addEq() {
     const d = document.createElement('div');
     d.className = 'trow eqrow';
-    d.innerHTML = `<select class="equip-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;">${getEquipOptions()}</select><input placeholder="기사명"><select class="today-sel" onchange="calcEq(this)" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">시간</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select><input placeholder="누계" readonly style="background:#f0f0f0"><input placeholder="비고"><button class="btn-del" onclick="delRow(this)">✕</button>`;
+    d.innerHTML = `<select class="equip-sel" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;">${getEquipOptions()}</select><input placeholder="기사명"><select class="today-sel" onchange="calcEq(this)" style="padding:5px 4px; border:1.5px solid #ddd; border-radius:5px; font-size:11px; font-family:'Noto Sans KR',sans-serif; background:#fafafa; width:100%;"><option value="">시간</option><option value="0.5">0.5</option><option value="1.0">1.0</option></select><input placeholder="누계" readonly style="background:#f0f0f0"><input placeholder="비고"><input class="eq-amount" type="number" min="0" placeholder="금액" style="padding:5px 4px;border:1.5px solid #ddd;border-radius:5px;font-size:11px;font-family:'Noto Sans KR',sans-serif;background:#fffde7;width:100%;"><button class="btn-del" onclick="delRow(this)">✕</button>`;
     document.getElementById('eq-list').appendChild(d);
   }
 
