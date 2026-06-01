@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>현장통합관리 PC</title>
+<style>
+:root {
+  --green:#1a4a3a; --green2:#52b788; --green-light:#d8f3dc;
+  --blue:#1e40af; --blue2:#3b82f6;
+  --text:#1e293b; --text2:#64748b;
+  --border:#e2e8f0; --bg:#f0f4f0; --white:#fff;
+  --red:#ef4444; --r:10px;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif; background:var(--bg); color:var(--text); font-size:14px; }
+
+/* HEADER */
+#app-header { background:var(--green); color:#fff; padding:12px 20px; display:flex; align-items:center; gap:12px; }
+#app-header h1 { font-size:18px; font-weight:700; }
+#app-header .ver { font-size:11px; opacity:.6; }
+.hdr-btn { background:rgba(255,255,255,.2); color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+.hdr-btn:hover { background:rgba(255,255,255,.3); }
+.hdr-sep { flex:1; }
+
+/* LAYOUT */
+#main-layout { display:grid; grid-template-columns:280px 1fr; min-height:calc(100vh - 52px); }
+#sidebar { background:var(--white); border-right:1px solid var(--border); padding:16px; overflow-y:auto; }
+#content-area { padding:20px; overflow-y:auto; }
+
+/* SIDEBAR */
+.sb-section { margin-bottom:16px; }
+.sb-label { font-size:11px; font-weight:700; color:var(--text2); letter-spacing:.08em; margin-bottom:6px; }
+.sb-select { width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:14px; font-family:inherit; background:#fafafa; outline:none; -webkit-appearance:none; }
+.sb-select:focus { border-color:var(--green2); }
+.sb-date-grid { display:grid; gap:6px; margin-top:6px; }
+.log-date-btn { width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px; background:#fafafa; font-size:13px; font-family:inherit; cursor:pointer; text-align:left; color:var(--text); transition:background .15s; }
+.log-date-btn:hover { background:#f0fdf4; border-color:var(--green2); }
+.log-date-btn.selected { background:var(--green); color:#fff; border-color:var(--green); }
+.sb-btn { width:100%; padding:10px; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; margin-bottom:6px; }
+.sb-btn-import { background:#8b5cf6; color:#fff; }
+.sb-btn-print  { background:var(--green); color:#fff; }
+.sb-btn-export { background:#0ea5e9; color:#fff; }
+.empty-hint { text-align:center; padding:30px 0; color:var(--text2); font-size:13px; line-height:2; }
+
+/* PREVIEW AREA */
+#preview-wrap { background:var(--white); border-radius:var(--r); box-shadow:0 1px 6px rgba(0,0,0,.1); overflow:hidden; }
+.preview-tab-bar { display:flex; border-bottom:2px solid var(--border); background:#f8fafc; }
+.preview-tab { padding:10px 20px; font-size:14px; font-weight:600; color:var(--text2); cursor:pointer; border:none; background:none; font-family:inherit; border-bottom:2px solid transparent; margin-bottom:-2px; }
+.preview-tab.active { color:var(--green); border-bottom-color:var(--green); }
+.preview-panel { display:none; padding:24px; }
+.preview-panel.active { display:block; }
+
+/* 일보 미리보기 */
+.doc-wrap { font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif; font-size:11px; max-width:800px; }
+.doc-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+.doc-main-title { font-size:28px; font-weight:800; letter-spacing:10px; padding-top:8px; }
+.approval-table { border-collapse:collapse; font-size:10px; }
+.approval-table td { border:0.5px solid #222; padding:3px 6px; text-align:center; min-width:44px; height:24px; }
+.approval-table .ap-title { background:#f0f0f0; font-weight:700; vertical-align:middle; }
+.approval-table .ap-sign { height:46px; }
+.doc-main { border-collapse:collapse; width:100%; font-size:11px; }
+.doc-main td, .doc-main th { border:0.5px solid #222; padding:3px 4px; text-align:center; vertical-align:middle; }
+.doc-main .th-group { background:#f0f0f0; font-weight:700; }
+.doc-main .th-sub { background:#fafafa; font-weight:700; font-size:10px; color:#444; }
+.doc-main td.left { text-align:left; padding-left:5px; }
+
+/* 사진대지 미리보기 */
+.photo-cover { max-width:794px; margin:0 auto; border:1px solid #ccc; padding:40px 50px; }
+.photo-cover-title { font-size:32px; font-weight:900; letter-spacing:16px; text-align:center; padding:20px 0; border-top:3px solid #222; border-bottom:3px solid #222; margin-bottom:40px; }
+.cover-field-row { display:flex; align-items:baseline; margin-bottom:16px; border-bottom:1px solid #ccc; padding-bottom:8px; }
+.cover-field-label { width:100px; font-size:15px; font-weight:700; letter-spacing:4px; flex-shrink:0; }
+.cover-field-value { font-size:15px; flex:1; }
+.photo-page-wrap { max-width:794px; margin:0 auto; border:1px solid #ccc; padding:20px 24px; margin-top:20px; }
+.photo-page-title { font-size:14px; font-weight:700; background:#f0f4f0; padding:8px 12px; margin-bottom:16px; border-radius:4px; }
+.photo-grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.photo-grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+.photo-slot { }
+.photo-slot .slot-img { width:100%; aspect-ratio:4/3; object-fit:cover; border:1px solid #ddd; display:block; }
+.photo-slot .slot-empty { width:100%; aspect-ratio:4/3; border:2px dashed #ddd; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:12px; }
+.photo-slot .slot-lbl { font-size:11px; font-weight:700; color:var(--blue); margin-bottom:4px; }
+.photo-slot .slot-cap { font-size:11px; color:var(--text2); margin-top:4px; }
+.photo-slot .slot-date { font-size:10px; color:#94a3b8; }
+
+/* PRINT */
+@media print {
+  * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body { background:white; }
+  #app-header, #sidebar, .preview-tab-bar { display:none !important; }
+  #main-layout { grid-template-columns:1fr; }
+  #content-area { padding:0; }
+  #preview-wrap { box-shadow:none; border-radius:0; }
+  .preview-panel { display:block !important; padding:0; }
+  .preview-panel:not(.print-target) { display:none !important; }
+  @page { size:A4 portrait; margin:15mm 12mm; }
+  .doc-main-title { font-size:26px; }
+  .page-break { page-break-before:always; }
+}
+</style>
+</head>
+<body>
+
+<div id="app-header">
+  <h1>🏗️ 현장통합관리 PC</h1>
+  <span class="ver">v1.0.0</span>
+  <div class="hdr-sep"></div>
+  <label class="hdr-btn" style="cursor:pointer;">
+    📂 통합 JSON 불러오기
+    <input type="file" accept=".json" style="display:none" onchange="loadUnified(this)">
+  </label>
+  <button class="hdr-btn" onclick="printCurrent()">🖨️ 인쇄</button>
+</div>
+
+<div id="main-layout">
+  <!-- 사이드바 -->
+  <div id="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">공사명 선택</div>
+      <select class="sb-select" id="sb-project" onchange="onProjectChange()">
+        <option value="">-- 공사명 선택 --</option>
+      </select>
+    </div>
+    <div class="sb-section">
+      <div class="sb-label">날짜 선택</div>
+      <div id="sb-date-list" class="sb-date-grid">
+        <div class="empty-hint" style="padding:10px 0;">공사명을 먼저 선택해주세요</div>
+      </div>
+    </div>
+    <div class="sb-section" style="border-top:1px solid var(--border);padding-top:14px;">
+      <div class="sb-label">불러오기 (통합 JSON)</div>
+      <label class="sb-btn sb-btn-import" style="display:block;text-align:center;cursor:pointer;padding:10px;">
+        📂 통합 JSON 불러오기
+        <input type="file" accept=".json" style="display:none" onchange="loadUnified(this)">
+      </label>
+      <button class="sb-btn sb-btn-print" onclick="printCurrent()">🖨️ 현재 페이지 인쇄</button>
+      <button class="sb-btn sb-btn-export" onclick="exportCurrentPDF()">💾 PDF 내보내기</button>
+    </div>
+    <div class="sb-section" style="border-top:1px solid var(--border);padding-top:14px;">
+      <div class="sb-label">데이터 소스</div>
+      <div id="data-source-info" style="font-size:12px;color:var(--text2);line-height:1.8;">
+        일보: construction-docs localStorage<br>
+        사진: 통합 JSON 불러오기 필요
+      </div>
+    </div>
+  </div>
+
+  <!-- 콘텐츠 -->
+  <div id="content-area">
+    <div id="preview-wrap">
+      <div class="preview-tab-bar">
+        <button class="preview-tab active" id="ptab-log"   onclick="switchPreviewTab('log')">📋 작업일보</button>
+        <button class="preview-tab"        id="ptab-photo" onclick="switchPreviewTab('photo')">📷 사진대지</button>
+        <button class="preview-tab"        id="ptab-both"   onclick="switchPreviewTab('both')">📄 통합 출력</button>
+        <button class="preview-tab"        id="ptab-defect" onclick="switchPreviewTab('defect')">🔧 하자 현황</button>
+      </div>
+
+      <!-- 일보 패널 -->
+      <div class="preview-panel active" id="ppanel-log">
+        <div id="log-preview-content">
+          <div class="empty-hint">
+            좌측에서 공사명과 날짜를 선택하거나<br>
+            통합 JSON 파일을 불러오세요
+          </div>
+        </div>
+      </div>
+
+      <!-- 사진대지 패널 -->
+      <div class="preview-panel" id="ppanel-photo">
+        <div id="photo-preview-content">
+          <div class="empty-hint">
+            통합 JSON 파일을 불러오면<br>
+            사진대지가 표시됩니다
+          </div>
+        </div>
+      </div>
+
+      <!-- 통합 패널 -->
+      <div class="preview-panel" id="ppanel-both">
+        <div id="both-preview-content">
+          <div class="empty-hint">
+            일보와 사진대지를 모두 불러온 후<br>
+            이 탭에서 통합 인쇄할 수 있습니다
+          </div>
+        </div>
+      </div>
+
+      <!-- 하자 현황 패널 -->
+      <div class="preview-panel" id="ppanel-defect">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <h2 style="font-size:16px;font-weight:700;">🔧 하자 현황</h2>
+          <select id="pc-defect-filter-site" onchange="pcRenderDefects()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:#fafafa;outline:none;">
+            <option value="">전체 현장</option>
+          </select>
+          <select id="pc-defect-filter-status" onchange="pcRenderDefects()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:#fafafa;outline:none;">
+            <option value="">전체 상태</option>
+            <option value="received">접수</option>
+            <option value="reviewing">검토중</option>
+            <option value="processing">조치중</option>
+            <option value="done">조치완료</option>
+            <option value="confirmed">확인완료</option>
+          </select>
+          <span id="pc-defect-count" style="font-size:12px;color:var(--text2);"></span>
+        </div>
+        <div id="pc-defect-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;"></div>
+        <div id="pc-defect-table"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+let currentLog = null;
+let currentPhoto = null;
+let currentTab = 'log';
+
+// ===== INIT =====
+window.addEventListener('DOMContentLoaded', () => {
+  loadProjectList();
+});
+
+// ===== PROJECT LIST (from localStorage) =====
+function loadProjectList() {
+  const projects = JSON.parse(localStorage.getItem('projects')||'[]');
+  const sel = document.getElementById('sb-project');
+  sel.innerHTML = '<option value="">-- 공사명 선택 --</option>' +
+    projects.map(p=>`<option value="${p}">${p}</option>`).join('');
+  updateDataSourceInfo();
+}
+
+function onProjectChange() {
+  const proj = document.getElementById('sb-project').value;
+  if (!proj) {
+    document.getElementById('sb-date-list').innerHTML = '<div class="empty-hint" style="padding:10px 0;">공사명을 먼저 선택해주세요</div>';
+    return;
+  }
+  renderDateList(proj);
+}
+
+function renderDateList(proj) {
+  const logs = JSON.parse(localStorage.getItem('daily_logs')||'{}');
+  const dates = [];
+  Object.entries(logs).forEach(([k,v]) => {
+    const hasP = k.includes('||');
+    const logProj = hasP ? k.split('||')[0] : '';
+    const month   = hasP ? k.split('||')[1] : k;
+    if (proj && logProj !== proj) return;
+    if (v && typeof v === 'object') {
+      Object.keys(v).forEach(day => {
+        dates.push(`${month}-${day.padStart(2,'0')}`);
+      });
+    }
+  });
+  dates.sort((a,b) => b.localeCompare(a));
+
+  const container = document.getElementById('sb-date-list');
+  if (!dates.length) {
+    container.innerHTML = '<div class="empty-hint" style="padding:10px 0;">저장된 일보가 없습니다</div>';
+    return;
+  }
+  container.innerHTML = dates.map(date =>
+    `<button class="log-date-btn" onclick="selectDate('${proj}','${date}')">${date}</button>`
+  ).join('');
+}
+
+function selectDate(proj, date) {
+  document.querySelectorAll('.log-date-btn').forEach(b => b.classList.remove('selected'));
+  event.target.classList.add('selected');
+
+  const logs = JSON.parse(localStorage.getItem('daily_logs')||'{}');
+  const month = date.slice(0,7), day = date.slice(8,10);
+  const mk = proj ? `${proj}||${month}` : month;
+  const log = logs[mk]?.[day] || null;
+
+  if (log) {
+    currentLog = log;
+    renderLogPreview(log);
+    updateBothPreview();
+  }
+}
+
+// ===== LOG PREVIEW =====
+function renderLogPreview(d) {
+  if (!d) { document.getElementById('log-preview-content').innerHTML = '<div class="empty-hint">일보 데이터가 없습니다</div>'; return; }
+
+  const dateStr = d.date ? (() => {
+    const dt = new Date(d.date);
+    const days=['일','월','화','수','목','금','토'];
+    return `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 (${days[dt.getDay()]})`;
+  })() : '';
+
+  const EQ_ROWS=9, MT_ROWS=13;
+  const td  = (v,c='') => `<td class="${c}">${v||'&nbsp;'}</td>`;
+  const tdB = (v,c='') => `<td class="${c}" style="border-right:1px solid #222;">${v||'&nbsp;'}</td>`;
+  const Em  = '<td>&nbsp;</td>', EmB = '<td style="border-right:1px solid #222;">&nbsp;</td>';
+  const fmtN = v => { const n=parseFloat(String(v||'').replace(/,/g,'')); return (v!==''&&v!=null&&!isNaN(n))?n.toLocaleString('ko-KR'):(v||''); };
+  const manR = i => { const r=d.man?.[i]; return (r?.name||r?.job)?`${td(r.job)}${td(r.name)}${td(r.gongsu)}${td('')}${tdB(r.note,'left')}`:Em+Em+Em+Em+EmB; };
+  const eqR  = i => { const r=d.eq?.[i]; return r?.name?`${td(r.name)}${td(r.driver)}${td(r.today)}${td('')}${td((r.amount?fmtN(r.amount)+'원':r.note)||'')}`:Em+Em+Em+Em+Em; };
+  const mtR  = i => { const r=d.mt?.[i]; return r?.item?`${td(r.item)}${td(r.spec)}${td(r.unit)}${td(fmtN(r.qty))}${td(r.supplier)}`:Em+Em+Em+Em+Em; };
+
+  let rows = '';
+  rows += `<tr><td colspan="5" class="th-group" style="border-right:1px solid #222;">인 력 투 입 현 황</td><td colspan="5" class="th-group">장 비 투 입 현 황</td></tr>`;
+  rows += `<tr><td class="th-sub">직종</td><td class="th-sub">성명</td><td class="th-sub">공수</td><td class="th-sub">누계</td><td class="th-sub" style="border-right:1px solid #222;">비고</td><td class="th-sub">장비명</td><td class="th-sub">기사명</td><td class="th-sub">시간</td><td class="th-sub">누계</td><td class="th-sub">비고/금액</td></tr>`;
+  for (let i=0;i<EQ_ROWS;i++) rows += `<tr>${manR(i)}${eqR(i)}</tr>`;
+  rows += `<tr>${manR(EQ_ROWS)}<td colspan="5" class="th-group">자 재 반 입 현 황</td></tr>`;
+  rows += `<tr>${manR(EQ_ROWS+1)}<td class="th-sub">품명</td><td class="th-sub">규격</td><td class="th-sub">단위</td><td class="th-sub">수량</td><td class="th-sub">거래처</td></tr>`;
+  for (let i=0;i<MT_ROWS;i++) rows += `<tr>${manR(EQ_ROWS+2+i)}${mtR(i)}</tr>`;
+
+  const html = `
+  <div class="doc-wrap">
+    <div class="doc-top">
+      <div class="doc-main-title">작 업 일 지</div>
+      <table class="approval-table">
+        <tr><td class="ap-title" style="border-bottom:none;padding-top:8px;">결</td><td class="ap-title">담당</td><td class="ap-title">주임</td><td class="ap-title">과장</td><td class="ap-title">차장</td><td class="ap-title">부장</td><td class="ap-title">이사</td><td class="ap-title">상무</td><td class="ap-title">대표</td></tr>
+        <tr><td class="ap-title" style="border-top:none;">재</td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td><td class="ap-sign"></td></tr>
+      </table>
+    </div>
+    <div style="font-size:13px;margin-bottom:3px;"><strong>시 공 사 :</strong> ${esc(d.company||'')}</div>
+    <div style="font-size:13px;margin-bottom:3px;display:flex;justify-content:space-between;">
+      <span><strong>공 사 명 :</strong> ${esc(d.project||'')}</span>
+      <span><strong>날 씨 :</strong> ${esc(d.weather||'')}&nbsp;&nbsp;<strong>기 온 :</strong> ${esc(d.temp||'-')}</span>
+    </div>
+    <div style="font-size:13px;margin-bottom:5px;"><strong>작 성 일 :</strong> ${esc(dateStr)}</div>
+    <div style="border:1px solid #222;">
+      <table class="doc-main" style="width:100%;table-layout:fixed;">
+        <colgroup><col style="width:10%"><col style="width:11%"><col style="width:5%"><col style="width:7%"><col style="width:17%"><col style="width:15%"><col style="width:8%"><col style="width:7%"><col style="width:7%"><col style="width:13%"></colgroup>
+        <tbody>${rows}</tbody>
+      </table>
+      <table class="doc-main" style="width:100%;table-layout:fixed;border-top:1px solid #222;">
+        <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
+        <tr>
+          <td class="th-group" style="letter-spacing:3px;border-right:1px solid #222;">작 업 내 용</td>
+          <td class="th-group" style="letter-spacing:3px;">작 업 계 획</td>
+        </tr>
+        <tr>
+          <td style="height:38mm;vertical-align:top;text-align:left;padding:6px;white-space:pre-line;border-top:none;border-right:1px solid #222;">${esc(d.work||'')}</td>
+          <td style="height:38mm;vertical-align:top;text-align:left;padding:6px;white-space:pre-line;border-top:none;">${esc(d.plan||'')}</td>
+        </tr>
+      </table>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;border-top:1px solid #222;">
+      <tr>
+        <td style="padding:6px 8px;width:62%;height:50px;vertical-align:middle;">${d.note?`<strong>비 고 :</strong>&nbsp;${esc(d.note)}`:''}</td>
+        <td style="padding:6px 8px;width:38%;height:50px;text-align:center;vertical-align:middle;"><strong>현 장 대 리 인 :</strong>&nbsp;<span style="display:inline-block;min-width:7em;">${esc(d.supervisor||'')}</span><span style="font-size:10px;">(인)</span></td>
+      </tr>
+    </table>
+    <div style="text-align:right;font-size:11px;font-weight:700;margin-top:4px;">${esc(d.company||'')}</div>
+  </div>`;
+
+  document.getElementById('log-preview-content').innerHTML = html;
+}
+
+// ===== PHOTO PREVIEW =====
+function renderPhotoPreview(data) {
+  if (!data || !data.photo_pages) {
+    document.getElementById('photo-preview-content').innerHTML = '<div class="empty-hint">사진 데이터가 없습니다<br>통합 JSON 파일을 불러오세요</div>';
+    return;
+  }
+
+  const info = data.photo_info || {};
+  const project = data.project || '';
+  const company = data.company || '';
+  const location = info.location || '';
+  const client   = info.client   || '';
+  const photoDate= info.photoDate|| data.date || '';
+
+  let html = `
+  <div class="photo-cover">
+    <div class="photo-cover-title">공 사 사 진 대 지</div>
+    <div class="cover-field-row"><span class="cover-field-label">공 사 명</span><span class="cover-field-value">${esc(project)}</span></div>
+    <div class="cover-field-row"><span class="cover-field-label">업 체 명</span><span class="cover-field-value">${esc(company)}</span></div>
+    <div class="cover-field-row"><span class="cover-field-label">공사위치</span><span class="cover-field-value">${esc(location)}</span></div>
+    <div class="cover-field-row"><span class="cover-field-label">발 주 처</span><span class="cover-field-value">${esc(client)}</span></div>
+    <div class="cover-field-row"><span class="cover-field-label">작 성 일</span><span class="cover-field-value">${esc(photoDate)}</span></div>
+  </div>`;
+
+  (data.photo_pages || []).forEach((page, pi) => {
+    const mode = info.mode || 3;
+    const gridClass = mode === 2 ? 'photo-grid-2' : 'photo-grid-3';
+    const slotsHtml = (page.slots || []).map(slot => {
+      return `
+        <div class="photo-slot">
+          <div class="slot-lbl">${esc(slot.label||'')}</div>
+          ${slot.photo
+            ? `<img class="slot-img" src="${slot.photo}" alt="${esc(slot.caption||'')}">`
+            : `<div class="slot-empty">사진 없음</div>`}
+          <div class="slot-date">${esc(slot.dateShort||'')}</div>
+          <div class="slot-cap">${esc(slot.caption||'')}</div>
+        </div>`;
+    }).join('');
+
+    html += `
+    <div class="photo-page-wrap">
+      <div class="photo-page-title">${pi+1}페이지${page.title ? ' — '+esc(page.title) : ''}</div>
+      <div class="${gridClass}">${slotsHtml}</div>
+    </div>`;
+  });
+
+  document.getElementById('photo-preview-content').innerHTML = html;
+}
+
+// ===== BOTH PREVIEW =====
+function updateBothPreview() {
+  const container = document.getElementById('both-preview-content');
+  if (!currentLog && !currentPhoto) {
+    container.innerHTML = '<div class="empty-hint">일보와 사진 데이터를 불러오세요</div>';
+    return;
+  }
+  let html = '';
+  if (currentLog) {
+    html += `<div id="both-log-section">`;
+    const tempDiv = document.createElement('div');
+    renderLogPreview(currentLog);
+    html += document.getElementById('log-preview-content').innerHTML;
+    html += `</div>`;
+  }
+  if (currentPhoto && currentPhoto.photo_pages) {
+    html += `<div id="both-photo-section" style="margin-top:40px;page-break-before:always;">`;
+    renderPhotoPreview(currentPhoto);
+    html += document.getElementById('photo-preview-content').innerHTML;
+    html += `</div>`;
+  }
+  container.innerHTML = html || '<div class="empty-hint">불러온 데이터가 없습니다</div>';
+}
+
+// ===== LOAD UNIFIED JSON =====
+function loadUnified(input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (d._type === 'unified_v1' || d.photo_pages) {
+        // 통합 JSON
+        currentLog   = d._type === 'unified_v1' ? d : null;
+        currentPhoto = d;
+        if (currentLog) renderLogPreview(currentLog);
+        renderPhotoPreview(currentPhoto);
+        updateBothPreview();
+        // 사이드바 공사명 업데이트
+        if (d.project) {
+          const sel = document.getElementById('sb-project');
+          if (!Array.from(sel.options).some(o=>o.value===d.project))
+            sel.insertAdjacentHTML('beforeend', `<option value="${d.project}">${d.project}</option>`);
+          sel.value = d.project;
+          renderDateList(d.project);
+        }
+        updateDataSourceInfo(d);
+        alert(`불러오기 완료\n공사명: ${d.project||'없음'}\n날짜: ${d.date||'없음'}`);
+      } else if (d.man !== undefined || d.daily_logs !== undefined) {
+        // 일보 단독 JSON
+        if (d.daily_logs) {
+          // 전송 파일 형식
+          Object.entries(d.daily_logs).forEach(([k,v]) => {
+            const logs = JSON.parse(localStorage.getItem('daily_logs')||'{}');
+            const hasP = k.includes('||');
+            const proj = hasP ? k.split('||')[0] : '';
+            const date = hasP ? k.split('||')[1] : k;
+            const mk = proj ? `${proj}||${date.slice(0,7)}` : date.slice(0,7);
+            const dk = date.slice(8,10);
+            if (!logs[mk]) logs[mk] = {};
+            logs[mk][dk] = v;
+            localStorage.setItem('daily_logs', JSON.stringify(logs));
+          });
+          loadProjectList();
+          alert('일보 전송 파일 불러오기 완료');
+        } else {
+          currentLog = d;
+          renderLogPreview(d);
+          updateBothPreview();
+        }
+      } else {
+        alert('인식할 수 없는 파일 형식입니다.');
+      }
+    } catch(err) { alert('파일을 읽을 수 없습니다: ' + err.message); }
+  };
+  reader.readAsText(input.files[0]);
+  input.value = '';
+}
+
+function updateDataSourceInfo(d) {
+  const el = document.getElementById('data-source-info');
+  if (d) {
+    el.innerHTML = `
+      <span style="color:var(--green);font-weight:700;">✓ 통합 JSON 로드됨</span><br>
+      공사: ${esc(d.project||'-')}<br>
+      날짜: ${esc(d.date||'-')}<br>
+      사진: ${d.photo_pages ? d.photo_pages.length+'페이지' : '없음'}
+    `;
+  } else {
+    const projects = JSON.parse(localStorage.getItem('projects')||'[]');
+    el.innerHTML = `
+      일보: construction-docs localStorage<br>
+      (공사명 ${projects.length}개 등록됨)<br>
+      사진: 통합 JSON 불러오기 필요
+    `;
+  }
+}
+
+// ===== TAB =====
+function switchPreviewTab(name) {
+  ['log','photo','both','defect'].forEach(t => {
+    document.getElementById('ptab-'+t).classList.toggle('active', t===name);
+    document.getElementById('ppanel-'+t).classList.toggle('active', t===name);
+  });
+  currentTab = name;
+  if (name === 'defect') pcRenderDefects();
+}
+
+// ===== 하자 현황 =====
+const PC_SV_LBL = { urgent:'긴급', major:'중요', minor:'일반' };
+const PC_ST_LBL = { received:'접수', reviewing:'검토중', processing:'조치중', done:'조치완료', confirmed:'확인완료' };
+
+function pcRenderDefects() {
+  let recs;
+  try { recs = JSON.parse(localStorage.getItem('defect_records')||'[]'); } catch { recs=[]; }
+
+  // 사이트 필터 옵션 채우기
+  const sites = [...new Set(recs.map(r=>r.site).filter(Boolean))];
+  const sitesSel = document.getElementById('pc-defect-filter-site');
+  const curSite = sitesSel.value;
+  sitesSel.innerHTML = '<option value="">전체 현장</option>' + sites.map(s=>`<option value="${esc(s)}"${s===curSite?' selected':''}>${esc(s)}</option>`).join('');
+
+  // 필터 적용
+  const filterSite   = document.getElementById('pc-defect-filter-site').value;
+  const filterStatus = document.getElementById('pc-defect-filter-status').value;
+  let filtered = recs;
+  if (filterSite)   filtered = filtered.filter(r=>r.site===filterSite);
+  if (filterStatus) filtered = filtered.filter(r=>r.status===filterStatus);
+
+  // 통계
+  const s = { total:filtered.length, active:0, done:0, confirmed:0 };
+  filtered.forEach(r=>{
+    if (['received','reviewing','processing'].includes(r.status)) s.active++;
+    else if (r.status==='done') s.done++;
+    else if (r.status==='confirmed') s.confirmed++;
+  });
+  document.getElementById('pc-defect-stats').innerHTML = `
+    <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:24px;font-weight:800;">${s.total}</div><div style="font-size:12px;color:var(--text2);">전체</div></div>
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:#ea580c;">${s.active}</div><div style="font-size:12px;color:#ea580c;">처리중</div></div>
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:#059669;">${s.done}</div><div style="font-size:12px;color:#059669;">조치완료</div></div>
+    <div style="background:var(--green-light);border:1px solid var(--green2);border-radius:8px;padding:12px;text-align:center;">
+      <div style="font-size:24px;font-weight:800;color:var(--green);">${s.confirmed}</div><div style="font-size:12px;color:var(--green);">확인완료</div></div>`;
+
+  document.getElementById('pc-defect-count').textContent = `${filtered.length}건`;
+
+  if (!filtered.length) {
+    document.getElementById('pc-defect-table').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2);">등록된 하자가 없습니다</div>';
+    return;
+  }
+
+  const svBadge = sv => {
+    const cls = sv==='urgent'?'#fee2e2;color:#dc2626':sv==='major'?'#fef3c7;color:#d97706':'#dbeafe;color:#2563eb';
+    return `<span style="background:${cls};padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700;">${PC_SV_LBL[sv]||sv}</span>`;
+  };
+  const stBadge = st => {
+    const map = {received:'#e0e7ff;color:#4f46e5',reviewing:'#f3e8ff;color:#7c3aed',processing:'#fff7ed;color:#ea580c',done:'#d1fae5;color:#059669',confirmed:'#d8f3dc;color:#1a4a3a'};
+    return `<span style="background:${map[st]||'#f0f0f0;color:#444'};padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700;">${PC_ST_LBL[st]||st}</span>`;
+  };
+
+  const rows = filtered.map(r=>`
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:8px 10px;font-size:12px;color:var(--text2);white-space:nowrap;">${r.id}</td>
+      <td style="padding:8px 10px;">${svBadge(r.severity)}</td>
+      <td style="padding:8px 10px;">${stBadge(r.status)}</td>
+      <td style="padding:8px 10px;font-weight:600;">${esc(r.type||'-')}</td>
+      <td style="padding:8px 10px;">${esc(r.site||'-')}</td>
+      <td style="padding:8px 10px;">${esc(r.location||'-')}</td>
+      <td style="padding:8px 10px;font-size:12px;">${r.reportDate||'-'}</td>
+      <td style="padding:8px 10px;">${esc(r.assignee||'-')}</td>
+      <td style="padding:8px 10px;font-size:12px;color:var(--text2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.description||'')}</td>
+    </tr>`).join('');
+
+  document.getElementById('pc-defect-table').innerHTML = `
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:#f8fafc;border-bottom:2px solid var(--border);">
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text2);white-space:nowrap;">번호</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text2);">심각도</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text2);">상태</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text2);">유형</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text2);">현장명</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text2);">위치</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text2);">발생일</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text2);">담당자</th>
+            <th style="padding:8px 10px;text-align:left;font-size:11px;color:var(--text2);">내용</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ===== PRINT =====
+function printCurrent() {
+  // 현재 탭 패널을 print-target으로 마크
+  document.querySelectorAll('.preview-panel').forEach(p => p.classList.remove('print-target'));
+  document.getElementById('ppanel-'+currentTab).classList.add('print-target');
+  window.print();
+}
+
+function exportCurrentPDF() {
+  printCurrent(); // 브라우저 인쇄 다이얼로그에서 PDF로 저장
+}
+
+// ===== UTILS =====
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</script>
+</body>
+</html>
