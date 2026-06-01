@@ -330,7 +330,7 @@ function loadCfg() {
   const def = {
     sites: [],
     assignees: [],
-    types: ['균열','누수','들뜸·박리','변색·오염','파손','단차','시공불량','마감불량','기타']
+    types: ['수목 고사·쇠약','식재 불량','지주목·결속 불량','병해충 발생','잔디 고사·불량','잡초 과다','배수 불량','포장 균열·침하','경계석·구조물 불량','관수시설 불량','규격 불일치','기타']
   };
   try { return { ...def, ...JSON.parse(localStorage.getItem(CFG_KEY) || '{}') }; }
   catch { return def; }
