@@ -131,22 +131,28 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
       <div id="cpanel-tree">
         <div style="background:white;border-radius:10px;padding:14px;margin-bottom:10px;">
           <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--green-light);">🌳 수목 중량 계산기 <span style="font-size:11px;font-weight:400;color:#888;">크레인 용량 산정용</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-            <div><label style="display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:3px;">규격 유형</label>
-              <select id="ct-type" onchange="ctUpdateType()" style="width:100%;padding:9px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;-webkit-appearance:none;">
-                <option value="root">근원직경 (R)</option><option value="breast">흉고직경 (B)</option>
-              </select></div>
-            <div><label id="ct-diam-label" style="display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:3px;">근원직경 (cm)</label>
-              <input id="ct-diam" type="number" placeholder="예: 15" style="width:100%;padding:9px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;"></div>
+          <!-- 입력 Row 1 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+            <div><label style="display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:3px;">근원직경 D (cm)</label>
+              <input id="ct-root" type="number" min="0" step="0.1" placeholder="예: 15" style="width:100%;padding:9px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;"></div>
+            <div><label style="display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:3px;">흉고직경 d (cm)</label>
+              <input id="ct-breast" type="number" min="0" step="0.1" placeholder="예: 10" style="width:100%;padding:9px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;"></div>
+            <div><label style="display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:3px;">수고 H (m)</label>
+              <input id="ct-height" type="number" min="0" step="0.1" placeholder="예: 5.0" style="width:100%;padding:9px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;"></div>
           </div>
+          <!-- 입력 Row 2 -->
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
-            <div><label style="display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:3px;">토양 단위중량</label>
-              <select id="ct-soil" style="width:100%;padding:9px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;-webkit-appearance:none;">
-                <option value="1.6">1.6 사질</option><option value="1.7" selected>1.7 표준</option><option value="1.8">1.8 점성</option>
+            <div><label style="display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:3px;">수종</label>
+              <select id="ct-species" onchange="ctSpeciesChange()" style="width:100%;padding:9px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;-webkit-appearance:none;">
+                <option value="1230">침엽수 (1,230 kg/m³)</option>
+                <option value="custom">활엽수 (직접입력)</option>
               </select></div>
-            <div><label style="display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:3px;">근분 형태</label>
-              <select id="ct-shape" style="width:100%;padding:9px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;-webkit-appearance:none;">
-                <option value="sphere">구형</option><option value="cone">원추형</option><option value="cylinder">원통형</option>
+            <div id="ct-w1-wrap" style="display:none;"><label style="display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:3px;">W₁ (kg/m³)</label>
+              <input id="ct-w1" type="number" placeholder="예: 850" style="width:100%;padding:9px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;"></div>
+            <div><label style="display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:3px;">수간형태</label>
+              <select id="ct-stand" style="width:100%;padding:9px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;-webkit-appearance:none;">
+                <option value="0.1">임목·밀식 (P=0.1)</option>
+                <option value="0.2">고립목·독립수 (P=0.2)</option>
               </select></div>
             <div><label style="display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:3px;">안전율</label>
               <select id="ct-safety" style="width:100%;padding:9px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;-webkit-appearance:none;">
@@ -156,15 +162,22 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
           <button onclick="calcTreeM()" style="width:100%;padding:12px;background:var(--green);color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;">⚖️ 중량 계산</button>
           <div id="ct-result" style="display:none;margin-top:10px;background:linear-gradient(135deg,#1a3a2a,#2d6a4f);border-radius:10px;padding:14px;color:white;">
             <div style="font-size:11px;opacity:.75;margin-bottom:8px;">📊 계산 결과</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              <div style="background:rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">근분 직경</div><div style="font-size:16px;font-weight:700;" id="ct-r-rdiam">-</div><div style="font-size:10px;opacity:.7;">cm</div></div>
-              <div style="background:rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">근분 깊이</div><div style="font-size:16px;font-weight:700;" id="ct-r-rdepth">-</div><div style="font-size:10px;opacity:.7;">cm</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 2fr;gap:8px;">
+              <div style="background:rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">지상부 중량 W</div><div style="font-size:16px;font-weight:700;" id="ct-r-above">-</div><div style="font-size:10px;opacity:.7;">kg</div></div>
+              <div style="background:rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">지하부 중량 G</div><div style="font-size:16px;font-weight:700;" id="ct-r-below">-</div><div style="font-size:10px;opacity:.7;">kg</div></div>
               <div style="background:rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">총 중량</div><div style="font-size:16px;font-weight:700;" id="ct-r-total">-</div><div style="font-size:10px;opacity:.7;">ton</div></div>
-              <div style="background:rgba(255,255,255,.2);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">필요 크레인</div><div style="font-size:18px;font-weight:700;color:#a8f0c0;" id="ct-r-crane">-</div><div style="font-size:10px;opacity:.7;">ton 이상</div></div>
+              <div style="background:rgba(255,255,255,.2);border-radius:7px;padding:8px 10px;"><div style="font-size:10px;opacity:.8;">필요 크레인 (총중량×안전율)</div><div style="font-size:18px;font-weight:700;color:#a8f0c0;" id="ct-r-crane">-</div><div style="font-size:10px;opacity:.7;">ton 이상</div></div>
+            </div>
+            <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div style="background:rgba(255,255,255,.08);border-radius:7px;padding:8px 10px;font-size:11px;opacity:.85;" id="ct-r-rootinfo"></div>
+              <div style="background:rgba(255,255,255,.08);border-radius:7px;padding:8px 10px;font-size:11px;opacity:.85;" id="ct-r-formula"></div>
             </div>
             <div id="ct-r-guide" style="margin-top:8px;font-size:11px;background:rgba(255,165,0,.2);padding:6px 8px;border-radius:6px;"></div>
           </div>
-          <div style="font-size:11px;color:#888;margin-top:8px;line-height:1.6;">※ 근분직경=근원직경×4배(흉고×4.5배) / 깊이=직경×0.7</div>
+          <div style="font-size:11px;color:#888;margin-top:8px;line-height:1.6;">
+            ※ 지상부: W = K×π×(d/2)²×H×W₁×(1+P) / 지하부: G = (4/3)×π×(M/2)³×S (M=근원직경×4)<br>
+            ※ 근원직경·흉고직경 중 하나만 입력 시 나머지는 자동 추정 (흉고≈근원×0.7)
+          </div>
         </div>
       </div>
 
@@ -349,7 +362,7 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
 
 <div class="mobile-wrap">
 <div class="app-header">
-  <h1>📋 작업일보<br><span style="font-size:11px;font-weight:400;opacity:0.6;margin-left:30px;">V 0.531.3</span></h1>
+  <h1>📋 작업일보<br><span style="font-size:11px;font-weight:400;opacity:0.6;margin-left:30px;">V 0.601.0</span></h1>
   <button onclick="openHelpMobile()" class="header-link" style="background:none;border:1px solid rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;">📖 도움말</button>
   <button onclick="openCalc()" class="header-link" style="background:none;border:1px solid rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;">🔧 계산기</button>
   <button onclick="openSettingsM()" class="header-link" style="background:none;border:1px solid rgba(255,255,255,0.4);cursor:pointer;font-family:inherit;">⚙️ 기본설정</button>
@@ -1647,38 +1660,63 @@ input:disabled, select:disabled, textarea:disabled { background:#f5f5f5 !importa
   }
 
   // -- 수목 중량 --
-  function ctUpdateType() {
-    const t = document.getElementById('ct-type').value;
-    document.getElementById('ct-diam-label').textContent = t === 'root' ? '근원직경 (cm)' : '흉고직경 (cm)';
-    document.getElementById('ct-diam').placeholder = t === 'root' ? '예: 15' : '예: 10';
-  }
-  function calcRootBallM(diam, type) {
-    const mult = type === 'root' ? 4.0 : 4.5;
-    return { rd: diam * mult, rh: diam * mult * 0.7 };
-  }
-  function calcVolumeM(rd, rh, shape) {
-    const r = rd / 2 / 100, h = rh / 100;
-    if (shape === 'sphere')   return (4/3) * Math.PI * r * r * r * 0.5;
-    if (shape === 'cylinder') return Math.PI * r * r * h;
-    return (Math.PI / 3) * r * r * h;
+  function ctSpeciesChange() {
+    const v = document.getElementById('ct-species').value;
+    document.getElementById('ct-w1-wrap').style.display = v === 'custom' ? '' : 'none';
   }
   function calcTreeM() {
-    const diam = parseFloat(document.getElementById('ct-diam').value);
-    if (!diam || diam <= 0) { alert('직경을 입력해주세요.'); return; }
-    const type = document.getElementById('ct-type').value;
-    const shape = document.getElementById('ct-shape').value;
-    const soil = parseFloat(document.getElementById('ct-soil').value);
+    const rootCm   = parseFloat(document.getElementById('ct-root').value);
+    const breastCm = parseFloat(document.getElementById('ct-breast').value);
+    const H        = parseFloat(document.getElementById('ct-height').value);
+    const hasRoot   = rootCm   > 0;
+    const hasBreast = breastCm > 0;
+    if (!hasRoot && !hasBreast) { alert('근원직경 또는 흉고직경을 입력해주세요.'); return; }
+    if (!H || H <= 0)           { alert('수고(H)를 입력해주세요.'); return; }
+
+    const speciesVal = document.getElementById('ct-species').value;
+    let W1;
+    if (speciesVal === 'custom') {
+      W1 = parseFloat(document.getElementById('ct-w1').value);
+      if (!W1 || W1 <= 0) { alert('수간 단위중량(W₁)을 입력해주세요.'); return; }
+    } else {
+      W1 = parseFloat(speciesVal);
+    }
+
+    const P      = parseFloat(document.getElementById('ct-stand').value);
     const safety = parseFloat(document.getElementById('ct-safety').value);
-    const { rd, rh } = calcRootBallM(diam, type);
-    const vol = calcVolumeM(rd, rh, shape);
-    const soilWt = vol * soil;
-    const total = soilWt * 1.25;
-    const crane = total * safety;
-    document.getElementById('ct-r-rdiam').textContent = rd.toFixed(0);
-    document.getElementById('ct-r-rdepth').textContent = rh.toFixed(0);
-    document.getElementById('ct-r-total').textContent = total.toFixed(3);
-    document.getElementById('ct-r-crane').textContent = crane.toFixed(2);
-    const guide = getCraneGuideM(crane);
+
+    const D_cm = hasRoot   ? rootCm   : breastCm / 0.7;
+    const d_cm = hasBreast ? breastCm : rootCm   * 0.7;
+    const D = D_cm / 100;
+    const d = d_cm / 100;
+
+    const K = 0.5;
+    const W = K * Math.PI * Math.pow(d / 2, 2) * H * W1 * (1 + P);
+
+    const M = 4 * D;
+    const S = 1600;
+    const G = (4 / 3) * Math.PI * Math.pow(M / 2, 3) * S;
+
+    const totalKg  = W + G;
+    const totalTon = totalKg / 1000;
+    const craneTon = totalTon * safety;
+
+    document.getElementById('ct-r-above').textContent = Math.round(W).toLocaleString();
+    document.getElementById('ct-r-below').textContent = Math.round(G).toLocaleString();
+    document.getElementById('ct-r-total').textContent = totalTon.toFixed(3);
+    document.getElementById('ct-r-crane').textContent = craneTon.toFixed(2);
+
+    const estimatedNote = (!hasRoot || !hasBreast)
+      ? (!hasRoot ? `근원직경 추정: ${D_cm.toFixed(1)}cm` : `흉고직경 추정: ${d_cm.toFixed(1)}cm`)
+      : '';
+    document.getElementById('ct-r-rootinfo').innerHTML =
+      `뿌리분 직경 M: ${(M * 100).toFixed(0)}cm<br>뿌리분 반경 M/2: ${(M / 2 * 100).toFixed(0)}cm` +
+      (estimatedNote ? `<br><span style="color:#ffd166;">* ${estimatedNote}</span>` : '');
+    document.getElementById('ct-r-formula').innerHTML =
+      `W = 0.5×π×(${(d/2).toFixed(3)})²×${H}×${W1}×${(1+P).toFixed(1)}<br>` +
+      `G = (4/3)×π×(${(M/2).toFixed(3)})³×1600`;
+
+    const guide = getCraneGuideM(craneTon);
     document.getElementById('ct-r-guide').textContent = '🏗️ ' + guide;
     document.getElementById('ct-result').style.display = 'block';
   }
