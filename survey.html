@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="theme-color" content="#1a3a2a">
+<title>고사목 조사</title>
+<style>
+:root{--green:#1a3a2a;--green-mid:#52b788;--green-light:#d8f3dc;--red:#dc2626;--orange:#d97706;--yellow:#ca8a04;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Noto Sans KR',sans-serif;background:#d0d0c8;color:#111;font-size:14px;display:flex;justify-content:center;}
+.wrap{width:100%;max-width:480px;background:#f0f0eb;min-height:100vh;position:relative;}
+
+.app-header{background:var(--green);color:white;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+.app-header h1{font-size:16px;font-weight:700;letter-spacing:1px;}
+.hbtn{background:rgba(255,255,255,0.15);color:white;border:none;border-radius:6px;padding:5px 10px;font-size:13px;cursor:pointer;font-family:inherit;}
+
+.content{padding:10px 12px 120px;}
+
+/* Bottom nav */
+.bnav{position:sticky;bottom:0;background:white;border-top:1px solid #e0e0e0;display:grid;grid-template-columns:1fr 1fr;z-index:50;}
+.bnav-btn{padding:12px;border:none;background:white;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;color:#888;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.bnav-btn .ico{font-size:18px;}
+.bnav-btn.on{color:var(--green);border-top:2px solid var(--green);}
+
+/* Stats bar */
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+.stat-card{background:white;border-radius:8px;padding:8px 4px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.07);}
+.stat-num{font-size:20px;font-weight:800;line-height:1;}
+.stat-lbl{font-size:10px;color:#666;margin-top:2px;}
+
+/* Filter */
+.filter-row{display:flex;gap:6px;margin-bottom:8px;}
+.filter-row select{flex:1;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;background:white;outline:none;-webkit-appearance:none;}
+
+/* Survey cards */
+.scard{background:white;border-radius:10px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.07);cursor:pointer;border-left:4px solid var(--green);}
+.scard:active{opacity:0.85;}
+.sc-top{padding:10px 12px 6px;display:flex;justify-content:space-between;align-items:flex-start;}
+.sc-id{font-size:10px;color:#888;}
+.sc-date{font-size:12px;color:#444;font-weight:700;}
+.sc-main{padding:0 12px 8px;}
+.sc-site{font-size:14px;font-weight:700;}
+.sc-zone{font-size:12px;color:#666;}
+.sc-bottom{padding:6px 12px 10px;border-top:1px solid #f0f0f0;display:flex;gap:8px;}
+.cond-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.cb-dead{background:#fee2e2;color:#dc2626;}
+.cb-weak{background:#fef3c7;color:#d97706;}
+.cb-sus{background:#fefce8;color:#ca8a04;}
+
+/* FAB */
+.fab{position:fixed;bottom:64px;right:calc(50% - 224px);width:52px;height:52px;border-radius:50%;background:var(--green);color:white;border:none;font-size:28px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;z-index:50;line-height:1;}
+@media(max-width:480px){.fab{right:16px;}}
+
+/* Section */
+.sec{background:white;border-radius:10px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.07);}
+.sec-hd{background:var(--green);color:white;padding:10px 14px;font-size:13px;font-weight:700;}
+.sec-bd{padding:12px;}
+
+/* Form fields */
+.fg{margin-bottom:10px;}
+.fg:last-child{margin-bottom:0;}
+.fg label{display:block;font-size:11px;font-weight:700;color:#2d6a4f;margin-bottom:4px;}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;background:#fafafa;outline:none;-webkit-appearance:none;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--green-mid);background:white;}
+.fg textarea{resize:vertical;min-height:60px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+
+/* Tree card */
+.tree-card{background:#f8faf8;border:1.5px solid #d0e8d0;border-radius:10px;padding:10px 36px 10px 10px;margin-bottom:8px;position:relative;}
+.tree-del{position:absolute;top:8px;right:8px;background:#fee2e2;color:#dc2626;border:none;border-radius:5px;width:28px;height:28px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
+.tree-num{font-size:10px;font-weight:700;color:var(--green);margin-bottom:8px;}
+.btn-add-tree{width:100%;padding:11px;background:var(--green-light);color:#2d6a4f;border:1.5px dashed var(--green-mid);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+
+/* Bottom bar */
+.btm{position:sticky;bottom:0;background:white;border-top:1px solid #e0e0e0;padding:10px 12px;display:flex;gap:8px;box-shadow:0 -2px 10px rgba(0,0,0,0.1);}
+.btn{padding:12px;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;flex:1;}
+.btn-g{background:var(--green);color:white;}
+.btn-w{background:#f0f0f0;color:#444;border:1.5px solid #ccc;}
+.btn-r{background:#fee2e2;color:#dc2626;}
+
+/* Detail info */
+.info-row{display:flex;padding:7px 0;border-bottom:1px solid #f5f5f5;}
+.info-row:last-child{border-bottom:none;}
+.info-lbl{font-size:12px;color:#888;font-weight:700;min-width:72px;}
+.info-val{font-size:13px;flex:1;}
+
+/* Tree detail row */
+.tree-row{padding:8px 10px;border-bottom:1px solid #f0f0f0;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:6px;align-items:center;font-size:12px;}
+.tree-row:last-child{border-bottom:none;}
+.tree-row-hd{background:#f5f5f5;font-weight:700;font-size:11px;color:#666;}
+
+/* Stats */
+.stats-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;}
+.stats-table th{background:#e8f4e8;padding:7px 8px;text-align:center;font-weight:700;border:1px solid #d0e8d0;font-size:11px;}
+.stats-table td{padding:7px 8px;border:1px solid #e8e8e8;text-align:center;}
+.stats-table td:first-child{text-align:left;font-weight:700;}
+.stats-table tr:last-child td{background:#f0fff0;font-weight:700;}
+.stat-dead{color:#dc2626;font-weight:700;}
+.stat-weak{color:#d97706;font-weight:700;}
+.stat-sus{color:#ca8a04;font-weight:700;}
+.stat-total{color:var(--green);font-weight:800;}
+
+/* Photos */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:4px;}
+.photo-item{aspect-ratio:1;border-radius:6px;overflow:hidden;position:relative;background:#f0f0f0;}
+.photo-item img{width:100%;height:100%;object-fit:cover;}
+.photo-del{position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.photo-add{aspect-ratio:1;border:2px dashed #ccc;border-radius:6px;background:#fafafa;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#888;font-size:10px;gap:3px;}
+.photo-add span{font-size:20px;}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.5);align-items:flex-end;justify-content:center;}
+.modal-bg.on{display:flex;}
+.modal-sheet{background:white;border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:20px 16px;max-height:85vh;overflow-y:auto;}
+
+/* Settings */
+.sitem{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid #f0f0f0;gap:8px;}
+.sitem:last-child{border-bottom:none;}
+.sitem-name{flex:1;font-size:14px;}
+.btn-xs{padding:5px 10px;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;background:#fee2e2;color:#dc2626;}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:6px 12px;border:1.5px solid #ddd;border-radius:20px;font-size:12px;font-weight:700;background:white;cursor:pointer;font-family:inherit;}
+.tab.on{background:var(--green);color:white;border-color:var(--green);}
+
+/* Photo viewer */
+.pv{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;}
+.pv.on{display:flex;}
+.pv img{max-width:100%;max-height:90vh;object-fit:contain;}
+.pv-close{position:absolute;top:16px;right:16px;color:white;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:36px;height:36px;font-size:16px;cursor:pointer;}
+
+.empty{text-align:center;padding:48px 16px;color:#bbb;}
+.empty-ico{font-size:44px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<!-- ===== LIST VIEW ===== -->
+<div id="v-list" class="wrap">
+  <header class="app-header">
+    <h1>🌳 고사목 조사</h1>
+    <button class="hbtn" onclick="openSettings()">⚙ 설정</button>
+  </header>
+  <div class="content">
+    <!-- list tab -->
+    <div id="tab-list">
+      <div class="stats-bar" id="stats-bar"></div>
+      <div class="filter-row">
+        <select id="filter-site" onchange="renderList()">
+          <option value="">전체 현장</option>
+        </select>
+      </div>
+      <div id="survey-list"></div>
+    </div>
+    <!-- stats tab -->
+    <div id="tab-stats" style="display:none">
+      <div class="filter-row" style="margin-bottom:12px">
+        <select id="stats-site" onchange="renderStats()">
+          <option value="">전체 현장</option>
+        </select>
+      </div>
+      <div id="stats-body"></div>
+    </div>
+  </div>
+  <button class="fab" onclick="openForm(null)">+</button>
+  <nav class="bnav">
+    <button class="bnav-btn on" id="bnav-list" onclick="switchTab('list')"><span class="ico">📋</span>조사목록</button>
+    <button class="bnav-btn" id="bnav-stats" onclick="switchTab('stats')"><span class="ico">📊</span>집계</button>
+  </nav>
+</div>
+
+<!-- ===== FORM VIEW ===== -->
+<div id="v-form" class="wrap" style="display:none">
+  <header class="app-header">
+    <h1 id="form-title">조사 등록</h1>
+    <button class="hbtn" onclick="showView('list')">← 목록</button>
+  </header>
+  <div class="content">
+    <input type="hidden" id="f-id">
+
+    <div class="sec">
+      <div class="sec-hd">기본 정보</div>
+      <div class="sec-bd">
+        <div class="row2">
+          <div class="fg">
+            <label>현장명 *</label>
+            <select id="f-site"><option value="">선택</option></select>
+          </div>
+          <div class="fg">
+            <label>조사일 *</label>
+            <input type="date" id="f-date">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="fg">
+            <label>구역</label>
+            <input type="text" id="f-zone" placeholder="예: A구역, 1공구">
+          </div>
+          <div class="fg">
+            <label>조사자</label>
+            <input type="text" id="f-surveyor" placeholder="이름">
+          </div>
+        </div>
+        <div class="fg">
+          <label>특이사항</label>
+          <textarea id="f-note" placeholder="현장 상황, 기상 등 특이사항" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-hd" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>수목 목록</span>
+        <span id="tree-count-badge" style="font-size:11px;opacity:0.85;">0그루</span>
+      </div>
+      <div class="sec-bd">
+        <div id="tree-list-form"></div>
+        <button class="btn-add-tree" onclick="addTreeRow()">+ 수목 추가</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-hd">현장 사진 (최대 4장)</div>
+      <div class="sec-bd">
+        <div class="photo-grid" id="form-photos"></div>
+        <input type="file" id="photo-inp" accept="image/*" multiple style="display:none" onchange="addPhotos(event)">
+      </div>
+    </div>
+  </div>
+  <div class="btm">
+    <button class="btn btn-w" onclick="showView('list')">취소</button>
+    <button class="btn btn-g" id="form-save-btn" onclick="saveForm()">저장</button>
+  </div>
+</div>
+
+<!-- ===== DETAIL VIEW ===== -->
+<div id="v-detail" class="wrap" style="display:none">
+  <header class="app-header">
+    <h1>조사 상세</h1>
+    <button class="hbtn" onclick="showView('list')">← 목록</button>
+  </header>
+  <div class="content" id="detail-body"></div>
+  <div class="btm" id="detail-btm"></div>
+</div>
+
+<!-- ===== SETTINGS MODAL ===== -->
+<div id="modal-cfg" class="modal-bg" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="font-size:16px;font-weight:700;">⚙ 설정</span>
+      <button onclick="closeSettings()" style="background:#f0f0f0;border:none;border-radius:6px;padding:5px 12px;font-size:13px;cursor:pointer;font-family:inherit;">닫기</button>
+    </div>
+    <div class="tabs" style="margin-bottom:12px;">
+      <button class="tab on" id="stab-sites" onclick="switchStab('sites')">현장명</button>
+      <button class="tab" id="stab-species" onclick="switchStab('species')">수종</button>
+      <button class="tab" id="stab-surveyors" onclick="switchStab('surveyors')">조사자</button>
+    </div>
+    <div id="stab-body" style="min-height:80px;margin-bottom:10px;"></div>
+    <div style="display:flex;gap:6px;">
+      <input type="text" id="stab-inp" placeholder="추가할 항목..." style="flex:1;padding:10px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;outline:none;">
+      <button onclick="addStabItem()" style="padding:0 16px;background:var(--green);color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">추가</button>
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid #eee;">
+      <div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px;">데이터 관리</div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="exportData()" style="flex:1;padding:9px;background:#f0f0f0;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📤 내보내기</button>
+        <button onclick="document.getElementById('import-inp').click()" style="flex:1;padding:9px;background:#f0f0f0;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📥 가져오기</button>
+      </div>
+      <input type="file" id="import-inp" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+</div>
+
+<!-- ===== PHOTO VIEWER ===== -->
+<div id="pv" class="pv" onclick="closePV()">
+  <img id="pv-img" src="" alt="">
+  <button class="pv-close" onclick="closePV()">✕</button>
+</div>
+
+<script>
+// ── Storage ──────────────────────────────────────────────
+const REC_KEY = 'survey_records';
+const CFG_KEY = 'survey_settings';
+
+function loadRecs() {
+  try { return JSON.parse(localStorage.getItem(REC_KEY) || '[]'); } catch { return []; }
+}
+function saveRecs(r) { localStorage.setItem(REC_KEY, JSON.stringify(r)); }
+
+function loadCfg() {
+  const def = {
+    sites: [],
+    surveyors: [],
+    species: ['느티나무','소나무','잣나무','향나무','벚나무','왕벚나무','단풍나무','은행나무',
+              '메타세쿼이아','팽나무','이팝나무','배롱나무','산수유','목련','회화나무','자작나무',
+              '플라타너스','참나무류','아카시나무','오동나무']
+  };
+  try { return { ...def, ...JSON.parse(localStorage.getItem(CFG_KEY) || '{}') }; }
+  catch { return def; }
+}
+function saveCfg(c) { localStorage.setItem(CFG_KEY, JSON.stringify(c)); }
+
+function genId() {
+  const ymd = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const n = loadRecs().filter(r => r.id.startsWith('SV-'+ymd)).length + 1;
+  return `SV-${ymd}-${String(n).padStart(3,'0')}`;
+}
+
+// ── State ─────────────────────────────────────────────────
+let currentTab = 'list';
+let stabTab = 'sites';
+let formPics = [];
+let detailId = null;
+let treeRows = [];  // [{species, spec, qty, condition, locationNote}]
+
+const COND_LBL = { '완전고사':'완전고사', '쇠약':'쇠약', '의심':'의심' };
+const COND_CLS = { '완전고사':'cb-dead', '쇠약':'cb-weak', '의심':'cb-sus' };
+
+// ── Views ─────────────────────────────────────────────────
+function showView(v) {
+  ['list','form','detail'].forEach(x =>
+    document.getElementById('v-'+x).style.display = (x===v)?'':'none'
+  );
+  if (v === 'list') { renderList(); renderStats(); populateSiteFilters(); }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-list').style.display = tab==='list' ? '' : 'none';
+  document.getElementById('tab-stats').style.display = tab==='stats' ? '' : 'none';
+  document.getElementById('bnav-list').classList.toggle('on', tab==='list');
+  document.getElementById('bnav-stats').classList.toggle('on', tab==='stats');
+}
+
+// ── Populate filters ──────────────────────────────────────
+function populateSiteFilters() {
+  const sites = [...new Set(loadRecs().map(r => r.site).filter(Boolean))];
+  ['filter-site','stats-site'].forEach(id => {
+    const el = document.getElementById(id);
+    const cur = el.value;
+    el.innerHTML = '<option value="">전체 현장</option>' +
+      sites.map(s => `<option${s===cur?' selected':''}>${s}</option>`).join('');
+  });
+}
+
+// ── List ──────────────────────────────────────────────────
+function renderList() {
+  let recs = loadRecs();
+
+  // Global stats
+  let totDead=0, totWeak=0, totSus=0;
+  recs.forEach(r => (r.trees||[]).forEach(t => {
+    const q = Number(t.qty)||1;
+    if (t.condition==='완전고사') totDead+=q;
+    else if (t.condition==='쇠약') totWeak+=q;
+    else if (t.condition==='의심') totSus+=q;
+  }));
+  document.getElementById('stats-bar').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${recs.length}</div><div class="stat-lbl">조사건수</div></div>
+    <div class="stat-card"><div class="stat-num stat-dead">${totDead}</div><div class="stat-lbl">완전고사</div></div>
+    <div class="stat-card"><div class="stat-num stat-weak">${totWeak}</div><div class="stat-lbl">쇠약</div></div>
+    <div class="stat-card"><div class="stat-num stat-sus">${totSus}</div><div class="stat-lbl">의심</div></div>
+  `;
+
+  const siteFilter = document.getElementById('filter-site').value;
+  if (siteFilter) recs = recs.filter(r => r.site === siteFilter);
+  recs.sort((a,b) => (b.surveyDate||'').localeCompare(a.surveyDate||''));
+
+  const el = document.getElementById('survey-list');
+  if (!recs.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-ico">🌳</div>등록된 조사가 없습니다</div>';
+    return;
+  }
+
+  el.innerHTML = recs.map(r => {
+    let dead=0, weak=0, sus=0;
+    (r.trees||[]).forEach(t => {
+      const q = Number(t.qty)||1;
+      if (t.condition==='완전고사') dead+=q;
+      else if (t.condition==='쇠약') weak+=q;
+      else if (t.condition==='의심') sus+=q;
+    });
+    const total = dead+weak+sus;
+    return `
+      <div class="scard" onclick="openDetail('${r.id}')">
+        <div class="sc-top">
+          <span class="sc-id">${r.id}</span>
+          <span class="sc-date">${r.surveyDate||'-'}</span>
+        </div>
+        <div class="sc-main">
+          <div class="sc-site">${r.site||'-'} ${r.zone ? '· '+r.zone : ''}</div>
+          <div class="sc-zone">조사자: ${r.surveyor||'-'} · 총 ${total}그루</div>
+        </div>
+        <div class="sc-bottom">
+          ${dead ? `<span class="cond-badge cb-dead">완전고사 ${dead}</span>` : ''}
+          ${weak ? `<span class="cond-badge cb-weak">쇠약 ${weak}</span>` : ''}
+          ${sus  ? `<span class="cond-badge cb-sus">의심 ${sus}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Stats ─────────────────────────────────────────────────
+function renderStats() {
+  const siteFilter = document.getElementById('stats-site')?.value || '';
+  let recs = loadRecs();
+  if (siteFilter) recs = recs.filter(r => r.site === siteFilter);
+
+  // Aggregate by species
+  const bySpecies = {};
+  const byZone = {};
+  let totDead=0, totWeak=0, totSus=0;
+
+  recs.forEach(r => {
+    (r.trees||[]).forEach(t => {
+      const q = Number(t.qty)||1;
+      const sp = t.species||'미상';
+      const zone = (r.zone||'미지정') + (r.site && !siteFilter ? ' ('+r.site+')' : '');
+      const cond = t.condition;
+
+      if (!bySpecies[sp]) bySpecies[sp] = {dead:0,weak:0,sus:0};
+      if (!byZone[zone])  byZone[zone]  = {dead:0,weak:0,sus:0};
+
+      if (cond==='완전고사') { bySpecies[sp].dead+=q; byZone[zone].dead+=q; totDead+=q; }
+      else if (cond==='쇠약') { bySpecies[sp].weak+=q; byZone[zone].weak+=q; totWeak+=q; }
+      else if (cond==='의심') { bySpecies[sp].sus+=q; byZone[zone].sus+=q; totSus+=q; }
+    });
+  });
+
+  const total = totDead+totWeak+totSus;
+  if (!total) {
+    document.getElementById('stats-body').innerHTML = '<div class="empty"><div class="empty-ico">📊</div>집계할 데이터가 없습니다</div>';
+    return;
+  }
+
+  const tableHtml = (data, label) => {
+    const rows = Object.entries(data).sort((a,b) => (b[1].dead+b[1].weak+b[1].sus)-(a[1].dead+a[1].weak+a[1].sus));
+    let totD=0, totW=0, totS=0;
+    const rowsHtml = rows.map(([name, v]) => {
+      totD+=v.dead; totW+=v.weak; totS+=v.sus;
+      const t = v.dead+v.weak+v.sus;
+      return `<tr>
+        <td>${name}</td>
+        <td class="${v.dead?'stat-dead':''}">${v.dead||'-'}</td>
+        <td class="${v.weak?'stat-weak':''}">${v.weak||'-'}</td>
+        <td class="${v.sus?'stat-sus':''}">${v.sus||'-'}</td>
+        <td class="stat-total">${t}</td>
+      </tr>`;
+    }).join('');
+    return `
+      <div class="sec" style="margin-bottom:12px">
+        <div class="sec-hd">${label}</div>
+        <div style="overflow-x:auto;padding:8px">
+          <table class="stats-table">
+            <thead><tr><th>${label==='수종별'?'수종':'구역'}</th><th>완전고사</th><th>쇠약</th><th>의심</th><th>합계</th></tr></thead>
+            <tbody>
+              ${rowsHtml}
+              <tr>
+                <td>합계</td>
+                <td class="stat-dead">${totD}</td>
+                <td class="stat-weak">${totW}</td>
+                <td class="stat-sus">${totS}</td>
+                <td class="stat-total">${totD+totW+totS}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  };
+
+  document.getElementById('stats-body').innerHTML = `
+    <div class="stats-bar" style="margin-bottom:12px">
+      <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">전체(그루)</div></div>
+      <div class="stat-card"><div class="stat-num stat-dead">${totDead}</div><div class="stat-lbl">완전고사</div></div>
+      <div class="stat-card"><div class="stat-num stat-weak">${totWeak}</div><div class="stat-lbl">쇠약</div></div>
+      <div class="stat-card"><div class="stat-num stat-sus">${totSus}</div><div class="stat-lbl">의심</div></div>
+    </div>
+    ${tableHtml(bySpecies,'수종별')}
+    ${tableHtml(byZone,'구역별')}
+  `;
+}
+
+// ── Form ──────────────────────────────────────────────────
+function openForm(id) {
+  const cfg = loadCfg();
+  treeRows = [];
+  formPics = [];
+
+  const siteSel = document.getElementById('f-site');
+  siteSel.innerHTML = '<option value="">선택</option>' + cfg.sites.map(s=>`<option>${s}</option>`).join('');
+
+  if (id) {
+    const r = loadRecs().find(x => x.id === id);
+    if (!r) return;
+    document.getElementById('f-id').value = r.id;
+    document.getElementById('form-title').textContent = '조사 수정';
+    document.getElementById('form-save-btn').textContent = '수정 저장';
+    document.getElementById('f-site').value = r.site||'';
+    document.getElementById('f-date').value = r.surveyDate||'';
+    document.getElementById('f-zone').value = r.zone||'';
+    document.getElementById('f-surveyor').value = r.surveyor||'';
+    document.getElementById('f-note').value = r.note||'';
+    treeRows = (r.trees||[]).map(t => ({...t}));
+    formPics = [...(r.photos||[])];
+  } else {
+    document.getElementById('f-id').value = '';
+    document.getElementById('form-title').textContent = '조사 등록';
+    document.getElementById('form-save-btn').textContent = '저장';
+    document.getElementById('f-site').value = '';
+    document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+    document.getElementById('f-zone').value = '';
+    document.getElementById('f-surveyor').value = '';
+    document.getElementById('f-note').value = '';
+    treeRows = [];
+    formPics = [];
+    addTreeRow();  // start with one row
+  }
+
+  renderTreeForm();
+  renderFormPics();
+  showView('form');
+}
+
+function addTreeRow() {
+  treeRows.push({ species:'', spec:'', qty:1, condition:'완전고사', locationNote:'' });
+  renderTreeForm();
+}
+
+function removeTreeRow(i) {
+  treeRows.splice(i, 1);
+  renderTreeForm();
+}
+
+function renderTreeForm() {
+  const cfg = loadCfg();
+  const speciesOpts = cfg.species.map(s => `<option value="${s}">`).join('');
+  const total = treeRows.reduce((s,t) => s + (Number(t.qty)||1), 0);
+  document.getElementById('tree-count-badge').textContent = `${total}그루`;
+
+  document.getElementById('tree-list-form').innerHTML = treeRows.map((t,i) => `
+    <div class="tree-card">
+      <button class="tree-del" onclick="removeTreeRow(${i})">✕</button>
+      <div class="tree-num">${i+1}번 수목</div>
+      <datalist id="sp-list-${i}">${speciesOpts}</datalist>
+      <div class="row2">
+        <div class="fg">
+          <label>수종 *</label>
+          <input list="sp-list-${i}" id="t${i}-sp" value="${t.species||''}" placeholder="수종 입력/선택" oninput="syncTree(${i},'species',this.value)">
+        </div>
+        <div class="fg">
+          <label>규격</label>
+          <input type="text" id="t${i}-spec" value="${t.spec||''}" placeholder="R10, B15, H3×W2" oninput="syncTree(${i},'spec',this.value)">
+        </div>
+      </div>
+      <div class="row3">
+        <div class="fg">
+          <label>수량(그루) *</label>
+          <input type="number" id="t${i}-qty" value="${t.qty||1}" min="1" oninput="syncTree(${i},'qty',this.value);updateTreeCount()">
+        </div>
+        <div class="fg">
+          <label>상태 *</label>
+          <select id="t${i}-cond" onchange="syncTree(${i},'condition',this.value)">
+            <option${t.condition==='완전고사'?' selected':''}>완전고사</option>
+            <option${t.condition==='쇠약'?' selected':''}>쇠약</option>
+            <option${t.condition==='의심'?' selected':''}>의심</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>위치메모</label>
+          <input type="text" id="t${i}-loc" value="${t.locationNote||''}" placeholder="3번 데크 우측" oninput="syncTree(${i},'locationNote',this.value)">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function syncTree(i, field, val) {
+  if (treeRows[i]) treeRows[i][field] = val;
+}
+
+function updateTreeCount() {
+  const total = treeRows.reduce((s,t) => s + (Number(t.qty)||1), 0);
+  document.getElementById('tree-count-badge').textContent = `${total}그루`;
+}
+
+function collectTrees() {
+  return treeRows.map((t, i) => ({
+    species: document.getElementById(`t${i}-sp`)?.value.trim() || t.species,
+    spec: document.getElementById(`t${i}-spec`)?.value.trim() || t.spec,
+    qty: Number(document.getElementById(`t${i}-qty`)?.value) || 1,
+    condition: document.getElementById(`t${i}-cond`)?.value || t.condition,
+    locationNote: document.getElementById(`t${i}-loc`)?.value.trim() || t.locationNote
+  }));
+}
+
+function saveForm() {
+  const v = id => document.getElementById(id).value.trim();
+  if (!v('f-site')) { alert('현장명을 선택하세요'); return; }
+  if (!v('f-date')) { alert('조사일을 입력하세요'); return; }
+
+  const trees = collectTrees();
+  if (!trees.length) { alert('수목을 1그루 이상 입력하세요'); return; }
+  if (trees.some(t => !t.species)) { alert('모든 수목의 수종을 입력하세요'); return; }
+
+  const recs = loadRecs();
+  const eid = document.getElementById('f-id').value;
+  const now = new Date().toISOString();
+  const data = {
+    site: v('f-site'), surveyDate: v('f-date'),
+    zone: v('f-zone'), surveyor: v('f-surveyor'),
+    note: v('f-note'), trees, photos: [...formPics],
+    updatedAt: now
+  };
+
+  if (eid) {
+    const i = recs.findIndex(r => r.id === eid);
+    if (i >= 0) recs[i] = { ...recs[i], ...data };
+  } else {
+    recs.unshift({ id: genId(), createdAt: now, ...data });
+  }
+  saveRecs(recs);
+  showView('list');
+}
+
+// ── Photos ────────────────────────────────────────────────
+function renderFormPics() {
+  const grid = document.getElementById('form-photos');
+  let html = formPics.map((p,i) => `
+    <div class="photo-item">
+      <img src="${p}" onclick="openPV('${p}')">
+      <button class="photo-del" onclick="removeFormPic(${i})">✕</button>
+    </div>
+  `).join('');
+  if (formPics.length < 4)
+    html += `<div class="photo-add" onclick="document.getElementById('photo-inp').click()"><span>📷</span>사진 추가</div>`;
+  grid.innerHTML = html;
+}
+
+function addPhotos(event) {
+  const files = Array.from(event.target.files).slice(0, 4 - formPics.length);
+  let done = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        const mx = 800;
+        let w=img.width, h=img.height;
+        if (w>mx){h=h*mx/w;w=mx;} if (h>mx){w=w*mx/h;h=mx;}
+        c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        formPics.push(c.toDataURL('image/jpeg',0.72));
+        if (++done===files.length) renderFormPics();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value='';
+}
+
+function removeFormPic(i) { formPics.splice(i,1); renderFormPics(); }
+
+// ── Detail ────────────────────────────────────────────────
+function openDetail(id) {
+  detailId = id;
+  renderDetail();
+  showView('detail');
+}
+
+function renderDetail() {
+  const r = loadRecs().find(x => x.id === detailId);
+  if (!r) { showView('list'); return; }
+
+  const trees = r.trees || [];
+  let dead=0, weak=0, sus=0;
+  trees.forEach(t => {
+    const q = Number(t.qty)||1;
+    if (t.condition==='완전고사') dead+=q;
+    else if (t.condition==='쇠약') weak+=q;
+    else if (t.condition==='의심') sus+=q;
+  });
+
+  const treeTableHtml = trees.length ? `
+    <div class="tree-row tree-row-hd">
+      <div>수종·규격</div><div>수량</div><div>상태</div><div>위치메모</div>
+    </div>
+    ${trees.map(t => `
+      <div class="tree-row">
+        <div><b>${t.species||'-'}</b>${t.spec?' <span style="font-size:10px;color:#888">'+t.spec+'</span>':''}</div>
+        <div style="text-align:center">${t.qty||1}그루</div>
+        <div style="text-align:center"><span class="cond-badge ${COND_CLS[t.condition]||''}">${t.condition||'-'}</span></div>
+        <div style="font-size:11px;color:#666">${t.locationNote||'-'}</div>
+      </div>
+    `).join('')}
+  ` : '<div style="color:#aaa;text-align:center;padding:12px;font-size:13px">수목 정보 없음</div>';
+
+  const photosHtml = (r.photos||[]).length ? `
+    <div class="photo-grid" style="margin-top:8px">
+      ${r.photos.map(p=>`<div class="photo-item"><img src="${p}" onclick="openPV('${p}')"></div>`).join('')}
+    </div>
+  ` : '';
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="sec">
+      <div class="sec-hd">${r.site||'-'} ${r.zone?'· '+r.zone:''}</div>
+      <div class="sec-bd">
+        <div class="info-row"><span class="info-lbl">조사번호</span><span class="info-val">${r.id}</span></div>
+        <div class="info-row"><span class="info-lbl">조사일</span><span class="info-val">${r.surveyDate||'-'}</span></div>
+        <div class="info-row"><span class="info-lbl">현장명</span><span class="info-val">${r.site||'-'}</span></div>
+        <div class="info-row"><span class="info-lbl">구역</span><span class="info-val">${r.zone||'-'}</span></div>
+        <div class="info-row"><span class="info-lbl">조사자</span><span class="info-val">${r.surveyor||'-'}</span></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          ${dead?`<span class="cond-badge cb-dead">완전고사 ${dead}그루</span>`:''}
+          ${weak?`<span class="cond-badge cb-weak">쇠약 ${weak}그루</span>`:''}
+          ${sus?`<span class="cond-badge cb-sus">의심 ${sus}그루</span>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-hd">수목 목록 (총 ${dead+weak+sus}그루)</div>
+      <div style="overflow-x:auto">${treeTableHtml}</div>
+    </div>
+    ${r.note ? `<div class="sec"><div class="sec-hd">특이사항</div><div class="sec-bd" style="font-size:13px;line-height:1.6;white-space:pre-wrap">${r.note}</div></div>` : ''}
+    ${photosHtml ? `<div class="sec"><div class="sec-hd">현장 사진</div><div class="sec-bd">${photosHtml}</div></div>` : ''}
+  `;
+
+  document.getElementById('detail-btm').innerHTML = `
+    <button class="btn btn-w" onclick="openForm('${r.id}')">수정</button>
+    <button class="btn btn-r" onclick="delRec('${r.id}')">삭제</button>
+  `;
+}
+
+function delRec(id) {
+  if (!confirm('이 조사 기록을 삭제하시겠습니까?')) return;
+  saveRecs(loadRecs().filter(r => r.id !== id));
+  showView('list');
+}
+
+// ── Settings ──────────────────────────────────────────────
+function openSettings() {
+  stabTab = 'sites';
+  ['sites','species','surveyors'].forEach(t =>
+    document.getElementById('stab-'+t).classList.toggle('on', t==='sites')
+  );
+  renderStab();
+  document.getElementById('modal-cfg').classList.add('on');
+}
+function closeSettings() { document.getElementById('modal-cfg').classList.remove('on'); }
+
+function switchStab(t) {
+  stabTab = t;
+  ['sites','species','surveyors'].forEach(x =>
+    document.getElementById('stab-'+x).classList.toggle('on', x===t)
+  );
+  document.getElementById('stab-inp').value = '';
+  renderStab();
+}
+function renderStab() {
+  const items = loadCfg()[stabTab] || [];
+  document.getElementById('stab-body').innerHTML = items.length
+    ? items.map((it,i) => `<div class="sitem"><span class="sitem-name">${it}</span><button class="btn-xs" onclick="removeStabItem(${i})">삭제</button></div>`).join('')
+    : '<div style="color:#aaa;text-align:center;padding:12px;font-size:13px">등록된 항목이 없습니다</div>';
+}
+function addStabItem() {
+  const v = document.getElementById('stab-inp').value.trim();
+  if (!v) return;
+  const cfg = loadCfg();
+  if (!cfg[stabTab].includes(v)) { cfg[stabTab].push(v); saveCfg(cfg); }
+  document.getElementById('stab-inp').value = '';
+  renderStab();
+}
+function removeStabItem(i) {
+  const cfg = loadCfg(); cfg[stabTab].splice(i,1); saveCfg(cfg); renderStab();
+}
+document.getElementById('stab-inp').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addStabItem();
+});
+
+// ── Photo viewer ──────────────────────────────────────────
+function openPV(src) { document.getElementById('pv-img').src=src; document.getElementById('pv').classList.add('on'); }
+function closePV() { document.getElementById('pv').classList.remove('on'); document.getElementById('pv-img').src=''; }
+
+// ── Export / Import ───────────────────────────────────────
+function exportData() {
+  const blob = new Blob([JSON.stringify({
+    _exportDate: new Date().toISOString(),
+    records: loadRecs(), settings: loadCfg()
+  }, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `고사목조사_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file || !confirm('기존 데이터를 덮어씁니다. 계속하시겠습니까?')) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (d.records) saveRecs(d.records);
+      if (d.settings) saveCfg(d.settings);
+      closeSettings(); renderList(); renderStats();
+      alert('가져오기 완료');
+    } catch { alert('올바르지 않은 파일입니다'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ── Init ──────────────────────────────────────────────────
+populateSiteFilters();
+renderList();
+renderStats();
+</script>
+</body>
+</html>
