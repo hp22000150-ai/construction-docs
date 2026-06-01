@@ -7,8 +7,8 @@
 <meta name="theme-color" content="#1a3a2a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="고사목 조사">
-<title>고사목 조사</title>
+<meta name="apple-mobile-web-app-title" content="현장 조사">
+<title>현장 조사</title>
 <style>
 :root{--green:#1a3a2a;--green-mid:#52b788;--green-light:#d8f3dc;--red:#dc2626;--orange:#d97706;--yellow:#ca8a04;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -146,7 +146,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#d0d0c8;color:#111;font-si
 <!-- ===== LIST VIEW ===== -->
 <div id="v-list" class="wrap">
   <header class="app-header">
-    <h1>🌳 고사목 조사<span style="font-size:10px;font-weight:400;opacity:0.6;margin-left:8px;">V 0.601.0</span></h1>
+    <h1>🔍 현장 조사<span style="font-size:10px;font-weight:400;opacity:0.6;margin-left:8px;">V 0.601.0</span></h1>
     <button class="hbtn" onclick="openHelp()">📖 도움말</button>
     <button class="hbtn" onclick="openSettings()">⚙ 설정</button>
   </header>
@@ -271,11 +271,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:#d0d0c8;color:#111;font-si
       • 수종: 직접 입력하거나 목록에서 선택<br>
       • 규격: 칩 버튼 클릭으로 빠르게 입력<br>
       &nbsp;&nbsp;— R: 근원직경 / B: 흉고직경 / H: 수고 / W: 수관폭<br>
-      • 상태: <span style="background:#fee2e2;color:#dc2626;padding:0 5px;border-radius:4px;font-size:11px;">완전고사</span> <span style="background:#fef3c7;color:#d97706;padding:0 5px;border-radius:4px;font-size:11px;">쇠약</span> <span style="background:#fefce8;color:#ca8a04;padding:0 5px;border-radius:4px;font-size:11px;">의심</span><br>
+      • 상태: <span style="background:#fee2e2;color:#dc2626;padding:0 5px;border-radius:4px;font-size:11px;">불량/미흡/주의</span><br>
       • 위치메모: 도면 위치 또는 주변 시설물 기준<br>
       • 사진: 최대 6장, 자동 압축 저장<br><br>
       <b style="color:#1a3a2a;">📊 수종별집계 탭</b><br>
-      수종별·구역별 완전고사/쇠약/의심 통계 확인<br><br>
+      수종별·구역별 불량/미흡/주의 통계 확인<br><br>
       <b style="color:#1a3a2a;">🖨️ 인쇄 (PDF)</b><br>
       상세 화면 → 인쇄 버튼 → A4 조사보고서 출력<br>
       (기본정보 + 수목목록 + 특이사항 + 사진 포함)<br><br>
@@ -321,8 +321,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#d0d0c8;color:#111;font-si
 
 <script>
 // ── Storage ──────────────────────────────────────────────
-const REC_KEY = 'survey_records';
-const CFG_KEY = 'survey_settings';
+const REC_KEY = 'gen_survey_records';
+const CFG_KEY = 'gen_survey_settings';
 
 function loadRecs() {
   try { return JSON.parse(localStorage.getItem(REC_KEY) || '[]'); } catch { return []; }
@@ -371,8 +371,8 @@ let formPics = [];
 let detailId = null;
 let treeRows = [];  // [{species, spec, qty, condition, locationNote}]
 
-const COND_LBL = { '완전고사':'완전고사', '쇠약':'쇠약', '의심':'의심' };
-const COND_CLS = { '완전고사':'cb-dead', '쇠약':'cb-weak', '의심':'cb-sus' };
+const COND_LBL = { '불량/미흡/주의' };
+const COND_CLS = { '불량/미흡/주의':'cb-sus' };
 
 // ── Views ─────────────────────────────────────────────────
 function showView(v) {
@@ -511,7 +511,7 @@ function renderStats() {
         <div class="sec-hd">${label}</div>
         <div style="overflow-x:auto;padding:8px">
           <table class="stats-table">
-            <thead><tr><th>${label==='수종별'?'수종':'구역'}</th><th>완전고사</th><th>쇠약</th><th>의심</th><th>합계</th></tr></thead>
+            <thead><tr><th>${label==='수종별'?'수종':'구역'}</th><th>불량/미흡/주의</th><th>합계</th></tr></thead>
             <tbody>
               ${rowsHtml}
               <tr>
@@ -807,7 +807,7 @@ function printRec(id){
   const badge=c=>{const cl=c==='완전고사'||c==='고사'?'#dc2626':c==='쇠약'?'#d97706':'#ca8a04';const bg=c==='완전고사'||c==='고사'?'#fee2e2':c==='쇠약'?'#fef3c7':'#fefce8';return `<span style="background:${bg};color:${cl};padding:1px 7px;border-radius:8px;font-size:11px;font-weight:700;">${c}</span>`;};
   const rows=trees.map((t,i)=>`<tr><td style="text-align:center">${i+1}</td><td><b>${t.species||'-'}</b></td><td style="text-align:center">${t.spec||'-'}</td><td style="text-align:center">${t.qty||1}그루</td><td style="text-align:center">${badge(t.condition||'-')}</td><td>${t.locationNote||'-'}</td></tr>`).join('');
   const photoHtml=(r.photos||[]).length?`<div style="margin-top:16px;"><div style="font-size:12px;font-weight:700;color:#1a3a2a;border-bottom:1.5px solid #1a3a2a;padding-bottom:4px;margin-bottom:8px;">현장 사진</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">${r.photos.map(p=>`<img src="${p}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;border:0.5px solid #ccc;">`).join('')}</div></div>`:'';
-  const html=`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>고사목 조사보고서 - ${r.id}</title>
+  const html=`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>현장 조사보고서 - ${r.id}</title>
   <style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:'Noto Sans KR',sans-serif;font-size:11px;color:#111;padding:16mm 14mm;}h1{font-size:20px;font-weight:800;letter-spacing:6px;text-align:center;margin-bottom:4px;}.sub{text-align:center;font-size:11px;color:#666;margin-bottom:16px;}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #999;margin-bottom:14px;}.info-cell{padding:5px 10px;border-bottom:1px solid #ccc;display:flex;gap:6px;}.info-cell:nth-child(odd){border-right:1px solid #ccc;}.info-lbl{font-weight:700;color:#444;min-width:52px;font-size:10px;}.info-val{flex:1;}.summary{display:flex;gap:10px;margin-bottom:12px;}.sum-box{flex:1;border:1.5px solid #ccc;border-radius:6px;padding:8px 6px;text-align:center;}.sum-num{font-size:22px;font-weight:800;}.sum-lbl{font-size:10px;color:#666;margin-top:2px;}.dead{color:#dc2626;}.weak{color:#d97706;}.sus{color:#ca8a04;}.tot{color:#1a3a2a;}table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10px;}th{background:#1a3a2a;color:white;padding:5px 6px;text-align:center;font-weight:700;}td{border:0.5px solid #ccc;padding:5px 6px;}tr:nth-child(even) td{background:#f9f9f9;}.note-box{border:1px solid #ccc;border-radius:4px;padding:8px 10px;font-size:11px;line-height:1.7;white-space:pre-wrap;margin-bottom:14px;}@media print{@page{size:A4 portrait;margin:16mm 14mm 10mm;}body{padding:0;}}</style>
   </head><body>
   <h1>고 사 목 조 사 보 고 서</h1>
@@ -892,7 +892,7 @@ function exportData() {
   }, null, 2)], { type:'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `고사목조사_${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `현장조사_${new Date().toISOString().slice(0,10)}.json`;
   a.click();
 }
 function importData(event) {
