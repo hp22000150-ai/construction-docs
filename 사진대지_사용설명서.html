@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공사사진대지 사용설명서</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+      background: #f0f4f8;
+      color: #1e293b;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .page {
+      width: 794px;
+      margin: 32px auto;
+      background: #fff;
+      box-shadow: 0 4px 24px rgba(0,0,0,.12);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    /* 표지 */
+    .cover {
+      background: linear-gradient(160deg, #1e3a8a 0%, #1e40af 60%, #2563eb 100%);
+      color: #fff;
+      padding: 72px 64px 64px;
+      position: relative;
+    }
+    .cover-badge {
+      display: inline-block;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 20px;
+      padding: 4px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      margin-bottom: 28px;
+    }
+    .cover h1 {
+      font-size: 40px;
+      font-weight: 900;
+      letter-spacing: -.5px;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+    .cover h1 span { color: #93c5fd; }
+    .cover .subtitle {
+      font-size: 15px;
+      opacity: .75;
+      margin-bottom: 48px;
+    }
+    .cover-meta {
+      display: flex;
+      gap: 32px;
+      font-size: 12px;
+      opacity: .65;
+      border-top: 1px solid rgba(255,255,255,.2);
+      padding-top: 24px;
+    }
+    .cover-meta strong { display: block; font-size: 11px; opacity: .7; margin-bottom: 2px; letter-spacing: .08em; }
+
+    /* 본문 */
+    .content { padding: 48px 64px 56px; }
+
+    /* 목차 */
+    .toc {
+      background: #f8fafc;
+      border-left: 4px solid #1e40af;
+      border-radius: 0 8px 8px 0;
+      padding: 20px 24px;
+      margin-bottom: 48px;
+    }
+    .toc-title { font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: .1em; margin-bottom: 12px; }
+    .toc ol { padding-left: 18px; }
+    .toc li { font-size: 13px; color: #1e40af; margin-bottom: 4px; font-weight: 600; }
+    .toc li span { color: #64748b; font-weight: 400; }
+
+    /* 섹션 */
+    .section { margin-bottom: 44px; }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .section-num {
+      background: #1e40af;
+      color: #fff;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800;
+      flex-shrink: 0;
+    }
+    .section-title { font-size: 18px; font-weight: 800; color: #0f172a; }
+    .section-badge {
+      background: #eff6ff; color: #1e40af;
+      border-radius: 12px; padding: 2px 12px;
+      font-size: 11px; font-weight: 700; letter-spacing: .05em;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e40af;
+      margin: 20px 0 10px;
+    }
+    h3::before { content: '▸ '; }
+
+    p { margin-bottom: 10px; color: #334155; }
+
+    /* 스텝 */
+    .steps { counter-reset: step; display: flex; flex-direction: column; gap: 10px; }
+    .step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .step-num {
+      counter-increment: step;
+      background: #1e40af; color: #fff;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .step-body { flex: 1; }
+    .step-body strong { display: block; font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+    .step-body span { font-size: 12px; color: #64748b; }
+
+    /* 팁 박스 */
+    .tip {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-left: 4px solid #f59e0b;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      margin: 14px 0;
+      font-size: 13px;
+      color: #78350f;
+    }
+    .tip strong { color: #b45309; }
+
+    /* 기능표 */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .feature-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .feature-item .icon { font-size: 18px; margin-bottom: 4px; }
+    .feature-item strong { display: block; font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .feature-item span { font-size: 12px; color: #64748b; }
+
+    /* 워크플로우 화살표 */
+    .workflow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #eff6ff;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      flex-wrap: wrap;
+    }
+    .wf-step {
+      background: #1e40af; color: #fff;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 12px; font-weight: 700;
+      white-space: nowrap;
+    }
+    .wf-arrow { color: #3b82f6; font-size: 16px; font-weight: 700; }
+
+    /* 기부 섹션 */
+    .donate-section {
+      background: linear-gradient(135deg, #fdf4ff 0%, #fce7f3 100%);
+      border: 1px solid #e879f9;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-top: 44px;
+      text-align: center;
+    }
+    .donate-icon { font-size: 36px; margin-bottom: 12px; }
+    .donate-title {
+      font-size: 18px; font-weight: 800;
+      color: #86198f; margin-bottom: 10px;
+    }
+    .donate-free {
+      display: inline-block;
+      background: #f0fdf4;
+      border: 1.5px solid #22c55e;
+      color: #15803d;
+      border-radius: 20px;
+      padding: 4px 18px;
+      font-size: 12px; font-weight: 700;
+      margin-bottom: 14px;
+    }
+    .donate-text {
+      font-size: 14px; color: #4a044e;
+      line-height: 1.9;
+      margin-bottom: 18px;
+    }
+    .donate-text strong { color: #86198f; }
+    .donate-note {
+      font-size: 12px; color: #a21caf;
+      opacity: .75;
+    }
+
+    /* 푸터 */
+    .footer {
+      background: #1e293b;
+      color: rgba(255,255,255,.5);
+      text-align: center;
+      padding: 18px;
+      font-size: 11px;
+      letter-spacing: .05em;
+    }
+    .footer strong { color: rgba(255,255,255,.8); }
+
+    /* 구분선 */
+    .divider {
+      border: none;
+      border-top: 1px solid #e2e8f0;
+      margin: 36px 0;
+    }
+
+    /* 인쇄 */
+    @media print {
+      @page { size: A4 portrait; margin: 15mm 18mm; }
+      body { background: #fff; }
+      .page { margin: 0; box-shadow: none; border-radius: 0; width: 100%; }
+      .section { page-break-inside: avoid; }
+      .donate-section { page-break-inside: avoid; }
+    }
+
+    /* 인쇄 버튼 */
+    .print-bar {
+      width: 794px;
+      margin: 0 auto 16px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .btn-print {
+      background: #1e40af; color: #fff;
+      border: none; border-radius: 8px;
+      padding: 10px 24px; font-size: 14px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+    }
+    .btn-print:hover { background: #1d4ed8; }
+    @media print { .print-bar { display: none !important; } }
+  </style>
+</head>
+<body>
+
+<div class="print-bar">
+  <button class="btn-print" onclick="window.print()">🖨️ PDF 저장 / 인쇄</button>
+</div>
+
+<div class="page">
+
+  <!-- 표지 -->
+  <div class="cover">
+    <div class="cover-badge">📷 CONSTRUCTION PHOTO RECORD</div>
+    <h1>공사사진대지<br><span>사용설명서</span></h1>
+    <p class="subtitle">현장 사진 기록 · 모바일 촬영 · PC 출력 · PDF 저장</p>
+    <div class="cover-meta">
+      <div><strong>VERSION</strong>v0.602.7</div>
+      <div><strong>PLATFORM</strong>Android APK · Windows EXE</div>
+      <div><strong>제작</strong>CONTENT FACTORY · 2026</div>
+    </div>
+  </div>
+
+  <!-- 본문 -->
+  <div class="content">
+
+    <!-- 목차 -->
+    <div class="toc">
+      <div class="toc-title">CONTENTS</div>
+      <ol>
+        <li>앱 소개 <span>— 공사사진대지가 하는 일</span></li>
+        <li>Android APK 설치 <span>— 스마트폰에 앱 설치하기</span></li>
+        <li>모바일 앱 사용법 <span>— 현장에서 사진 촬영 · 기록</span></li>
+        <li>PC 뷰어(EXE) 사용법 <span>— 불러오기 · 인쇄 · PDF 저장</span></li>
+        <li>모바일 → PC 전송 방법 <span>— 파일 주고받기</span></li>
+      </ol>
+    </div>
+
+    <!-- 1. 앱 소개 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <div class="section-title">앱 소개</div>
+      </div>
+      <p>
+        <strong>공사사진대지</strong>는 공사 현장에서 촬영한 사진을 체계적으로 정리하고,
+        PC에서 A4 사진대지 양식으로 출력하거나 PDF로 저장할 수 있는 앱입니다.
+      </p>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <div class="icon">📱</div>
+          <strong>현장 촬영 · 기록</strong>
+          <span>카메라 또는 갤러리에서 사진 선택, 날짜·설명 입력</span>
+        </div>
+        <div class="feature-item">
+          <div class="icon">📂</div>
+          <strong>자동저장</strong>
+          <span>입력 내용이 자동으로 저장되어 앱을 꺼도 유지</span>
+        </div>
+        <div class="feature-item">
+          <div class="icon">💾</div>
+          <strong>JSON 내보내기</strong>
+          <span>다운로드 폴더에 저장, PC로 전송 가능</span>
+        </div>
+        <div class="feature-item">
+          <div class="icon">🖨️</div>
+          <strong>PC에서 인쇄 · PDF</strong>
+          <span>A4 사진대지 양식으로 출력 또는 PDF 저장</span>
+        </div>
+      </div>
+      <div class="workflow">
+        <div class="wf-step">📱 현장 촬영</div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-step">💾 내보내기</div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-step">📨 PC 전송</div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-step">🖥️ EXE 실행</div>
+        <div class="wf-arrow">→</div>
+        <div class="wf-step">🖨️ 인쇄 · PDF</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 2. APK 설치 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <div class="section-title">Android APK 설치</div>
+        <div class="section-badge">스마트폰</div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>APK 파일 받기</strong>
+            <span>카카오톡 또는 이메일로 전달받은 <code>사진대지_v0602_7.apk</code> 파일을 저장합니다.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>출처를 알 수 없는 앱 허용</strong>
+            <span>설정 → 보안 → <b>출처를 알 수 없는 앱 설치</b> 허용 (또는 파일 실행 시 팝업에서 허용)</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>APK 파일 실행</strong>
+            <span>내 파일 앱 → 다운로드 폴더 → APK 파일 탭하여 설치</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>설치 완료</strong>
+            <span>홈 화면 또는 앱 서랍에서 <b>현장 사진대지</b> 아이콘을 탭하여 실행</span>
+          </div>
+        </div>
+      </div>
+      <div class="tip">
+        <strong>💡 갤럭시 사용자:</strong> 내 파일 앱에서 APK 파일을 꾹 누른 후 ⋮ 더보기 → 홈 화면에 추가 하면 바탕화면 바로가기가 생깁니다.
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 3. 모바일 앱 사용법 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <div class="section-title">모바일 앱 사용법</div>
+        <div class="section-badge">현장 촬영</div>
+      </div>
+
+      <h3>입력/편집 탭</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>사진 추가</strong>
+            <span>사진 슬롯(전·중·완)을 탭 → 카메라로 찍기 또는 갤러리에서 선택</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>날짜 · 설명 입력</strong>
+            <span>촬영일자는 사진 추가 시 자동 입력됩니다. 수정 가능하며 사진 설명도 입력하세요.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>페이지 추가</strong>
+            <span>공종이 여러 개인 경우 <b>+ 페이지 추가</b> 버튼으로 페이지를 늘립니다.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>내보내기</strong>
+            <span>하단 <b>💾 내보내기 (.json)</b> 버튼 → 다운로드 폴더에 파일이 저장됩니다.</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>설정 탭</h3>
+      <p>공사명·시공회사·공사위치·발주처·작성일을 입력합니다. 공사위치 옆 📍 버튼으로 GPS 자동 입력도 가능합니다.</p>
+
+      <h3>갤러리 탭</h3>
+      <p>촬영한 원본 사진이 보관됩니다. 전체 저장·삭제, 선택 저장·삭제, 개별 저장이 가능합니다. 초기화해도 갤러리 사진은 유지됩니다.</p>
+
+      <div class="tip">
+        <strong>💡 2컷 / 3컷:</strong> 상단 버튼으로 전·완료(2장) 또는 전·중·완료(3장) 구성을 전체 변경할 수 있습니다.
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 4. PC 뷰어 사용법 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <div class="section-title">PC 뷰어(EXE) 사용법</div>
+        <div class="section-badge">인쇄 · PDF</div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>공사사진대지.exe 실행</strong>
+            <span>전달받은 <code>공사사진대지.exe</code> 파일을 더블클릭합니다. 설치 불필요.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>파일 불러오기</strong>
+            <span>상단 <b>📂 불러오기</b> 버튼 → 모바일에서 전송받은 <code>.json</code> 파일 선택</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>표지 정보 확인</strong>
+            <span>공사명·시공회사·공사위치·발주처·작성일이 자동으로 채워집니다. 필요 시 수정 가능.</span>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>인쇄 또는 PDF 저장</strong>
+            <span>상단 <b>🖨️ 인쇄</b> 버튼 → 프린터 선택 또는 <b>PDF로 저장</b> 선택</span>
+          </div>
+        </div>
+      </div>
+      <div class="tip">
+        <strong>💡 사진이 잘릴 경우:</strong> 상단 <b>꽉채움 / 전체보기</b> 토글로 사진 표시 방식을 변경하세요.
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 5. 파일 전송 방법 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <div class="section-title">모바일 → PC 파일 전송</div>
+        <div class="section-badge">파일 주고받기</div>
+      </div>
+      <p>모바일 앱에서 내보낸 <code>.json</code> 파일을 PC로 전송하는 방법입니다.</p>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <div class="icon">💬</div>
+          <strong>카카오톡 나에게 보내기</strong>
+          <span>가장 빠름. 내보내기 → 카카오톡 선택 → 나에게 → PC 카카오톡에서 다운로드</span>
+        </div>
+        <div class="feature-item">
+          <div class="icon">📧</div>
+          <strong>이메일</strong>
+          <span>내보내기 → 이메일 앱 선택 → 파일 첨부 전송 → PC에서 다운로드</span>
+        </div>
+        <div class="feature-item">
+          <div class="icon">☁️</div>
+          <strong>클라우드</strong>
+          <span>구글 드라이브·원드라이브 앱으로 공유 → PC 브라우저에서 다운로드</span>
+        </div>
+        <div class="feature-item">
+          <div class="icon">🔌</div>
+          <strong>USB 케이블</strong>
+          <span>폰과 PC 연결 → 파일 전송 모드 → 다운로드 폴더에서 직접 복사</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 기부 안내 -->
+    <div class="donate-section">
+      <div class="donate-icon">🤝</div>
+      <div class="donate-free">✓ 완전 무료 앱</div>
+      <div class="donate-title">마음에 드셨나요?</div>
+      <p class="donate-text">
+        공사사진대지는 <strong>누구에게나 완전 무료</strong>로 제공됩니다.<br>
+        광고도, 유료 기능도, 사용 제한도 없습니다.<br><br>
+        만약 이 앱이 현장 업무에 도움이 되셨다면,<br>
+        <strong>소액이라도 불우한 이웃을 위해 기부</strong>해 주세요.<br>
+        여러분의 작은 나눔이 누군가에게 큰 힘이 됩니다.
+      </p>
+      <p class="donate-note">
+        사회복지공동모금회(사랑의열매) · 굿네이버스 · 월드비전 등<br>
+        가까운 기부 단체에 소액이라도 전해주시면 감사하겠습니다. 🙏
+      </p>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="footer">
+    공사사진대지 v0.602.7 &nbsp;|&nbsp; <strong>© 2026 CONTENT FACTORY</strong> &nbsp;|&nbsp; 무료 배포 · 재배포 허용
+  </div>
+
+</div><!-- /page -->
+
+</body>
+</html>
