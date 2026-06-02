@@ -827,14 +827,20 @@ window.addEventListener('DOMContentLoaded', () => {
   loadProjects(); loadCompanies(); loadJobs(); loadNames(); loadSupervisors(); loadEquipNames();
   addMan(); addEq(); addMt();
 
+  function _restorePhotos() {
+    originals.forEach(o => {
+      const page = photoData.pages[o.pageIdx];
+      if (page?.slots[o.slotIdx]) page.slots[o.slotIdx].photo = o.src;
+    });
+    if (!photoData.pages || !photoData.pages.length) { photoData.pages = []; addPage(); }
+    else { renderPages(); renderGallery(); }
+  }
   initDB().then(() => dbGetAll()).then(rows => {
     originals = rows || [];
-    if (!photoData.pages || !photoData.pages.length) { photoData.pages = []; addPage(); }
-    else { renderPages(); renderGallery(); }
+    _restorePhotos();
   }).catch(() => {
     originals = [];
-    if (!photoData.pages || !photoData.pages.length) { photoData.pages = []; addPage(); }
-    else { renderPages(); renderGallery(); }
+    _restorePhotos();
   });
 
   initFp();
@@ -1397,7 +1403,11 @@ function savePhotoData() {
   photoData.location  = document.getElementById('s-location').value;
   photoData.client    = document.getElementById('s-client').value;
   photoData.photoDate = document.getElementById('s-photo-date').value;
-  try { localStorage.setItem('unified_photo_data', JSON.stringify(photoData)); } catch { showToast('⚠️ 저장 실패 (용량 초과)'); }
+  // photo 블롭은 IndexedDB에만 보관 — localStorage 용량 초과 방지
+  const slim = { ...photoData, pages: photoData.pages.map(p => ({
+    ...p, slots: p.slots.map(s => ({ ...s, photo: null }))
+  })) };
+  try { localStorage.setItem('unified_photo_data', JSON.stringify(slim)); } catch { showToast('⚠️ 저장 실패 (용량 초과)'); }
 }
 
 // ===== PHOTO SHEET =====
