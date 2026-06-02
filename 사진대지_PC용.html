@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공사사진대지</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+      background: #f0f2f5;
+      color: #111;
+    }
+
+    /* ===== 컨트롤 패널 ===== */
+    .controls {
+      background: #1e40af;
+      color: #fff;
+      padding: 10px 24px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 500;
+    }
+    .ctrl-top {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; flex-wrap: wrap;
+    }
+    .ctrl-bottom {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; flex-wrap: wrap;
+    }
+
+    body { padding-top: 82px; }
+    .controls h1 { font-size: 18px; font-weight: 700; }
+    .controls .btns { display: flex; gap: 13px; }
+
+    /* ===== 헤더 인라인 입력 ===== */
+    .ctrl-field { display: flex; align-items: center; gap: 6px; }
+    .ctrl-field-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,.75); white-space: nowrap; }
+    .ctrl-input {
+      border: 1px solid rgba(255,255,255,.35); border-radius: 5px;
+      padding: 5px 9px; font-family: inherit; font-size: 13px;
+      color: #fff; background: rgba(255,255,255,.15);
+      outline: none; width: 130px;
+    }
+    .ctrl-input::placeholder { color: rgba(255,255,255,.35); }
+    .ctrl-input:focus { border-color: rgba(255,255,255,.75); background: rgba(255,255,255,.22); }
+    .ctrl-divider { width: 1px; height: 20px; background: rgba(255,255,255,.3); margin: 0 12px; flex-shrink: 0; }
+
+    button {
+      cursor: pointer; border: none; border-radius: 6px;
+      font-family: inherit; font-size: 13px; padding: 7px 22px;
+      font-weight: 600; transition: opacity .15s;
+    }
+    button:hover { opacity: .85; }
+    .btn-print  { background: #fff; color: #1e40af; }
+    .btn-add    { background: #22c55e; color: #fff; }
+    .btn-save   { background: #8b5cf6; color: #fff; }
+    .btn-load   { background: #0ea5e9; color: #fff; }
+    .btn-reset  { background: #ef4444; color: #fff; }
+    .btn-fit    { background: #475569; color: #fff; }
+
+
+    /* 자동저장 토스트 */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #1e293b; color: #fff;
+      padding: 10px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 600;
+      opacity: 0; transition: opacity .3s;
+      pointer-events: none; z-index: 9999;
+    }
+    #toast.show { opacity: 1; }
+
+/* ===== 페이지 목록 ===== */
+    #pages-container { display: flex; flex-direction: column; gap: 0; }
+
+    /* ===== 사진대지 한 장 ===== */
+    .daiji-wrapper { padding: 24px; display: flex; justify-content: center; position: relative; }
+
+    .daiji {
+      background: #fff;
+      width: 794px;
+      height: 1123px; /* A4 96dpi 고정 — flex: 1이 제대로 작동하려면 height 필요 */
+      border: 2px solid #94a3b8;
+      box-shadow: 0 4px 24px rgba(0,0,0,.12);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 페이지 삭제 버튼 */
+    .btn-del-page {
+      position: absolute;
+      top: 14px; right: 0;
+      background: #ef4444; color: #fff;
+      border: none; border-radius: 6px 0 0 6px;
+      padding: 14px 7px; font-size: 12px; font-weight: 700;
+      cursor: pointer; z-index: 10;
+      writing-mode: vertical-rl;
+      letter-spacing: 3px;
+    }
+    .btn-del-page:hover { opacity: .85; }
+
+    .multi-upload-wrap {
+      position: absolute;
+      top: 28px; left: 28px;
+      display: flex; flex-direction: column; gap: 4px;
+      z-index: 10;
+    }
+    .btn-multi-upload {
+      background: #f59e0b; color: #fff;
+      border: none; border-radius: 6px;
+      padding: 6px 14px; font-size: 13px; font-weight: 700;
+      cursor: pointer; width: 100%;
+    }
+    .btn-multi-upload:hover { opacity: .85; }
+
+    .multi-upload-hint {
+      font-size: 11px; color: #92400e;
+      background: #fef3c7; border: 1px solid #fcd34d;
+      border-radius: 4px; padding: 3px 8px;
+      font-weight: 600; text-align: center; white-space: nowrap;
+    }
+
+    /* ===== 헤더 ===== */
+    .daiji-header { border-bottom: 3px solid #1e40af; padding: 14px 20px 10px; }
+    .daiji-title { font-size: 22px; font-weight: 800; color: #1e40af; letter-spacing: -0.5px; margin-bottom: 10px; text-align: center; }
+    .daiji-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+    .meta-row { display: flex; align-items: baseline; gap: 6px; font-size: 14px; }
+    .meta-label { font-weight: 700; color: #475569; white-space: nowrap; min-width: 52px; }
+    .meta-value { color: #111; border-bottom: 1px solid #cbd5e1; flex: 1; padding-bottom: 1px; min-height: 18px; }
+
+    /* ===== 사용법 툴팁 ===== */
+    .help-wrap { position: relative; }
+    .btn-help { background: rgba(255,255,255,.2); color: #fff; font-size: 13px; padding: 8px 14px; }
+    .help-tooltip {
+      position: absolute; top: calc(100% + 10px); right: 0;
+      background: #1e293b; color: #e2e8f0;
+      border-radius: 10px; padding: 16px 20px;
+      width: 290px; font-size: 12px; line-height: 1.75;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s;
+      z-index: 1000;
+    }
+    .help-wrap:hover .help-tooltip { opacity: 1; pointer-events: auto; }
+    .help-tooltip h3 { font-size: 13px; color: #fff; margin-bottom: 10px; border-bottom: 1px solid #334155; padding-bottom: 6px; }
+    .help-tooltip ol { padding-left: 18px; }
+    .help-tooltip li { margin-bottom: 3px; }
+    .help-tooltip li strong { color: #93c5fd; }
+    .help-tooltip .help-note { margin-top: 10px; color: #64748b; font-size: 11px; }
+
+    /* ===== 사진 그리드: 3열 × 3행 ===== */
+    .daiji-body { flex: 1; min-height: 0; padding: 8px 16px; display: flex; flex-direction: column; }
+
+    .photo-grid {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+      gap: 0;
+    }
+
+    /* photo-cell: 그리드 행이 높이를 결정, 내부는 전부 absolute */
+    .photo-cell {
+      position: relative;
+      border: 2px solid #94a3b8; border-radius: 0;
+      overflow: hidden; min-height: 0;
+    }
+
+    /* 인접 셀 중복 테두리 제거 */
+    .photo-cell + .photo-cell { border-top: none; }
+
+    .cell-label {
+      position: absolute; top: 0; left: 0; bottom: 0; width: 36px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800;
+      letter-spacing: 4px; color: #374151;
+      border-right: 2px solid #94a3b8;
+      background: #fff; z-index: 1;
+      writing-mode: vertical-rl;
+    }
+
+    .photo-slot {
+      position: absolute; top: 8px; left: 36px; right: 0; bottom: 42px;
+      overflow: hidden; cursor: pointer;
+    }
+    .photo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    body.fit-contain .photo-slot img { object-fit: contain; }
+    .photo-slot .placeholder {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; align-items: center;
+      gap: 6px; color: #94a3b8; font-size: 11px; text-align: center;
+      user-select: none; pointer-events: none; white-space: nowrap;
+    }
+    .photo-slot .placeholder svg { width: 28px; height: 28px; opacity: .5; }
+    .photo-slot input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .photo-slot .remove-btn {
+      position: absolute; top: 4px; right: 4px;
+      background: rgba(0,0,0,.55); color: #fff; border: none; border-radius: 50%;
+      width: 20px; height: 20px; font-size: 12px;
+      display: none; align-items: center; justify-content: center;
+      padding: 0; line-height: 1; cursor: pointer; z-index: 2;
+    }
+    .photo-slot .rotate-btn {
+      position: absolute; top: 4px; left: 4px;
+      background: rgba(0,0,0,.55); color: #fff; border: none; border-radius: 50%;
+      width: 20px; height: 20px; font-size: 13px;
+      display: none; align-items: center; justify-content: center;
+      padding: 0; line-height: 1; cursor: pointer; z-index: 2;
+    }
+    .photo-slot:hover .remove-btn,
+    .photo-slot:hover .rotate-btn { display: flex; }
+
+    .photo-caption {
+      position: absolute; bottom: 0; left: 36px; right: 0; height: 34px;
+      border-top: 2px solid #94a3b8; background: #fff;
+      display: flex; flex-direction: row; align-items: stretch;
+      z-index: 1;
+    }
+    .photo-date-row {
+      display: flex; align-items: center; gap: 4px;
+      border-right: 2px solid #94a3b8; padding: 0 10px;
+      flex-shrink: 0;
+    }
+    .photo-date-label { font-size: 12px; font-weight: 700; color: #475569; white-space: nowrap; }
+    .photo-date-short {
+      border: none; outline: none; font-family: inherit;
+      font-size: 10px; color: #374151; background: transparent;
+      font-size: 12px; width: 82px; text-align: center; padding: 0 4px;
+    }
+    .photo-date-short::placeholder { color: #cbd5e1; }
+    .photo-caption .photo-desc {
+      flex: 1; border: none; outline: none; font-family: inherit;
+      font-size: 13px; color: #374151; padding: 0 8px 0 38px; background: transparent; text-align: left;
+      height: 34px;
+    }
+    .photo-caption .photo-desc::placeholder { color: #cbd5e1; }
+
+    /* ===== 순서 지정 모달 ===== */
+    #order-modal {
+      position: fixed; inset: 0; z-index: 2000;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .order-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,.6);
+    }
+    .order-card {
+      position: relative; background: #fff; border-radius: 12px;
+      padding: 24px 28px; max-width: 90vw;
+      box-shadow: 0 8px 40px rgba(0,0,0,.3);
+    }
+    .order-title {
+      font-size: 15px; font-weight: 700; color: #1e40af;
+      margin-bottom: 6px; text-align: center;
+    }
+    .order-sub {
+      font-size: 12px; color: #64748b; text-align: center; margin-bottom: 16px;
+    }
+    .order-thumbs {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      justify-content: center; margin-bottom: 20px;
+    }
+    .order-thumb {
+      position: relative; width: 120px; height: 120px;
+      border: 3px solid #e2e8f0; border-radius: 8px;
+      overflow: hidden; cursor: pointer; transition: border-color .15s;
+    }
+    .order-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .order-thumb.selected { border-color: #1e40af; }
+    .order-num {
+      position: absolute; top: 5px; right: 5px;
+      background: #1e40af; color: #fff;
+      width: 24px; height: 24px; border-radius: 50%;
+      display: none; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800;
+    }
+    .order-thumb.selected .order-num { display: flex; }
+    .order-btns { display: flex; gap: 8px; justify-content: center; }
+    .order-btn-cancel { background: #e2e8f0; color: #475569; }
+    .order-btn-ok { background: #1e40af; color: #fff; }
+    .order-btn-ok:disabled { background: #94a3b8; cursor: not-allowed; opacity: 1; }
+    .order-btn-quick { background: #22c55e; color: #fff; }
+
+    /* ===== 페이지 구분선 ===== */
+    .page-divider {
+      text-align: center; padding: 10px 0 4px;
+      font-size: 12px; color: #94a3b8; letter-spacing: 1px;
+    }
+
+    /* ===== 장수 토글 스위치 ===== */
+    .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #cbd5e1; border-radius: 24px; transition: .25s;
+    }
+    .toggle-slider:before {
+      position: absolute; content: '';
+      height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background: #fff; border-radius: 50%; transition: .25s;
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); background: #ef4444; }
+
+    /* ===== 2장 모드 그리드 ===== */
+    .photo-grid.mode-2 {
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+    .photo-grid.mode-2 .during-cell {
+      display: none;
+    }
+
+    /* ===== 표지 ===== */
+    .cover-wrapper { padding: 24px; display: flex; justify-content: center; position: relative; }
+    .cover-daiji {
+      background: #fff; width: 794px; height: 1123px;
+      border: 2px solid #94a3b8; box-shadow: 0 4px 24px rgba(0,0,0,.12);
+      display: flex; flex-direction: column; overflow: hidden; position: relative;
+    }
+    .cover-top-bar { height: 10px; background: #1e40af; flex-shrink: 0; }
+    .cover-bottom-bar { height: 10px; background: #1e40af; flex-shrink: 0; margin-top: auto; }
+    .cover-content {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 60px 80px;
+    }
+    .cover-title {
+      font-size: 46px; font-weight: 900; color: #1e40af;
+      letter-spacing: 0.25em; text-align: center; margin-bottom: 16px;
+    }
+    .cover-eng { font-size: 13px; color: #94a3b8; letter-spacing: 0.15em; margin-bottom: 48px; }
+    .cover-divider { width: 120px; height: 3px; background: #1e40af; margin-bottom: 48px; }
+    .cover-fields { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 0; }
+    .cover-field-row {
+      display: flex; align-items: center; gap: 0;
+      border-bottom: 1px solid #cbd5e1; padding: 14px 0;
+    }
+    .cover-field-row:first-child { border-top: 1px solid #cbd5e1; }
+    .cover-field-label {
+      font-size: 14px; font-weight: 700; color: #475569;
+      width: 90px; flex-shrink: 0; letter-spacing: 0.05em;
+    }
+    .cover-field-value { font-size: 15px; color: #111; flex: 1; min-height: 22px; }
+    .cover-field-input {
+      flex: 1; border: none; outline: none; font-family: inherit;
+      font-size: 15px; color: #111; background: transparent; padding: 0 4px;
+    }
+    .cover-field-input::placeholder { color: #cbd5e1; }
+
+    /* ===== 인쇄 ===== */
+    @media print {
+      /*
+        A4 297mm × 210mm
+        상단 30mm(제본) / 하단 20mm / 좌우 10mm
+        → 인쇄 가능: 190mm × 247mm
+        헤더 ~15mm + 바디패딩 ~2mm + 테두리 ~1mm = 18mm
+        사진그리드: 247 - 18 = 229mm → 행당 73mm (3행 × 73 + 2×3px gap = 220mm)
+        여유: 247 - 238 = 9mm
+      */
+      @page { size: A4 portrait; margin: 15mm 18mm 15mm 18mm; }
+
+      html, body { background: #fff; margin: 0; padding: 0; color: #000; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+      .controls, .page-divider, .btn-del-page, .multi-upload-wrap, .mode-toggle-wrap, #toast, footer, #page-add-bar, #cover-credit { display: none !important; }
+
+      #pages-container,
+      #pages-container > div { display: block; margin: 0; padding: 0; }
+
+      /* 표지 래퍼 */
+      .cover-wrapper {
+        padding: 0; margin: 0; display: block;
+        width: 174mm; height: 267mm; overflow: hidden;
+        page-break-after: always; break-after: page;
+      }
+      .cover-daiji {
+        width: 174mm; height: 267mm;
+        box-shadow: none; border: none;
+        display: flex; flex-direction: column; overflow: hidden;
+      }
+      .cover-top-bar { height: 8px; background: #000; }
+      .cover-bottom-bar { height: 8px; background: #000; }
+      .cover-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 60px; }
+      .cover-title { font-size: 36px; font-weight: 900; color: #000; letter-spacing: 0.25em; margin-bottom: 10px; }
+      .cover-eng { font-size: 11px; color: #555; letter-spacing: 0.15em; margin-bottom: 36px; }
+      .cover-divider { width: 80px; height: 2px; background: #000; margin-bottom: 36px; }
+      .cover-fields { width: 100%; max-width: 420px; }
+      .cover-field-row { display: flex; align-items: center; border-bottom: 1px solid #aaa; padding: 10px 0; }
+      .cover-field-row:first-child { border-top: 1px solid #aaa; }
+      .cover-field-label { font-size: 12px; font-weight: 700; color: #000; width: 72px; flex-shrink: 0; }
+      .cover-field-value, .cover-field-input { font-size: 13px; color: #000; flex: 1; background: transparent; border: none; font-family: inherit; padding: 0; }
+      .cover-year { font-size: 11px; color: #777; margin-top: 40px; letter-spacing: 0.1em; }
+
+      /* 래퍼: 정확히 한 페이지 높이로 고정 */
+      .daiji-wrapper {
+        padding: 0; margin: 0;
+        display: block;
+        width: 174mm;
+        height: 267mm;
+        overflow: hidden;
+        page-break-after: always;
+        break-after: page;
+      }
+      .daiji-wrapper:last-of-type { page-break-after: avoid; break-after: avoid; }
+
+      /* daiji: 267mm 고정 — 헤더 없으므로 전체가 사진 영역 */
+      .daiji {
+        width: 174mm;
+        height: 267mm;
+        box-shadow: none;
+        border: none;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* 바디: 전체 높이 */
+      .daiji-body {
+        flex: 1;
+        min-height: 0;
+        padding: 3px 8px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* 그리드: 바디 전체를 3행으로 균등 분배 */
+      .photo-grid {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(3, minmax(0, 1fr));
+        gap: 0;
+      }
+      .photo-grid.mode-2 {
+        grid-template-rows: repeat(2, minmax(0, 1fr)) !important;
+      }
+      .photo-grid.mode-2 .during-cell {
+        display: none !important;
+      }
+
+      .photo-cell {
+        position: relative;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid #444;
+        border-radius: 0;
+      }
+
+      /* 인접 셀 중복 테두리 제거 */
+      .photo-cell + .photo-cell { border-top: none; }
+
+      .cell-label {
+        position: absolute; top: 0; left: 0; bottom: 0; width: 28px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; font-weight: 800; letter-spacing: 4px; color: #000;
+        border-right: 1px solid #444; background: #fff; z-index: 1;
+        writing-mode: vertical-rl;
+      }
+
+      .photo-slot {
+        position: absolute; top: 2mm; left: 28px; right: 0; bottom: calc(28px + 2mm);
+        overflow: hidden;
+      }
+      .photo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+      body.fit-contain .photo-slot img { object-fit: contain; }
+      .photo-slot .remove-btn,
+      .photo-slot .rotate-btn,
+      .photo-slot input[type="file"],
+      .photo-slot .placeholder { display: none !important; }
+
+      /* 사진 없는 셀은 인쇄 시 완전히 빈칸으로 */
+      .photo-cell.print-empty {
+        border: none !important;
+        background: transparent !important;
+      }
+      .photo-cell.print-empty * { display: none !important; }
+
+      .photo-caption {
+        position: absolute; bottom: 0; left: 28px; right: 0; height: 28px;
+        border-top: 1px solid #444; background: #fff;
+        display: flex; flex-direction: row; align-items: stretch;
+        z-index: 1;
+      }
+      .photo-date-row {
+        display: flex; align-items: center; gap: 3px;
+        border-right: 1px solid #444; padding: 0 6px;
+        flex-shrink: 0;
+      }
+      .photo-date-label { font-size: 10px; font-weight: 700; color: #000; white-space: nowrap; }
+      .photo-date-short { border: none; font-size: 10px; background: transparent; font-family: inherit; color: #000; width: 62px; text-align: center; padding: 0 3px; }
+      .photo-caption .photo-desc {
+        flex: 1; border: none; outline: none;
+        font-size: 11px; padding: 0 6px 0 10mm; text-align: left;
+        font-family: inherit; background: transparent;
+        height: 28px; color: #000;
+      }
+      .photo-desc::placeholder { color: transparent !important; }
+      .cover-field-input::placeholder { color: transparent !important; }
+      .photo-date-short::placeholder { color: transparent !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 컨트롤 패널 -->
+<div class="controls">
+  <div class="ctrl-top">
+    <h1>📋 <span style="letter-spacing:.5em; margin-right:-.5em;">공사사진대지</span> <span style="font-size:13px; font-weight:400; opacity:.7;">v0.601.2</span></h1>
+    <span style="font-size:11px; opacity:.55; margin-left:8px;">© 2026 CONTENT FACTORY</span>
+  </div>
+  <div class="ctrl-bottom">
+  <div style="display:flex;align-items:center;gap:7px;padding:0 4px;border-right:1px solid rgba(255,255,255,.25);margin-right:4px;">
+    <span class="ctrl-field-label">2컷</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="global-mode-chk" checked onchange="toggleGlobalMode(this)">
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="ctrl-field-label">3컷</span>
+  </div>
+  <div class="btns">
+    <button class="btn-fit" id="btn-fit" onclick="toggleFit()">꽉채움</button>
+
+    <button class="btn-save" onclick="saveToFile()">💾 저장</button>
+    <button class="btn-load" onclick="document.getElementById('load-input').click()">📂 불러오기</button>
+    <button class="btn-print" onclick="window.electronAPI ? printViaBrowser() : window.print()">🖨️ 인쇄</button>
+    <button class="btn-reset" onclick="resetAll()">↺ 초기화</button>
+    <div class="help-wrap">
+      <button class="btn-help">❓ 도움말</button>
+      <div class="help-tooltip">
+        <h3>도움말</h3>
+        <ol>
+          <li><strong>공사명 / 업체명 / 작성일</strong> 표지에 직접 입력 (작성일은 날짜 선택기)</li>
+          <li><strong>2컷 / 3컷</strong> 토글 : 전·완료(2장) 또는 전·중·완료(3장) 전체 적용</li>
+          <li><strong>📷 사진 한번에 올리기</strong> : 여러 장 선택 →<br>
+            &nbsp;&nbsp;• <strong>순서대로 바로 삽입</strong> : 선택 순서 그대로 삽입<br>
+            &nbsp;&nbsp;• <strong>순서 지정 후 삽입</strong> : 썸네일 클릭으로 순서 지정</li>
+          <li>사진 칸 <strong>클릭</strong> → 사진 개별 업로드 / 사진 위 <strong>✕</strong>로 삭제 / <strong>↻</strong>로 회전</li>
+          <li><strong>촬영일자</strong> : 월일만 입력 (312 → 2026-03-12, 0312 → 2026-03-12)</li>
+          <li><strong>사진 설명</strong> 입력 후 Enter → 자동저장</li>
+          <li>공종 추가 시 하단 <strong>+ 페이지 추가</strong> 버튼 클릭</li>
+          <li><strong>💾 저장</strong> : 작업 파일(.json)로 보관</li>
+          <li><strong>📂 불러오기</strong> : 저장된 파일 이어서 편집</li>
+          <li><strong>🖨️ 인쇄</strong> : 출력 또는 PDF 저장</li>
+          <li>사진이 잘릴 경우 <strong>꽉채움 / 전체보기</strong> 토글</li>
+          <li><strong>↺ 초기화</strong> : 모든 내용 및 자동저장 데이터 완전 삭제</li>
+        </ol>
+        <p class="help-note">※ 입력 내용은 자동저장됩니다<br>※ 사진은 자동 압축되어 용량이 줄어듭니다<br>※ .json 파일 공유 시 원본 사진 불필요</p>
+      </div>
+    </div>
+  </div>
+  </div>
+  <input type="file" id="load-input" accept=".json" style="display:none" onchange="loadFromFile(this)" />
+</div>
+
+<!-- 표지 -->
+<div class="cover-wrapper" id="cover-wrapper">
+  <div class="cover-daiji">
+    <div class="cover-top-bar"></div>
+    <div class="cover-content">
+      <div class="cover-title">공 사 사 진 대 지</div>
+      <div class="cover-eng">CONSTRUCTION PHOTO RECORD</div>
+      <div class="cover-fields" style="margin-top:150px;">
+        <div class="cover-field-row">
+          <span class="cover-field-label">공 사 명</span>
+          <input class="cover-field-input" id="f-project" type="text" placeholder="공사명" oninput="immediateSave()" onkeydown="if(event.key==='Enter'){immediateSave();this.blur();}" />
+        </div>
+        <div class="cover-field-row">
+          <span class="cover-field-label">업 체 명</span>
+          <input class="cover-field-input" id="f-company" type="text" placeholder="업체명" oninput="immediateSave()" onkeydown="if(event.key==='Enter'){immediateSave();this.blur();}" />
+        </div>
+        <div class="cover-field-row">
+          <span class="cover-field-label">공사위치</span>
+          <input class="cover-field-input" id="f-location" type="text" placeholder="공사위치" oninput="immediateSave()" onkeydown="if(event.key==='Enter'){immediateSave();this.blur();}" />
+        </div>
+        <div class="cover-field-row">
+          <span class="cover-field-label">발 주 처</span>
+          <input class="cover-field-input" id="f-client" type="text" placeholder="발주처" oninput="immediateSave()" onkeydown="if(event.key==='Enter'){immediateSave();this.blur();}" />
+        </div>
+        <div class="cover-field-row">
+          <span class="cover-field-label">작 성 일</span>
+          <input class="cover-field-input" id="f-date" type="date" oninput="immediateSave()" />
+        </div>
+      </div>
+      <div id="cover-credit" style="margin-top:150px; font-size:12px; color:#94a3b8; letter-spacing:.1em; text-align:center;">
+        © 2026 <strong style="color:#1e40af; font-weight:700;">CONTENT FACTORY</strong>
+      </div>
+    </div>
+    <div class="cover-bottom-bar"></div>
+  </div>
+</div>
+
+<!-- 페이지 목록 -->
+<div id="pages-container"></div>
+
+<div id="page-add-bar" style="position:relative; display:flex; align-items:center; justify-content:flex-end; padding: 20px 48px 20px;">
+  <span style="position:absolute; left:50%; transform:translateX(-50%); font-size:12px; color:#94a3b8; letter-spacing:1px; white-space:nowrap;">© 2026 <strong style="color:#1e40af;">CONTENT FACTORY</strong></span>
+  <button class="btn-add" onclick="addPage()" style="font-size:15px; padding:10px 32px;">+ 페이지 추가</button>
+</div>
+
+<script>const _0x5eed73=_0x3741;(function(_0x2858f4,_0x53036d){const _0x56915c=_0x3741,_0x33622a=_0x2858f4();while(!![]){try{const _0x471844=-parseInt(_0x56915c(0x22c))/0x1+parseInt(_0x56915c(0x1f5))/0x2+-parseInt(_0x56915c(0x226))/0x3+-parseInt(_0x56915c(0x1a2))/0x4+parseInt(_0x56915c(0x26f))/0x5*(-parseInt(_0x56915c(0x1b1))/0x6)+-parseInt(_0x56915c(0x260))/0x7*(parseInt(_0x56915c(0x196))/0x8)+parseInt(_0x56915c(0x261))/0x9*(parseInt(_0x56915c(0x22a))/0xa);if(_0x471844===_0x53036d)break;else _0x33622a['push'](_0x33622a['shift']());}catch(_0x29c208){_0x33622a['push'](_0x33622a['shift']());}}}(_0x2ee4,0xc3559));let pageCount=0x0;const SVG_ICON=_0x5eed73(0x179),STAGES=[{'key':_0x5eed73(0x18a),'label':_0x5eed73(0x22f),'cls':'before'},{'key':_0x5eed73(0x182),'label':_0x5eed73(0x26d),'cls':_0x5eed73(0x182)},{'key':_0x5eed73(0x257),'label':'작업완료','cls':'after'}];function makePage(_0x3f0eee){const _0xf3159a=_0x5eed73,_0x41ea39={'Ujwmx':function(_0x21a895,_0x132c3a){return _0x21a895<_0x132c3a;},'lBgig':function(_0x7a9d54,_0x2d59bd){return _0x7a9d54===_0x2d59bd;},'AvXZu':'\x20during-cell','efNvp':_0xf3159a(0x1a0),'lClfk':_0xf3159a(0x1cc),'WcPOU':function(_0x4c859e){return _0x4c859e();}};let _0x1fc218='';for(let _0x8d3c9f=0x0;_0x41ea39['Ujwmx'](_0x8d3c9f,0x3);_0x8d3c9f++){const _0x16c429=STAGES[_0x8d3c9f],_0x1d776a='slot-p'+_0x3f0eee+'-'+_0x8d3c9f,_0x13ca92=_0x41ea39[_0xf3159a(0x279)](_0x16c429['key'],_0xf3159a(0x182))?_0x41ea39['AvXZu']:'';_0x1fc218+=_0xf3159a(0x24b)+_0x13ca92+'\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22cell-label\x20'+_0x16c429['cls']+'\x22>'+_0x16c429[_0xf3159a(0x1d7)]+_0xf3159a(0x20c)+_0x1d776a+_0xf3159a(0x1bd)+SVG_ICON+'클릭하여\x20업로드</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<input\x20type=\x22file\x22\x20accept=\x22image/*\x22\x20onchange=\x22loadPhoto(this,\x27'+_0x1d776a+_0xf3159a(0x193)+_0x1d776a+_0xf3159a(0x25f)+_0x1d776a+'\x27)\x22>↻</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22photo-caption\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22photo-date-row\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22photo-date-label\x22>촬영일자\x20:</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<input\x20class=\x22photo-date-short\x22\x20type=\x22text\x22\x20placeholder=\x220312\x22\x20maxlength=\x2210\x22\x20oninput=\x22formatDateShort(this)\x22\x20onblur=\x22finalizeDateShort(this)\x22\x20onkeydown=\x22if(event.key===\x27Enter\x27){finalizeDateShort(this);immediateSave();this.blur();}\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<input\x20type=\x22text\x22\x20class=\x22photo-desc\x22\x20placeholder=\x22사진\x20설명\x22\x20onkeydown=\x22if(event.key===\x27Enter\x27){immediateSave();this.blur();}\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>';}const _0x27e9ca=document['createElement'](_0x41ea39[_0xf3159a(0x235)]);_0x27e9ca[_0xf3159a(0x21e)]=_0xf3159a(0x1f6)+_0x3f0eee+_0xf3159a(0x185)+(_0x3f0eee+0x1)+'\x20페이지\x20—</div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22daiji-wrapper\x22\x20id=\x22wrapper-p'+_0x3f0eee+_0xf3159a(0x258)+_0x3f0eee+_0xf3159a(0x219)+_0x3f0eee+'\x22\x20accept=\x22image/*\x22\x20multiple\x20style=\x22display:none\x22\x20onchange=\x22loadMultiPhotos(this,'+_0x3f0eee+_0xf3159a(0x270)+_0x3f0eee+_0xf3159a(0x1d3)+_0x3f0eee+_0xf3159a(0x217)+_0x1fc218+_0xf3159a(0x1ca),document[_0xf3159a(0x191)](_0x41ea39[_0xf3159a(0x1b3)])[_0xf3159a(0x17f)](_0x27e9ca),_0x41ea39[_0xf3159a(0x174)](syncAllMeta),updateDividers();}function addPage(){const _0x3959ce=_0x5eed73,_0xd452ce={'lvGsT':function(_0x2a249b,_0x189e99){return _0x2a249b+_0x189e99;},'yDOsT':_0x3959ce(0x18b),'oHFBz':_0x3959ce(0x25b),'VEONs':_0x3959ce(0x22d)};makePage(pageCount);const _0x2bbaff=document[_0x3959ce(0x191)]('global-mode-chk')?.[_0x3959ce(0x1a1)]!==![];if(!_0x2bbaff){const _0x58732a=document['querySelector'](_0xd452ce[_0x3959ce(0x223)](_0xd452ce[_0x3959ce(0x223)](_0xd452ce['yDOsT'],pageCount),_0xd452ce[_0x3959ce(0x218)]));if(_0x58732a)_0x58732a[_0x3959ce(0x1af)][_0x3959ce(0x1e2)](_0xd452ce[_0x3959ce(0x21b)]);}pageCount++;}function deletePage(_0x50e4d1){const _0x25b5c5=_0x5eed73,_0x455e3b={'jDOUh':function(_0x156979,_0x1d6b69){return _0x156979(_0x1d6b69);},'SDYFn':function(_0xa2b332,_0x372840){return _0xa2b332+_0x372840;},'tvopz':'divider-p'};if(document[_0x25b5c5(0x21c)](_0x25b5c5(0x20f))[_0x25b5c5(0x1dd)]<=0x1){_0x455e3b['jDOUh'](alert,_0x25b5c5(0x234));return;}const _0x53bbe7=document[_0x25b5c5(0x191)](_0x455e3b[_0x25b5c5(0x24d)](_0x25b5c5(0x21d),_0x50e4d1)),_0x1b82c1=document[_0x25b5c5(0x191)](_0x455e3b[_0x25b5c5(0x24a)]+_0x50e4d1);if(_0x53bbe7)_0x53bbe7[_0x25b5c5(0x215)]['remove']();else{if(_0x1b82c1)_0x1b82c1[_0x25b5c5(0x21f)]();}updateDividers();}function updateDividers(){const _0x3227cb=_0x5eed73,_0x262bae={'zZYxL':function(_0x2a4492,_0x1e8382){return _0x2a4492+_0x1e8382;},'tZpbi':function(_0x2306ee,_0x12fbf1){return _0x2306ee<=_0x12fbf1;},'atkON':_0x3227cb(0x212),'eKAAF':_0x3227cb(0x27d)},_0x1279b6=document['querySelectorAll']('.daiji-wrapper');_0x1279b6[_0x3227cb(0x23c)]((_0x1d0f8e,_0x11d256)=>{const _0x554f69=_0x3227cb,_0x10ca5b=_0x1d0f8e[_0x554f69(0x1ed)];if(_0x10ca5b&&_0x10ca5b['classList'][_0x554f69(0x26c)](_0x554f69(0x1fa))){const _0x42df4d=_0x10ca5b['dataset'][_0x554f69(0x18f)]||'';_0x10ca5b[_0x554f69(0x271)]=_0x42df4d?'—\x20'+_0x262bae[_0x554f69(0x266)](_0x11d256,0x1)+_0x554f69(0x240)+_0x42df4d+'\x20—':'—\x20'+(_0x11d256+0x1)+_0x554f69(0x250);}}),document['querySelectorAll'](_0x262bae['eKAAF'])[_0x3227cb(0x23c)](_0x3bcfc1=>{const _0x5b0df8=_0x3227cb;_0x3bcfc1[_0x5b0df8(0x21a)][_0x5b0df8(0x19c)]=_0x262bae['tZpbi'](_0x1279b6[_0x5b0df8(0x1dd)],0x1)?_0x262bae[_0x5b0df8(0x180)]:'';});}function toggleGlobalMode(_0x88e988){const _0x2bb5fa=_0x5eed73,_0x43f912={'zqYLR':_0x2bb5fa(0x181),'rfCSb':function(_0x321255){return _0x321255();}},_0x5dc7fc=_0x88e988[_0x2bb5fa(0x1a1)];document[_0x2bb5fa(0x21c)](_0x43f912[_0x2bb5fa(0x256)])['forEach'](_0x4e72d6=>{const _0xaa34db=_0x2bb5fa;_0x4e72d6['classList']['toggle'](_0xaa34db(0x22d),!_0x5dc7fc);}),_0x43f912[_0x2bb5fa(0x17d)](scheduleAutoSave);}function syncAllMeta(){}function compressImage(_0x44f14a,_0x1db5bc=0x4b0,_0x464409=0.85){const _0x54c63d=_0x5eed73,_0x15e95d={'tNScl':function(_0x1639ec,_0x558703){return _0x1639ec*_0x558703;},'SbRUX':_0x54c63d(0x1ea)};return new Promise(_0x19a2d0=>{const _0x33043f=_0x54c63d,_0x4cd14a={'TJCZW':function(_0x2ba2c2,_0x425d02){return _0x2ba2c2>_0x425d02;},'UoMFC':function(_0xac15fe,_0x5cd512){return _0xac15fe/_0x5cd512;},'TDvdw':function(_0x2ab1c0,_0x447ee8){return _0x15e95d['tNScl'](_0x2ab1c0,_0x447ee8);},'QvCdO':function(_0x43ebbe,_0x3e37f7){return _0x43ebbe/_0x3e37f7;},'Wemeq':_0x15e95d['SbRUX']},_0x42d675=new Image();_0x42d675[_0x33043f(0x275)]=()=>{const _0x222728=_0x33043f;let {width:_0x10d02f,height:_0x4b8c34}=_0x42d675;(_0x10d02f>_0x1db5bc||_0x4cd14a['TJCZW'](_0x4b8c34,_0x1db5bc))&&(_0x10d02f>=_0x4b8c34?(_0x4b8c34=Math[_0x222728(0x230)](_0x4cd14a['UoMFC'](_0x4cd14a['TDvdw'](_0x4b8c34,_0x1db5bc),_0x10d02f)),_0x10d02f=_0x1db5bc):(_0x10d02f=Math[_0x222728(0x230)](_0x4cd14a[_0x222728(0x1f3)](_0x4cd14a[_0x222728(0x1d0)](_0x10d02f,_0x1db5bc),_0x4b8c34)),_0x4b8c34=_0x1db5bc));const _0x1ad09f=document[_0x222728(0x1f2)](_0x4cd14a[_0x222728(0x272)]);_0x1ad09f[_0x222728(0x1eb)]=_0x10d02f,_0x1ad09f[_0x222728(0x1e1)]=_0x4b8c34,_0x1ad09f[_0x222728(0x204)]('2d')[_0x222728(0x241)](_0x42d675,0x0,0x0,_0x10d02f,_0x4b8c34),_0x19a2d0(_0x1ad09f[_0x222728(0x1c9)](_0x222728(0x281),_0x464409));},_0x42d675[_0x33043f(0x1d9)]=_0x44f14a;});}function setSlotImage(_0x36ffec,_0x904672){const _0x36dcd0=_0x5eed73,_0xa7428a={'RtEeH':'.placeholder','DQyRw':_0x36dcd0(0x27e),'VHTTA':'.remove-btn'},_0x34e283=document[_0x36dcd0(0x191)](_0x36ffec);_0x34e283['querySelector'](_0xa7428a['RtEeH'])[_0x36dcd0(0x21a)]['display']=_0x36dcd0(0x212);const _0x26ef88=_0x34e283[_0x36dcd0(0x25e)](_0xa7428a['DQyRw']);if(_0x26ef88)_0x26ef88['remove']();const _0x3a977a=document[_0x36dcd0(0x1f2)](_0x36dcd0(0x27e));_0x3a977a['src']=_0x904672,_0x34e283[_0x36dcd0(0x199)](_0x3a977a,_0x34e283['querySelector'](_0xa7428a[_0x36dcd0(0x277)]));}function _0x3741(_0x3c06c9,_0x5aa5b8){_0x3c06c9=_0x3c06c9-0x173;const _0x2ee4f1=_0x2ee4();let _0x37416c=_0x2ee4f1[_0x3c06c9];return _0x37416c;}function loadPhoto(_0x3dadd0,_0x57fd05){const _0x23f7e8=_0x5eed73;if(!_0x3dadd0[_0x23f7e8(0x1c2)]||!_0x3dadd0[_0x23f7e8(0x1c2)][0x0])return;const _0x232889=new FileReader();_0x232889[_0x23f7e8(0x275)]=_0x8850ac=>compressImage(_0x8850ac['target'][_0x23f7e8(0x229)])['then'](_0x7462cb=>setSlotImage(_0x57fd05,_0x7462cb)),_0x232889[_0x23f7e8(0x1b7)](_0x3dadd0['files'][0x0]);}function formatDateShort(_0x58e5fd){const _0x17cff7=_0x5eed73;_0x58e5fd[_0x17cff7(0x1d8)]=_0x58e5fd['value'][_0x17cff7(0x265)](/\D/g,'')[_0x17cff7(0x175)](0x0,0x8);}function finalizeDateShort(_0x471986){const _0x15ead8=_0x5eed73,_0x2a4f00={'vVvhk':function(_0x2bdba2,_0x48808c){return _0x2bdba2===_0x48808c;},'iQzIn':function(_0x30a0a0,_0x5dbde2){return _0x30a0a0+_0x5dbde2;},'EtwEe':function(_0xbf1600,_0x539d69){return _0xbf1600+_0x539d69;},'eQDBz':function(_0x3164d1,_0x4ba3d9){return _0x3164d1+_0x4ba3d9;},'DswUL':function(_0x4cdab2,_0x3c8755){return _0x4cdab2+_0x3c8755;},'TVALH':function(_0x4787bc,_0x205a58){return _0x4787bc+_0x205a58;},'Emsfa':function(_0x52f174,_0x5e58c2){return _0x52f174+_0x5e58c2;}};let _0x45706f=_0x471986[_0x15ead8(0x1d8)][_0x15ead8(0x265)](/\D/g,'');if(!_0x45706f)return;const _0xbaf00=new Date()[_0x15ead8(0x1aa)]()['toString']();if(_0x2a4f00[_0x15ead8(0x178)](_0x45706f['length'],0x3))_0x471986[_0x15ead8(0x1d8)]=_0x2a4f00[_0x15ead8(0x1cb)](_0xbaf00+'-0',_0x45706f[0x0])+'-'+_0x45706f[_0x15ead8(0x175)](0x1);else{if(_0x45706f[_0x15ead8(0x1dd)]===0x4)_0x471986['value']=_0x2a4f00[_0x15ead8(0x1cb)](_0x2a4f00[_0x15ead8(0x187)](_0x2a4f00[_0x15ead8(0x239)](_0xbaf00+'-',_0x45706f[_0x15ead8(0x175)](0x0,0x2)),'-'),_0x45706f[_0x15ead8(0x175)](0x2));else{if(_0x2a4f00['vVvhk'](_0x45706f['length'],0x6))_0x471986[_0x15ead8(0x1d8)]=_0x2a4f00[_0x15ead8(0x1ce)](_0x2a4f00[_0x15ead8(0x1ec)](_0x2a4f00[_0x15ead8(0x1ce)]('20'+_0x45706f[_0x15ead8(0x175)](0x0,0x2)+'-',_0x45706f['slice'](0x2,0x4)),'-'),_0x45706f[_0x15ead8(0x175)](0x4));else{if(_0x45706f[_0x15ead8(0x1dd)]===0x8)_0x471986['value']=_0x2a4f00[_0x15ead8(0x1cf)](_0x2a4f00[_0x15ead8(0x1ce)](_0x45706f[_0x15ead8(0x175)](0x0,0x4),'-')+_0x45706f[_0x15ead8(0x175)](0x4,0x6)+'-',_0x45706f[_0x15ead8(0x175)](0x6));}}}}function loadMultiPhotos(_0x262098,_0x55f01f){const _0x4821cb=_0x5eed73;if(!_0x262098[_0x4821cb(0x1c2)]||!_0x262098[_0x4821cb(0x1c2)][_0x4821cb(0x1dd)])return;const _0x36bdb1=Array['from'](_0x262098[_0x4821cb(0x1c2)]),_0x1445ce=_0x36bdb1[_0x4821cb(0x27f)](_0x536739=>new Promise(_0x2f9cd5=>{const _0x164834=_0x4821cb,_0x195fdf=new FileReader();_0x195fdf['onload']=_0x2de343=>_0x2f9cd5(_0x2de343[_0x164834(0x19d)][_0x164834(0x229)]),_0x195fdf[_0x164834(0x1b7)](_0x536739);}));Promise['all'](_0x1445ce)[_0x4821cb(0x242)](_0x16245f=>Promise[_0x4821cb(0x26a)](_0x16245f[_0x4821cb(0x27f)](_0x11a5a0=>compressImage(_0x11a5a0))))[_0x4821cb(0x242)](_0x244068=>showOrderModal(_0x244068,_0x55f01f)),_0x262098[_0x4821cb(0x1d8)]='';}function showOrderModal(_0x5dc130,_0x26d132){const _0x18a0bf=_0x5eed73,_0x180b4b={'SVaWH':_0x18a0bf(0x184)},_0x3d536c=document[_0x18a0bf(0x191)](_0x180b4b[_0x18a0bf(0x245)]);if(_0x3d536c)_0x3d536c[_0x18a0bf(0x21f)]();const _0xb31a1b=_0x5dc130[_0x18a0bf(0x27f)]((_0x2a170e,_0xe5366b)=>_0x18a0bf(0x19a)+_0xe5366b+_0x18a0bf(0x198)+_0xe5366b+_0x18a0bf(0x213)+_0x2a170e+_0x18a0bf(0x238)+_0xe5366b+_0x18a0bf(0x25c))[_0x18a0bf(0x1e5)](''),_0x3f81f1=document[_0x18a0bf(0x1f2)](_0x18a0bf(0x1a0));_0x3f81f1['id']=_0x18a0bf(0x184),_0x3f81f1[_0x18a0bf(0x21e)]=_0x18a0bf(0x233)+_0xb31a1b+_0x18a0bf(0x252),document['body'][_0x18a0bf(0x17f)](_0x3f81f1),_0x3f81f1['_srcs']=_0x5dc130,_0x3f81f1[_0x18a0bf(0x188)]=_0x26d132,_0x3f81f1[_0x18a0bf(0x1b6)]=[];}function toggleOrderThumb(_0x59e756){const _0x54f925=_0x5eed73,_0x5c5863={'FwkdL':function(_0x2aa936,_0x41a838){return _0x2aa936+_0x41a838;},'SakAM':function(_0x51cda5,_0x525322){return _0x51cda5(_0x525322);},'plbaX':'ot-','rcdaL':function(_0xf51235,_0x5ea693){return _0xf51235+_0x5ea693;},'MZWcz':function(_0x11b556,_0x1c937d){return _0x11b556+_0x1c937d;},'dCfCC':_0x54f925(0x1d5)},_0x43f4f2=document['getElementById'](_0x54f925(0x184)),_0x3b11a8=_0x43f4f2['_selected'],_0x18c21c=_0x5c5863[_0x54f925(0x220)](getVisibleSlots,_0x43f4f2['_pid'])[_0x54f925(0x1dd)],_0x4ead0b=_0x3b11a8[_0x54f925(0x1f0)](_0x28b64e=>_0x28b64e[_0x54f925(0x1c8)]===_0x59e756);if(_0x4ead0b!==-0x1)_0x3b11a8[_0x54f925(0x211)](_0x4ead0b,0x1),document[_0x54f925(0x191)](_0x5c5863[_0x54f925(0x1f1)]+_0x59e756)[_0x54f925(0x1af)][_0x54f925(0x21f)](_0x54f925(0x248)),_0x3b11a8[_0x54f925(0x23c)]((_0x324163,_0x4d9197)=>{const _0x68abf7=_0x54f925;document[_0x68abf7(0x191)](_0x5c5863['FwkdL'](_0x68abf7(0x1fd),_0x324163[_0x68abf7(0x1c8)]))[_0x68abf7(0x271)]=_0x5c5863['FwkdL'](_0x4d9197,0x1);});else{if(_0x3b11a8['length']>=_0x18c21c)return;_0x3b11a8[_0x54f925(0x23a)]({'idx':_0x59e756,'src':_0x43f4f2['_srcs'][_0x59e756]}),document['getElementById'](_0x5c5863[_0x54f925(0x173)](_0x54f925(0x1ab),_0x59e756))[_0x54f925(0x1af)][_0x54f925(0x1e2)](_0x54f925(0x248)),document[_0x54f925(0x191)](_0x5c5863[_0x54f925(0x17e)](_0x54f925(0x1fd),_0x59e756))[_0x54f925(0x271)]=_0x3b11a8['length'];}document['getElementById'](_0x5c5863[_0x54f925(0x20e)])[_0x54f925(0x208)]=_0x3b11a8['length']===0x0;}function getVisibleSlots(_0x217f0f){const _0x2a9114=_0x5eed73,_0x3d1499={'vBYUZ':function(_0x401324,_0x165d53){return _0x401324+_0x165d53;}};return Array[_0x2a9114(0x210)](document['getElementById'](_0x3d1499['vBYUZ'](_0x2a9114(0x283),_0x217f0f))[_0x2a9114(0x21c)]('.photo-slot'))[_0x2a9114(0x19e)](_0x59a299=>getComputedStyle(_0x59a299[_0x2a9114(0x1e8)](_0x2a9114(0x1d2)))['display']!==_0x2a9114(0x212));}function confirmOrderQuick(){const _0x3c21bd=_0x5eed73,_0x49d34d={'TjuEY':_0x3c21bd(0x184),'FGJZR':function(_0x355fff,_0x238af6){return _0x355fff(_0x238af6);},'fUjbz':function(_0x51b0b5){return _0x51b0b5();}},_0x260f25=document[_0x3c21bd(0x191)](_0x49d34d[_0x3c21bd(0x276)]),{_srcs:_0x118eda,_pid:_0x8a37c4}=_0x260f25,_0x496c8b=_0x49d34d[_0x3c21bd(0x254)](getVisibleSlots,_0x8a37c4);_0x118eda[_0x3c21bd(0x23c)]((_0x33d750,_0x877da1)=>{const _0x1b508a=_0x3c21bd;if(_0x877da1>=_0x496c8b[_0x1b508a(0x1dd)])return;setSlotImage(_0x496c8b[_0x877da1]['id'],_0x33d750);}),_0x49d34d['fUjbz'](scheduleAutoSave),closeOrderModal();}function confirmOrder(){const _0x2d3c2d=_0x5eed73,_0x242e20={'fIqMl':_0x2d3c2d(0x184),'YtuCF':function(_0x5c64d5){return _0x5c64d5();}},_0xa1b1fd=document['getElementById'](_0x242e20[_0x2d3c2d(0x23f)]),{_selected:_0x3f061f,_pid:_0x133c4c}=_0xa1b1fd,_0x596a2e=getVisibleSlots(_0x133c4c);_0x3f061f[_0x2d3c2d(0x23c)](({src:_0x57f34b},_0x32f62f)=>{setSlotImage(_0x596a2e[_0x32f62f]['id'],_0x57f34b);}),scheduleAutoSave(),_0x242e20['YtuCF'](closeOrderModal);}function closeOrderModal(){const _0x5e80ef=_0x5eed73,_0x3c0886=document['getElementById'](_0x5e80ef(0x184));if(_0x3c0886)_0x3c0886[_0x5e80ef(0x21f)]();}function rotatePhoto(_0x3c6c80){const _0x47516e=_0x5eed73,_0x51db24={'SFqfL':function(_0xa85241,_0x11ba1a){return _0xa85241/_0x11ba1a;},'pIOZh':function(_0x38e6d5,_0x273006){return _0x38e6d5/_0x273006;},'CLFxX':function(_0x56cc4c){return _0x56cc4c();}},_0x3adb51=document['getElementById'](_0x3c6c80),_0x40ee62=_0x3adb51[_0x47516e(0x25e)]('img');if(!_0x40ee62)return;const _0x21ef57=new Image();_0x21ef57[_0x47516e(0x275)]=()=>{const _0x402daf=_0x47516e,_0x5193fe=document[_0x402daf(0x1f2)](_0x402daf(0x1ea));_0x5193fe[_0x402daf(0x1eb)]=_0x21ef57[_0x402daf(0x1e1)],_0x5193fe['height']=_0x21ef57[_0x402daf(0x1eb)];const _0xbd280b=_0x5193fe[_0x402daf(0x204)]('2d');_0xbd280b[_0x402daf(0x177)](_0x51db24[_0x402daf(0x274)](_0x5193fe['width'],0x2),_0x5193fe['height']/0x2),_0xbd280b[_0x402daf(0x273)](Math['PI']/0x2),_0xbd280b[_0x402daf(0x241)](_0x21ef57,-_0x21ef57[_0x402daf(0x1eb)]/0x2,_0x51db24[_0x402daf(0x27a)](-_0x21ef57[_0x402daf(0x1e1)],0x2)),_0x40ee62[_0x402daf(0x1d9)]=_0x5193fe[_0x402daf(0x1c9)](_0x402daf(0x281),0.85),_0x51db24[_0x402daf(0x1bc)](scheduleAutoSave);},_0x21ef57[_0x47516e(0x1d9)]=_0x40ee62[_0x47516e(0x1d9)];}function removePhoto(_0x211c6a){const _0x1a9993=_0x5eed73,_0x483ac1={'gdirE':_0x1a9993(0x1c1)},_0x29afc2=document[_0x1a9993(0x191)](_0x211c6a),_0x5866ad=_0x29afc2[_0x1a9993(0x25e)](_0x1a9993(0x27e));if(_0x5866ad)_0x5866ad[_0x1a9993(0x21f)]();_0x29afc2[_0x1a9993(0x25e)]('.placeholder')[_0x1a9993(0x21a)][_0x1a9993(0x19c)]='';const _0xf05800=_0x29afc2[_0x1a9993(0x25e)](_0x483ac1[_0x1a9993(0x1de)]);if(_0xf05800)_0xf05800['value']='';}function resetAll(){const _0x165444=_0x5eed73,_0x50d006={'IkgQA':_0x165444(0x17c),'yzQZj':'f-company','dVmvm':_0x165444(0x206),'TUegQ':'f-client','NMIrF':'f-date','KioYV':function(_0x51da29){return _0x51da29();}};if(!confirm('모든\x20페이지와\x20내용을\x20초기화하시겠습니까?'))return;[_0x50d006[_0x165444(0x232)],_0x50d006[_0x165444(0x1e0)],_0x50d006[_0x165444(0x231)],_0x50d006[_0x165444(0x27c)],_0x50d006[_0x165444(0x22e)]]['forEach'](_0x56a248=>{const _0x18d1e0=_0x165444,_0x533698=document[_0x18d1e0(0x191)](_0x56a248);if(_0x533698)_0x533698[_0x18d1e0(0x1d8)]='';}),document[_0x165444(0x191)]('pages-container')[_0x165444(0x21e)]='',pageCount=0x0,localStorage['removeItem'](_0x165444(0x225)),_0x50d006[_0x165444(0x27b)](addPage);}function collectData(){const _0x36fb54=_0x5eed73,_0x22d938={'INGOp':_0x36fb54(0x1d2),'avqvM':'f-location','ioxvn':'f-client','oVyqY':function(_0x27a4b9,_0x4f1e5b){return _0x27a4b9!==_0x4f1e5b;},'SSvuU':'.daiji'},_0x5d48ad={'project':document[_0x36fb54(0x191)](_0x36fb54(0x17c))[_0x36fb54(0x1d8)],'company':document['getElementById'](_0x36fb54(0x200))['value'],'location':document['getElementById'](_0x22d938['avqvM'])?.['value']||'','client':document[_0x36fb54(0x191)](_0x22d938[_0x36fb54(0x244)])?.[_0x36fb54(0x1d8)]||'','date':document[_0x36fb54(0x191)](_0x36fb54(0x18d))?.[_0x36fb54(0x1d8)]||'','mode':_0x22d938[_0x36fb54(0x20b)](document['getElementById'](_0x36fb54(0x249))?.[_0x36fb54(0x1a1)],![])?0x3:0x2,'pages':[]};return document['querySelectorAll'](_0x22d938['SSvuU'])['forEach'](_0x49833e=>{const _0x523214=_0x36fb54,_0xb28d5e={'PjGgC':'img','qecfc':_0x22d938[_0x523214(0x236)]},_0x20263=[];_0x49833e[_0x523214(0x21c)]('.photo-slot')[_0x523214(0x23c)](_0x48675f=>{const _0x690bee=_0x523214,_0x306fa2=_0x48675f['querySelector'](_0xb28d5e[_0x690bee(0x1a7)]),_0x55f649=_0x48675f[_0x690bee(0x1e8)](_0xb28d5e['qecfc']),_0x6696a7=_0x55f649[_0x690bee(0x25e)](_0x690bee(0x1bf)),_0x5e618e=_0x55f649[_0x690bee(0x25e)](_0x690bee(0x176));_0x20263[_0x690bee(0x23a)]({'photo':_0x306fa2?_0x306fa2[_0x690bee(0x1d9)]:null,'caption':_0x6696a7?_0x6696a7[_0x690bee(0x1d8)]:'','dateShort':_0x5e618e?_0x5e618e[_0x690bee(0x1d8)]:''});}),_0x5d48ad[_0x523214(0x1b2)][_0x523214(0x23a)]({'slots':_0x20263});}),_0x5d48ad;}function restoreData(_0x570002){const _0x2f9391=_0x5eed73,_0x5dd024={'gZBAW':_0x2f9391(0x1f9),'TJOSF':'none','Qgsuk':'.photo-cell','vmpcl':function(_0x4047da,_0xc6dfcd){return _0x4047da&&_0xc6dfcd;},'xxDeO':function(_0x3e1826,_0x3be3a8){return _0x3e1826(_0x3be3a8);},'ALkBf':_0x2f9391(0x283),'rXRSI':'divider-p','hasob':'mode-2','sudIT':function(_0x20f91e,_0x59be63){return _0x20f91e===_0x59be63;},'Wicui':_0x2f9391(0x17c),'fnJdp':'f-client','ECWRP':_0x2f9391(0x1cc),'kqINi':function(_0x533c18){return _0x533c18();}};document[_0x2f9391(0x191)](_0x5dd024[_0x2f9391(0x1f8)])[_0x2f9391(0x1d8)]=_0x570002[_0x2f9391(0x1b0)]||'',document[_0x2f9391(0x191)]('f-company')[_0x2f9391(0x1d8)]=_0x570002['company']||'';const _0x3eaa28=document['getElementById'](_0x2f9391(0x206)),_0x53639b=document['getElementById'](_0x5dd024['fnJdp']),_0x5b2e82=document[_0x2f9391(0x191)](_0x2f9391(0x18d));if(_0x3eaa28)_0x3eaa28[_0x2f9391(0x1d8)]=_0x570002[_0x2f9391(0x23b)]||'';if(_0x53639b)_0x53639b[_0x2f9391(0x1d8)]=_0x570002['client']||'';if(_0x5b2e82)_0x5b2e82[_0x2f9391(0x1d8)]=_0x570002[_0x2f9391(0x183)]||'';document['getElementById'](_0x5dd024['ECWRP'])[_0x2f9391(0x21e)]='',pageCount=0x0;const _0x5c2844=_0x570002[_0x2f9391(0x1ba)]||0x3,_0x41052f=document[_0x2f9391(0x191)](_0x2f9391(0x249));if(_0x41052f)_0x41052f[_0x2f9391(0x1a1)]=_0x5c2844===0x3;(_0x570002[_0x2f9391(0x1b2)]||[])['forEach'](_0x13dd02=>{const _0x3022af=_0x2f9391,_0x232460=pageCount;_0x5dd024[_0x3022af(0x25a)](makePage,_0x232460),pageCount++;const _0x3cb6f9=document[_0x3022af(0x191)](_0x5dd024[_0x3022af(0x197)]+_0x232460);if(_0x13dd02[_0x3022af(0x18f)]){const _0x4d31e5=document[_0x3022af(0x191)](_0x5dd024[_0x3022af(0x1e6)]+_0x232460);if(_0x4d31e5)_0x4d31e5[_0x3022af(0x1a3)]['title']=_0x13dd02['title'];}const _0x2c54b9=_0x3cb6f9[_0x3022af(0x25e)](_0x3022af(0x181));if(_0x2c54b9)_0x2c54b9[_0x3022af(0x1af)][_0x3022af(0x22b)](_0x5dd024[_0x3022af(0x263)],_0x5dd024[_0x3022af(0x189)](_0x5c2844,0x2));_0x3cb6f9[_0x3022af(0x21c)](_0x3022af(0x1c7))[_0x3022af(0x23c)]((_0x22aefc,_0x4e17a0)=>{const _0x48776d=_0x3022af,_0x205169=(_0x13dd02[_0x48776d(0x1f7)]||[])[_0x4e17a0];if(_0x205169&&_0x205169['photo']){_0x22aefc['querySelector'](_0x5dd024[_0x48776d(0x1e7)])[_0x48776d(0x21a)][_0x48776d(0x19c)]=_0x5dd024[_0x48776d(0x1e9)];const _0x2ffd5f=document[_0x48776d(0x1f2)](_0x48776d(0x27e));_0x2ffd5f[_0x48776d(0x1d9)]=_0x205169[_0x48776d(0x19f)],_0x22aefc[_0x48776d(0x199)](_0x2ffd5f,_0x22aefc[_0x48776d(0x25e)](_0x48776d(0x216)));}const _0x56b690=_0x22aefc[_0x48776d(0x1e8)](_0x5dd024[_0x48776d(0x26b)]),_0x255ab9=_0x56b690['querySelector'](_0x48776d(0x1bf));if(_0x255ab9&&_0x205169)_0x255ab9[_0x48776d(0x1d8)]=_0x205169[_0x48776d(0x1be)]||'';const _0xa910f3=_0x56b690[_0x48776d(0x25e)](_0x48776d(0x176));if(_0x5dd024['vmpcl'](_0xa910f3,_0x205169))_0xa910f3[_0x48776d(0x1d8)]=_0x205169[_0x48776d(0x19b)]||_0x205169[_0x48776d(0x183)]||'';});}),syncAllMeta(),_0x5dd024[_0x2f9391(0x1dc)](updateDividers);}function escHtml(_0x5a644f){const _0x3774b0=_0x5eed73,_0x363067={'YWqsD':_0x3774b0(0x280)};return String(_0x5a644f)[_0x3774b0(0x265)](/&/g,_0x363067[_0x3774b0(0x24e)])[_0x3774b0(0x265)](/</g,_0x3774b0(0x205))['replace'](/>/g,_0x3774b0(0x202))['replace'](/"/g,_0x3774b0(0x228));}function printViaBrowser(){const _0x118543=_0x5eed73,_0x5dff50={'BSDIa':function(_0x2f0ce1,_0x42200c){return _0x2f0ce1(_0x42200c);},'bfVCY':function(_0x30d46d,_0x4a33c0){return _0x30d46d===_0x4a33c0;},'GpgyH':_0x118543(0x284),'vVllN':_0x118543(0x214),'CJcRa':_0x118543(0x1ef),'DSLai':'contain','pSqgG':_0x118543(0x268),'XSiyY':function(_0x4447ab,_0x529745){return _0x4447ab+_0x529745;},'qejzo':function(_0x3c6e12,_0x1df1d2){return _0x3c6e12+_0x1df1d2;},'HwGBG':'scri'},_0x5cf317=collectData(),_0x280396=_0x5cf317[_0x118543(0x1b0)]||_0x5dff50[_0x118543(0x18e)],_0x10479b=_0x5cf317[_0x118543(0x1d1)]||'',_0x2dfb92=_0x5cf317[_0x118543(0x23b)]||'',_0x960882=_0x5cf317[_0x118543(0x1bb)]||'',_0x51607a=_0x5cf317[_0x118543(0x183)]||'',_0x1762ee=_0x5cf317[_0x118543(0x1ba)]||0x3,_0x5a6939=document[_0x118543(0x23e)][_0x118543(0x1af)][_0x118543(0x26c)](_0x5dff50[_0x118543(0x224)])?_0x5dff50[_0x118543(0x1df)]:_0x5dff50[_0x118543(0x1db)],_0x5895c4=new Date()[_0x118543(0x1aa)](),_0x2c7032=_0x118543(0x1ac)+escHtml(_0x280396)+'</span></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-field-row\x22><span\x20class=\x22cover-field-label\x22>업\x20체\x20명</span><span\x20class=\x22cover-field-value\x22>'+escHtml(_0x10479b)+_0x118543(0x1e3)+escHtml(_0x2dfb92)+_0x118543(0x1c6)+_0x5dff50[_0x118543(0x243)](escHtml,_0x960882)+_0x118543(0x17b)+_0x5dff50[_0x118543(0x243)](escHtml,_0x51607a)+'</span></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-year\x22>'+_0x5895c4+_0x118543(0x20d);let _0x3c288c='';(_0x5cf317['pages']||[])['forEach'](_0x3e08a2=>{const _0x4a147e=_0x118543,_0x11c3a9={'jIsMR':function(_0x2afadf,_0x580ce8){const _0x5d36da=_0x3741;return _0x5dff50[_0x5d36da(0x243)](_0x2afadf,_0x580ce8);},'DpVQI':function(_0x2cf653,_0x4e3be8){return _0x2cf653(_0x4e3be8);}},_0xb04479=_0x1762ee===0x2?[0x0,0x2]:[0x0,0x1,0x2];let _0x39b581='';_0xb04479[_0x4a147e(0x23c)](_0x5d326b=>{const _0x385d36=_0x4a147e,_0x492961=STAGES[_0x5d326b],_0x248359=(_0x3e08a2[_0x385d36(0x1f7)]||[])[_0x5d326b]||{};if(!_0x248359[_0x385d36(0x19f)]){_0x39b581+=_0x385d36(0x194);return;}_0x39b581+=_0x385d36(0x255)+_0x11c3a9[_0x385d36(0x1c5)](escHtml,_0x492961[_0x385d36(0x1d7)])+_0x385d36(0x227)+_0x248359[_0x385d36(0x19f)]+'\x22></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22photo-caption\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22photo-date-row\x22><span\x20class=\x22photo-date-label\x22>촬영일자\x20:</span><span\x20class=\x22photo-date-val\x22>'+_0x11c3a9['DpVQI'](escHtml,_0x248359[_0x385d36(0x19b)]||'')+_0x385d36(0x259)+escHtml(_0x248359[_0x385d36(0x1be)]||'')+_0x385d36(0x207);});const _0x1011b6=_0x5dff50['bfVCY'](_0x1762ee,0x2)?_0x5dff50['GpgyH']:'';_0x3c288c+=_0x4a147e(0x209)+_0x1011b6+'\x22>'+_0x39b581+_0x4a147e(0x1fe);});const _0x4f2d1b=_0x118543(0x1a9)+_0x5dff50[_0x118543(0x243)](escHtml,_0x280396)+_0x118543(0x192)+_0x5a6939+_0x118543(0x1cd)+_0x5a6939+_0x118543(0x1da)+_0x2c7032+'\x0a<div\x20id=\x22pages-container\x22>'+_0x3c288c+'</div>\x0a<script>window.addEventListener(\x27load\x27,function(){setTimeout(function(){window.print();},600);});<'+_0x5dff50[_0x118543(0x1b8)](_0x5dff50[_0x118543(0x267)]('/',_0x5dff50[_0x118543(0x1a4)]),'pt')+_0x118543(0x1ff);window[_0x118543(0x1fb)]['printViaBrowser'](_0x4f2d1b);}function saveToFile(){const _0x4012db=_0x5eed73,_0x210570={'hwclq':function(_0x2aa350,_0x46af26){return _0x2aa350+_0x46af26;},'DTwoN':_0x4012db(0x214),'bBZdw':function(_0x148662,_0x426b25){return _0x148662(_0x426b25);}},_0x59c98c=collectData(),_0x2d6c6f=new Blob([JSON['stringify'](_0x59c98c,null,0x2)],{'type':'application/json'}),_0x50bea4=URL[_0x4012db(0x247)](_0x2d6c6f),_0x4a60a7=document['createElement']('a'),_0x2ac50a=_0x210570[_0x4012db(0x1c3)]((_0x59c98c[_0x4012db(0x1b0)]||_0x210570['DTwoN'])+'_'+new Date()[_0x4012db(0x1a6)]()[_0x4012db(0x175)](0x0,0xa)['replace'](/-/g,''),'.json');_0x4a60a7[_0x4012db(0x26e)]=_0x50bea4,_0x4a60a7[_0x4012db(0x1ee)]=_0x2ac50a,_0x4a60a7[_0x4012db(0x262)](),URL['revokeObjectURL'](_0x50bea4),_0x210570[_0x4012db(0x1ad)](showToast,_0x4012db(0x1ae));}function loadFromFile(_0x3fa01c){const _0x42e965=_0x5eed73,_0xf64873={'vxMWH':function(_0xa9389d,_0x48e0ff){return _0xa9389d(_0x48e0ff);},'iWsgD':function(_0x2b1e2e,_0x4d3d28){return _0x2b1e2e(_0x4d3d28);}};if(!_0x3fa01c['files']||!_0x3fa01c[_0x42e965(0x1c2)][0x0])return;const _0x1ba887=new FileReader();_0x1ba887[_0x42e965(0x275)]=_0x50a9c9=>{const _0x3f8550=_0x42e965;try{const _0x4aa71b=JSON['parse'](_0x50a9c9['target'][_0x3f8550(0x229)]);restoreData(_0x4aa71b),_0xf64873['vxMWH'](showToast,_0x3f8550(0x24c));}catch{_0xf64873[_0x3f8550(0x253)](alert,_0x3f8550(0x222));}},_0x1ba887['readAsText'](_0x3fa01c['files'][0x0]),_0x3fa01c['value']='';}function toggleFit(){const _0xb1ee64=_0x5eed73,_0x4da4c6={'ApBRQ':_0xb1ee64(0x1ef),'RXSco':'btn-fit','rQRXf':'전체보기','OncVC':'cover'},_0x133bdb=document['body'][_0xb1ee64(0x1af)][_0xb1ee64(0x22b)](_0x4da4c6['ApBRQ']);document[_0xb1ee64(0x191)](_0x4da4c6[_0xb1ee64(0x1a5)])['textContent']=_0x133bdb?_0x4da4c6[_0xb1ee64(0x1b9)]:_0xb1ee64(0x1a8),localStorage['setItem'](_0xb1ee64(0x20a),_0x133bdb?_0xb1ee64(0x1c0):_0x4da4c6[_0xb1ee64(0x264)]);}function _0x2ee4(){const _0xc53e2=['TDvdw','company','.photo-cell','\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22btn-del-page\x22\x20onclick=\x22deletePage(','addEventListener','order-btn-ok','btn-fit','label','value','src',';display:block;}\x0a.photo-caption{position:absolute;bottom:0;left:28px;right:0;height:28px;border-top:1px\x20solid\x20#444;background:#fff;display:flex;flex-direction:row;align-items:stretch;z-index:1;}\x0a.photo-date-row{display:flex;align-items:center;gap:3px;border-right:1px\x20solid\x20#444;padding:0\x206px;flex-shrink:0;}\x0a.photo-date-label{font-size:10px;font-weight:700;color:#000;}\x0a.photo-date-val{font-size:10px;color:#000;min-width:62px;text-align:center;}\x0a.photo-desc-val{flex:1;font-size:11px;padding:0\x206px\x200\x2010mm;color:#000;display:flex;align-items:center;}\x0a}\x0a</style></head>\x0a<body>\x0a','pSqgG','kqINi','length','gdirE','DSLai','yzQZj','height','add','</span></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-field-row\x22><span\x20class=\x22cover-field-label\x22>공사위치</span><span\x20class=\x22cover-field-value\x22>','.photo-slot\x20img','join','rXRSI','gZBAW','closest','TJOSF','canvas','width','TVALH','previousElementSibling','download','fit-contain','findIndex','plbaX','createElement','QvCdO','toast','504756UCxYCB','\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22page-divider\x22\x20id=\x22divider-p','slots','Wicui','.placeholder','page-divider','electronAPI','xaFbB','on-','</div></div>\x0a\x20\x20\x20\x20\x20\x20</div></div>','>\x0a</body></html>','f-company','show','&gt;','print-empty','getContext','&lt;','f-location','</span>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>','disabled','\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22daiji-wrapper\x22><div\x20class=\x22daiji\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22daiji-body\x22><div\x20class=\x22photo-grid','photo_daiji_fit','oVyqY','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22photo-slot\x22\x20id=\x22','</div>\x0a\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-bottom-bar\x22></div>\x0a\x20\x20\x20\x20</div></div>','dCfCC','.daiji-wrapper','from','splice','none',')\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<img\x20src=\x22','사진대지','parentElement','.remove-btn',')\x22\x20title=\x22이\x20페이지\x20삭제\x22>✕\x20페이지\x20삭제</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22daiji-body\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22photo-grid\x22>','oHFBz','\x27).click()\x22>📷\x20사진\x20한번에\x20올리기</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22multi-upload-hint\x22>Ctrl\x20누른\x20채\x20순서대로\x20선택하세요</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<input\x20type=\x22file\x22\x20id=\x22multi-input-p','style','VEONs','querySelectorAll','wrapper-p','innerHTML','remove','SakAM','wAxUu','파일을\x20읽을\x20수\x20없습니다.\x20올바른\x20사진대지\x20저장\x20파일인지\x20확인해주세요.','lvGsT','CJcRa','photo_daiji_autosave','504150IULTdz','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22photo-slot\x22><img\x20src=\x22','&quot;','result','527410IWiOXf','toggle','505033pwBvrA','mode-2','NMIrF','작\x20업\x20전','round','dVmvm','IkgQA','\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22order-backdrop\x22\x20onclick=\x22closeOrderModal()\x22></div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22order-card\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22order-title\x22>삽입할\x20순서대로\x20사진을\x20클릭하세요</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22order-sub\x22>클릭한\x20순서대로\x20위\x20칸부터\x20채워집니다\x20·\x20다시\x20클릭하면\x20취소</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22order-thumbs\x22>','마지막\x20페이지는\x20삭제할\x20수\x20없습니다.','efNvp','INGOp','이전\x20작업을\x20자동\x20복원했어요','\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22order-num\x22\x20id=\x22on-','eQDBz','push','location','forEach','stringify','body','fIqMl','\x20페이지\x20\x20','drawImage','then','BSDIa','ioxvn','SVaWH','afterprint','createObjectURL','selected','global-mode-chk','tvopz','\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22photo-cell','📂\x20불러오기\x20완료','SDYFn','YWqsD','input','\x20페이지\x20—','iGCVo','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22order-btns\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22order-btn-cancel\x22\x20onclick=\x22closeOrderModal()\x22>취소</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22order-btn-quick\x22\x20onclick=\x22confirmOrderQuick()\x22>✓\x20순서대로\x20바로\x20삽입</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22order-btn-ok\x22\x20id=\x22order-btn-ok\x22\x20disabled\x20onclick=\x22confirmOrder()\x22>순서\x20지정\x20후\x20삽입</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20</div>','iWsgD','FGJZR','\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22photo-cell\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22cell-label\x22>','zqYLR','after','\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22multi-upload-wrap\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22btn-multi-upload\x22\x20onclick=\x22document.getElementById(\x27multi-input-p','</span></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<span\x20class=\x22photo-desc-val\x22>','xxDeO','\x20.photo-grid','\x22></span>\x0a\x20\x20\x20\x20\x20\x20</div>','.photo-cell.print-empty','querySelector','\x27)\x22>✕</button>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22rotate-btn\x22\x20onclick=\x22rotatePhoto(\x27','5159wQKBJk','747kDihRn','click','hasob','OncVC','replace','zZYxL','qejzo','cover','getItem','all','Qgsuk','contains','작\x20업\x20중','href','5fvyusk',')\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22daiji\x22\x20id=\x22daiji-p','textContent','Wemeq','rotate','SFqfL','onload','TjuEY','VHTTA','setItem','lBgig','pIOZh','KioYV','TUegQ','.btn-del-page','img','map','&amp;','image/jpeg','전체보기','daiji-p','\x20mode-2','rcdaL','WcPOU','slice','.photo-date-short','translate','vVvhk','<svg\x20xmlns=\x22http://www.w3.org/2000/svg\x22\x20fill=\x22none\x22\x20viewBox=\x220\x200\x2024\x2024\x22\x20stroke=\x22currentColor\x22><path\x20stroke-linecap=\x22round\x22\x20stroke-linejoin=\x22round\x22\x20stroke-width=\x221.5\x22\x20d=\x22M4\x2016l4.586-4.586a2\x202\x200\x20012.828\x200L16\x2016m-2-2l1.586-1.586a2\x202\x200\x20012.828\x200L20\x2014m-6-6h.01M6\x2020h12a2\x202\x200\x20002-2V6a2\x202\x200\x2000-2-2H6a2\x202\x200\x2000-2\x202v12a2\x202\x200\x20002\x202z\x22/></svg>','저장완료','</span></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-field-row\x22><span\x20class=\x22cover-field-label\x22>작\x20성\x20일</span><span\x20class=\x22cover-field-value\x22>','f-project','rfCSb','MZWcz','appendChild','atkON','.photo-grid','during','date','order-modal','\x22>—\x20','bRlsk','EtwEe','_pid','sudIT','before','#daiji-p','RWafk','f-date','vVllN','title','beforeprint','getElementById','\x20-\x20공사사진대지</title>\x0a<style>\x0a*{box-sizing:border-box;margin:0;padding:0;}\x0abody{font-family:\x27Malgun\x20Gothic\x27,\x27맑은\x20고딕\x27,sans-serif;background:#f0f2f5;color:#111;}\x0a/*\x20표지\x20*/\x0a.cover-wrapper{padding:24px;display:flex;justify-content:center;}\x0a.cover-daiji{background:#fff;width:794px;height:1123px;border:2px\x20solid\x20#94a3b8;box-shadow:0\x204px\x2024px\x20rgba(0,0,0,.12);display:flex;flex-direction:column;overflow:hidden;}\x0a.cover-top-bar,.cover-bottom-bar{height:10px;background:#1e40af;flex-shrink:0;}\x0a.cover-bottom-bar{margin-top:auto;}\x0a.cover-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px\x2080px;}\x0a.cover-title{font-size:46px;font-weight:900;color:#1e40af;letter-spacing:0.25em;text-align:center;margin-bottom:16px;}\x0a.cover-eng{font-size:13px;color:#94a3b8;letter-spacing:0.15em;margin-bottom:48px;}\x0a.cover-divider{width:120px;height:3px;background:#1e40af;margin-bottom:48px;}\x0a.cover-fields{width:100%;max-width:500px;}\x0a.cover-field-row{display:flex;align-items:center;border-bottom:1px\x20solid\x20#cbd5e1;padding:14px\x200;}\x0a.cover-field-row:first-child{border-top:1px\x20solid\x20#cbd5e1;}\x0a.cover-field-label{font-size:14px;font-weight:700;color:#475569;width:90px;flex-shrink:0;letter-spacing:0.05em;}\x0a.cover-field-value{font-size:15px;color:#111;flex:1;}\x0a.cover-year{font-size:13px;color:#94a3b8;margin-top:56px;letter-spacing:0.1em;}\x0a/*\x20사진\x20페이지\x20*/\x0a.daiji-wrapper{padding:24px;display:flex;justify-content:center;}\x0a.daiji{background:#fff;width:794px;height:1123px;border:2px\x20solid\x20#94a3b8;box-shadow:0\x204px\x2024px\x20rgba(0,0,0,.12);display:flex;flex-direction:column;overflow:hidden;}\x0a.daiji-body{flex:1;min-height:0;padding:8px\x2016px;display:flex;flex-direction:column;}\x0a.photo-grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(0,1fr));gap:0;}\x0a.photo-grid.mode-2{grid-template-rows:repeat(2,minmax(0,1fr));}\x0a.photo-cell{position:relative;border:2px\x20solid\x20#94a3b8;overflow:hidden;min-height:0;}\x0a.photo-cell+.photo-cell{border-top:none;}\x0a.photo-cell.empty{border:none;background:transparent;}\x0a.cell-label{position:absolute;top:0;left:0;bottom:0;width:36px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;letter-spacing:4px;color:#374151;border-right:2px\x20solid\x20#94a3b8;background:#fff;z-index:1;writing-mode:vertical-rl;}\x0a.photo-slot{position:absolute;top:8px;left:36px;right:0;bottom:42px;overflow:hidden;}\x0a.photo-slot\x20img{position:absolute;inset:0;width:100%;height:100%;object-fit:','\x27)\x22\x20/>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<button\x20class=\x22remove-btn\x22\x20onclick=\x22removePhoto(\x27','<div\x20class=\x22photo-cell\x20empty\x22></div>','change','14352AtqYXz','ALkBf','\x22\x20onclick=\x22toggleOrderThumb(','insertBefore','<div\x20class=\x22order-thumb\x22\x20id=\x22ot-','dateShort','display','target','filter','photo','div','checked','3093872qEOApP','dataset','HwGBG','RXSco','toISOString','PjGgC','꽉채움','<!DOCTYPE\x20html>\x0a<html\x20lang=\x22ko\x22><head><meta\x20charset=\x22UTF-8\x22/>\x0a<title>','getFullYear','ot-','\x0a\x20\x20\x20\x20<div\x20class=\x22cover-wrapper\x22><div\x20class=\x22cover-daiji\x22>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-top-bar\x22></div>\x0a\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-content\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-title\x22>공\x20사\x20사\x20진\x20대\x20지</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-eng\x22>CONSTRUCTION\x20PHOTO\x20RECORD</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-fields\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-field-row\x22><span\x20class=\x22cover-field-label\x22>공\x20사\x20명</span><span\x20class=\x22cover-field-value\x22>','bBZdw','💾\x20파일로\x20저장했어요','classList','project','6366378EWgnrs','pages','lClfk','Mpbwc','FIEWn','_selected','readAsDataURL','XSiyY','rQRXf','mode','client','CLFxX','\x22>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22placeholder\x22>','caption','.photo-desc','contain','input[type=\x22file\x22]','files','hwclq','MBYIw','jIsMR','</span></div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20<div\x20class=\x22cover-field-row\x22><span\x20class=\x22cover-field-label\x22>발\x20주\x20처</span><span\x20class=\x22cover-field-value\x22>','.photo-slot','idx','toDataURL','</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20\x20\x20</div>\x0a\x20\x20\x20\x20\x20\x20</div>','iQzIn','pages-container',';display:block;}\x0a.photo-caption{position:absolute;bottom:0;left:36px;right:0;height:34px;border-top:2px\x20solid\x20#94a3b8;background:#fff;display:flex;flex-direction:row;align-items:stretch;z-index:1;}\x0a.photo-date-row{display:flex;align-items:center;gap:4px;border-right:2px\x20solid\x20#94a3b8;padding:0\x2010px;flex-shrink:0;}\x0a.photo-date-label{font-size:12px;font-weight:700;color:#475569;white-space:nowrap;}\x0a.photo-date-val{font-size:12px;color:#374151;padding:0\x204px;min-width:82px;text-align:center;}\x0a.photo-desc-val{flex:1;font-size:13px;color:#374151;padding:0\x208px\x200\x2038px;display:flex;align-items:center;}\x0a@media\x20print{\x0a@page{size:A4\x20portrait;margin:15mm\x2018mm\x2015mm\x2018mm;}\x0ahtml,body{background:#fff;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}\x0a.cover-wrapper{padding:0;margin:0;display:block;width:174mm;height:267mm;overflow:hidden;page-break-after:always;break-after:page;}\x0a.cover-daiji{width:174mm;height:267mm;box-shadow:none;border:none;}\x0a.cover-top-bar,.cover-bottom-bar{height:8px;background:#000;}\x0a.cover-title{font-size:36px;color:#000;}\x0a.cover-eng{font-size:11px;color:#555;margin-bottom:36px;}\x0a.cover-divider{width:80px;height:2px;background:#000;margin-bottom:36px;}\x0a.cover-fields{max-width:420px;}\x0a.cover-field-row{padding:10px\x200;border-bottom:1px\x20solid\x20#aaa;}\x0a.cover-field-row:first-child{border-top:1px\x20solid\x20#aaa;}\x0a.cover-field-label{font-size:12px;width:72px;}\x0a.cover-field-value{font-size:13px;}\x0a.cover-year{font-size:11px;color:#777;margin-top:40px;}\x0a.daiji-wrapper{padding:0;margin:0;display:block;width:174mm;height:267mm;overflow:hidden;page-break-after:always;break-after:page;}\x0a.daiji-wrapper:last-of-type{page-break-after:avoid;break-after:avoid;}\x0a.daiji{width:174mm;height:267mm;box-shadow:none;border:none;display:flex;flex-direction:column;overflow:hidden;}\x0a.daiji-body{flex:1;min-height:0;padding:3px\x208px;display:flex;flex-direction:column;overflow:hidden;}\x0a.photo-grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(0,1fr));gap:0;}\x0a.photo-grid.mode-2{grid-template-rows:repeat(2,minmax(0,1fr))!important;}\x0a.photo-grid.mode-2\x20.photo-cell:nth-child(2){display:none!important;}\x0a.photo-cell{position:relative;min-height:0;overflow:hidden;border:1px\x20solid\x20#444;}\x0a.photo-cell+.photo-cell{border-top:none;}\x0a.photo-cell.empty{border:none!important;background:transparent!important;}\x0a.cell-label{position:absolute;top:0;left:0;bottom:0;width:28px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;letter-spacing:4px;color:#000;border-right:1px\x20solid\x20#444;background:#fff;z-index:1;writing-mode:vertical-rl;}\x0a.photo-slot{position:absolute;top:2mm;left:28px;right:0;bottom:calc(28px\x20+\x202mm);overflow:hidden;}\x0a.photo-slot\x20img{position:absolute;inset:0;width:100%;height:100%;object-fit:','DswUL','Emsfa'];_0x2ee4=function(){return _0xc53e2;};return _0x2ee4();}function immediateSave(){const _0x1763cf=_0x5eed73,_0x5ac6b1={'wAxUu':_0x1763cf(0x225),'xaFbB':function(_0xfd4557){return _0xfd4557();}};clearTimeout(autoSaveTimer);try{localStorage[_0x1763cf(0x278)](_0x5ac6b1[_0x1763cf(0x221)],JSON['stringify'](_0x5ac6b1[_0x1763cf(0x1fc)](collectData))),showToast(_0x1763cf(0x17a));}catch{}}let autoSaveTimer=null;function scheduleAutoSave(){const _0x461c5c=_0x5eed73,_0xb5b2f9={'Mpbwc':function(_0x19eb15){return _0x19eb15();},'nUvTC':function(_0x402de4,_0x474101){return _0x402de4(_0x474101);},'uzFvq':'자동저장\x20완료','RWafk':function(_0x511e38,_0x24a736,_0x5ac64d){return _0x511e38(_0x24a736,_0x5ac64d);}};clearTimeout(autoSaveTimer),autoSaveTimer=_0xb5b2f9[_0x461c5c(0x18c)](setTimeout,()=>{const _0x52ef1a=_0x461c5c;try{localStorage['setItem']('photo_daiji_autosave',JSON[_0x52ef1a(0x23d)](_0xb5b2f9[_0x52ef1a(0x1b4)](collectData))),_0xb5b2f9['nUvTC'](showToast,_0xb5b2f9['uzFvq']);}catch{}},0x5dc);}document['addEventListener'](_0x5eed73(0x24f),scheduleAutoSave),document[_0x5eed73(0x1d4)](_0x5eed73(0x195),scheduleAutoSave),window[_0x5eed73(0x1d4)](_0x5eed73(0x190),()=>{const _0x1e0c30=_0x5eed73,_0x253e02={'iGCVo':_0x1e0c30(0x1e4),'FIEWn':_0x1e0c30(0x1d2)};document[_0x1e0c30(0x21c)](_0x253e02[_0x1e0c30(0x1b5)])[_0x1e0c30(0x23c)](_0x23ee8a=>{const _0x472635=_0x1e0c30;if(!_0x23ee8a['querySelector'](_0x253e02[_0x472635(0x251)]))_0x23ee8a[_0x472635(0x1af)][_0x472635(0x1e2)](_0x472635(0x203));});}),window['addEventListener'](_0x5eed73(0x246),()=>{const _0x37ab30=_0x5eed73,_0x205a98={'YqAqc':_0x37ab30(0x25d)};document[_0x37ab30(0x21c)](_0x205a98['YqAqc'])[_0x37ab30(0x23c)](_0x5dcaf8=>{const _0x4e91d3=_0x37ab30;_0x5dcaf8[_0x4e91d3(0x1af)][_0x4e91d3(0x21f)](_0x4e91d3(0x203));});});function showToast(_0x3b0a47){const _0xdbd82d=_0x5eed73,_0x15e083={'bRlsk':_0xdbd82d(0x1f4),'MBYIw':function(_0x30641a,_0x29de8d,_0x1d9c39){return _0x30641a(_0x29de8d,_0x1d9c39);}},_0x1ad9bf=document[_0xdbd82d(0x191)](_0x15e083[_0xdbd82d(0x186)]);_0x1ad9bf[_0xdbd82d(0x271)]=_0x3b0a47,_0x1ad9bf[_0xdbd82d(0x1af)][_0xdbd82d(0x1e2)](_0xdbd82d(0x201)),_0x15e083[_0xdbd82d(0x1c4)](setTimeout,()=>_0x1ad9bf['classList']['remove'](_0xdbd82d(0x201)),0x7d0);}localStorage[_0x5eed73(0x269)](_0x5eed73(0x20a))===_0x5eed73(0x1c0)&&(document[_0x5eed73(0x23e)][_0x5eed73(0x1af)][_0x5eed73(0x1e2)](_0x5eed73(0x1ef)),document['getElementById'](_0x5eed73(0x1d6))['textContent']=_0x5eed73(0x282));const saved=localStorage['getItem'](_0x5eed73(0x225));if(saved)try{restoreData(JSON['parse'](saved)),showToast(_0x5eed73(0x237));}catch{addPage();}else addPage();</script>
+
+<div id="toast"></div>
+
+</body>
+</html>
