@@ -1001,7 +1001,43 @@ async function saveToFile() {
     }))
   };
   const fname = (data.project || '사진대지') + '_' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '.json';
-  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+  const jsonString = JSON.stringify(out, null, 2);
+
+  // Capacitor 네이티브 환경: Filesystem으로 Downloads 폴더에 직접 저장
+  if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+    const Plugins = window.Capacitor.Plugins || {};
+    if (Plugins.Filesystem) {
+      // 1차 시도: Downloads 폴더에 직접 저장
+      try {
+        await Plugins.Filesystem.writeFile({
+          path: fname,
+          data: jsonString,
+          directory: 'DOWNLOADS',
+          encoding: 'utf8',
+          recursive: true
+        });
+        showToast('💾 다운로드 폴더에 저장됨: ' + fname);
+        return;
+      } catch(e1) {}
+      // 2차 시도: 캐시에 저장 후 Share 다이얼로그
+      if (Plugins.Share) {
+        try {
+          const res = await Plugins.Filesystem.writeFile({
+            path: fname, data: jsonString, directory: 'CACHE', encoding: 'utf8', recursive: true
+          });
+          await Plugins.Share.share({ title: fname, url: res.uri, dialogTitle: '저장 위치 선택' });
+          showToast('💾 ' + fname);
+        } catch(e2) {
+          const msg = (e2 && e2.message) ? e2.message.toLowerCase() : '';
+          if (!msg.includes('cancel')) showToast('⚠️ 저장 실패');
+        }
+        return;
+      }
+    }
+  }
+
+  // 웹 환경 fallback
+  const blob = new Blob([jsonString], { type: 'application/json' });
   try {
     if (navigator.canShare) {
       const file = new File([blob], fname, { type: 'application/json' });
@@ -1122,9 +1158,40 @@ function dataUrlToBlob(src) {
 }
 
 async function savePhoto(src, fname) {
+  // Capacitor 네이티브 환경: Filesystem으로 Downloads 폴더에 직접 저장
+  if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+    const Plugins = window.Capacitor.Plugins || {};
+    if (Plugins.Filesystem) {
+      const base64Data = src.includes(',') ? src.split(',')[1] : src;
+      // 1차 시도: Downloads 폴더에 직접 저장
+      try {
+        await Plugins.Filesystem.writeFile({
+          path: fname,
+          data: base64Data,
+          directory: 'DOWNLOADS',
+          recursive: true
+        });
+        return;
+      } catch(e1) {}
+      // 2차 시도: 캐시에 저장 후 Share 다이얼로그
+      if (Plugins.Share) {
+        try {
+          const res = await Plugins.Filesystem.writeFile({
+            path: fname, data: base64Data, directory: 'CACHE', recursive: true
+          });
+          await Plugins.Share.share({ title: fname, url: res.uri, dialogTitle: '사진 저장 또는 공유' });
+        } catch(e2) {
+          const msg = (e2 && e2.message) ? e2.message.toLowerCase() : '';
+          if (!msg.includes('cancel')) showToast('⚠️ 저장 실패');
+        }
+        return;
+      }
+    }
+  }
+
+  // 웹 환경 fallback
   try {
     const blob = dataUrlToBlob(src);
-    // Android/Capacitor: Web Share API 우선
     if (navigator.canShare) {
       const file = new File([blob], fname, { type: blob.type });
       if (navigator.canShare({ files: [file] })) {
@@ -1132,7 +1199,6 @@ async function savePhoto(src, fname) {
         return;
       }
     }
-    // 브라우저 fallback
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = fname;
