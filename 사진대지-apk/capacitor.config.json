@@ -1,0 +1,18 @@
+{
+  "appId": "com.construction.photoplate",
+  "appName": "현장 사진대지",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "backgroundColor": "#1a3a2a"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1000,
+      "backgroundColor": "#1a3a2a"
+    }
+  }
+}
