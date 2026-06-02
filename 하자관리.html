@@ -160,6 +160,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#d0d0c8;color:#111;font-si
 <div id="vlist" class="wrap">
   <header class="app-header">
     <h1>하자 관리<br><span style="font-size:11px;font-weight:400;opacity:0.6;">V 0.602.0</span></h1>
+    <button class="hbtn" onclick="openHelpDf()">📖 도움말</button>
     <button class="hbtn" onclick="openSettings()">⚙ 설정</button>
   </header>
   <div class="content">
@@ -275,6 +276,48 @@ body{font-family:'Noto Sans KR',sans-serif;background:#d0d0c8;color:#111;font-si
   </header>
   <div class="content" id="detail-body"></div>
   <div class="btm" id="detail-btm"></div>
+</div>
+
+<!-- ===== 도움말 모달 ===== -->
+<div id="modal-help-df" class="modal-bg" onclick="if(event.target===this)closeHelpDf()">
+  <div class="modal-sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span style="font-size:16px;font-weight:700;">📖 도움말</span>
+      <button onclick="closeHelpDf()" style="background:#f0f0f0;border:none;border-radius:6px;padding:5px 12px;font-size:13px;cursor:pointer;font-family:inherit;">닫기</button>
+    </div>
+    <div style="font-size:13px;line-height:1.9;color:#333;">
+      <b style="color:#1a3a2a;">🔧 기본 흐름</b><br>
+      <b>+</b> 버튼으로 하자 등록 → 현장명·위치·유형·내용 입력 → 저장<br>
+      → 상태 업데이트(접수→검토→조치→완료) → 확인완료<br><br>
+
+      <b style="color:#1a3a2a;">⚙ 설정 먼저 하세요</b><br>
+      • <b>현장명</b> — 사용할 현장을 미리 등록<br>
+      • <b>하자유형</b> — 수목고사·잔디불량·포장파손 등 현장 특화 목록 관리<br>
+      • <b>담당자</b> — 등록하면 폼에서 자동완성<br><br>
+
+      <b style="color:#1a3a2a;">📋 목록 화면</b><br>
+      • 상단 탭: 전체 / 접수 / 검토중 / 조치중 / 조치완료 / 확인완료 필터<br>
+      • 검색창: 현장명·위치·유형 통합 검색<br>
+      • 카드 클릭 → 상세 보기<br><br>
+
+      <b style="color:#1a3a2a;">📝 하자 상태</b><br>
+      <span style="background:#fee2e2;color:#dc2626;padding:0 6px;border-radius:4px;font-size:11px;">접수</span> →
+      <span style="background:#fef3c7;color:#d97706;padding:0 6px;border-radius:4px;font-size:11px;">검토중</span> →
+      <span style="background:#dbeafe;color:#1d4ed8;padding:0 6px;border-radius:4px;font-size:11px;">조치중</span> →
+      <span style="background:#d1fae5;color:#065f46;padding:0 6px;border-radius:4px;font-size:11px;">조치완료</span> →
+      <span style="background:#e0e7ff;color:#4338ca;padding:0 6px;border-radius:4px;font-size:11px;">확인완료</span><br>
+      상세 화면 하단 버튼으로 단계 이동. 조치 사진·메모 첨부 가능.<br><br>
+
+      <b style="color:#1a3a2a;">📷 사진</b><br>
+      발생 사진 최대 4장 + 조치 사진 최대 4장<br><br>
+
+      <b style="color:#1a3a2a;">📤 내보내기 / 📥 가져오기</b><br>
+      설정 → 데이터 관리 (JSON 백업/복원)<br><br>
+
+      <b style="color:#1a3a2a;">🆔 하자번호 형식</b><br>
+      DF-YYYYMMDD-001 (예: DF-20260601-001)
+    </div>
+  </div>
 </div>
 
 <!-- ===== SETTINGS MODAL ===== -->
@@ -737,6 +780,9 @@ function delRec(id) {
 }
 
 // ── Settings ──────────────────────────────────────────────
+function openHelpDf(){ document.getElementById('modal-help-df').classList.add('on'); }
+function closeHelpDf(){ document.getElementById('modal-help-df').classList.remove('on'); }
+
 function openSettings() {
   stabTab = 'sites';
   renderStab();
