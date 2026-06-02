@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>현장 사진대지 앱 설치 안내</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Malgun Gothic', sans-serif; background: #f1f5f9; color: #1e293b; font-size: 15px; }
+.wrap { max-width: 480px; margin: 0 auto; padding: 16px; }
+
+.title-box {
+  background: #1e40af; color: white; border-radius: 14px;
+  padding: 24px 20px; text-align: center; margin-bottom: 16px;
+}
+.title-box h1 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+.title-box p { font-size: 13px; opacity: .8; }
+
+.step-card {
+  background: white; border-radius: 14px;
+  margin-bottom: 12px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+.step-hd {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; border-bottom: 1px solid #f1f5f9;
+}
+.step-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #1e40af; color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800; flex-shrink: 0;
+}
+.step-hd h2 { font-size: 16px; font-weight: 700; }
+.step-bd { padding: 14px 16px; }
+
+.sub { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+.sub:last-child { margin-bottom: 0; }
+.sub-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #e0e7ff; color: #1e40af;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+.sub-txt { flex: 1; line-height: 1.7; font-size: 14px; color: #334155; }
+.sub-txt b { color: #1e293b; }
+
+.path {
+  background: #f8fafc; border: 1px solid #e2e8f0;
+  border-radius: 8px; padding: 10px 12px;
+  font-size: 13px; color: #475569; line-height: 1.8;
+  margin-top: 8px;
+}
+.path b { color: #1e40af; }
+
+.warn {
+  background: #fef3c7; border-left: 4px solid #f59e0b;
+  border-radius: 0 8px 8px 0; padding: 10px 12px;
+  font-size: 13px; color: #78350f; line-height: 1.7; margin-top: 8px;
+}
+
+.ok-box {
+  background: #d1fae5; border-radius: 14px;
+  padding: 20px; text-align: center; margin-bottom: 16px;
+}
+.ok-box .ico { font-size: 40px; margin-bottom: 8px; }
+.ok-box h2 { font-size: 17px; font-weight: 700; color: #065f46; }
+.ok-box p { font-size: 13px; color: #047857; margin-top: 4px; line-height: 1.7; }
+
+.footer { text-align: center; font-size: 12px; color: #94a3b8; padding: 8px 0 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="title-box">
+    <div style="font-size:36px;margin-bottom:8px;">📷</div>
+    <h1>현장 사진대지 앱</h1>
+    <p>Android 설치 안내서</p>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="step-card">
+    <div class="step-hd">
+      <div class="step-num">1</div>
+      <h2>카카오톡에서 파일 저장</h2>
+    </div>
+    <div class="step-bd">
+      <div class="sub">
+        <div class="sub-num">①</div>
+        <div class="sub-txt">카카오톡에서 받은 <b>app-debug.apk</b> 파일을 탭합니다.</div>
+      </div>
+      <div class="sub">
+        <div class="sub-num">②</div>
+        <div class="sub-txt">화면 상단의 <b>⬇ 다운로드</b> 버튼을 탭하여 파일을 저장합니다.</div>
+      </div>
+      <div class="sub">
+        <div class="sub-num">③</div>
+        <div class="sub-txt">저장 완료 알림이 뜨면 다음 단계로 이동합니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step-card">
+    <div class="step-hd">
+      <div class="step-num">2</div>
+      <h2>설치 허용 설정 (최초 1회)</h2>
+    </div>
+    <div class="step-bd">
+      <div class="sub">
+        <div class="sub-num">①</div>
+        <div class="sub-txt">폰 <b>설정</b> 앱을 엽니다.</div>
+      </div>
+      <div class="sub">
+        <div class="sub-num">②</div>
+        <div class="sub-txt">아래 경로를 따라 이동합니다.</div>
+      </div>
+      <div class="path">
+        <b>설정</b> → <b>앱</b> → 우측상단 <b>⋮</b> → <b>특별한 앱 접근 권한</b><br>
+        → <b>출처를 알 수 없는 앱 설치</b><br>
+        → <b>내 파일</b> → <b>허용</b> 켜기
+      </div>
+      <div class="warn">
+        ⚠️ 이 설정은 <b>처음 한 번만</b> 하면 됩니다.<br>
+        설치 후 다시 끄셔도 됩니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step-card">
+    <div class="step-hd">
+      <div class="step-num">3</div>
+      <h2>APK 파일 설치</h2>
+    </div>
+    <div class="step-bd">
+      <div class="sub">
+        <div class="sub-num">①</div>
+        <div class="sub-txt"><b>내 파일</b> 앱을 엽니다.</div>
+      </div>
+      <div class="sub">
+        <div class="sub-num">②</div>
+        <div class="sub-txt"><b>다운로드</b> 폴더를 탭합니다.</div>
+      </div>
+      <div class="sub">
+        <div class="sub-num">③</div>
+        <div class="sub-txt"><b>app-debug.apk</b> 파일을 탭합니다.</div>
+      </div>
+      <div class="sub">
+        <div class="sub-num">④</div>
+        <div class="sub-txt"><b>"설치"</b> 버튼을 탭합니다.<br>
+        보안 경고가 뜨면 <b>"그래도 설치"</b> 또는 <b>"허용"</b>을 탭합니다.</div>
+      </div>
+      <div class="sub">
+        <div class="sub-num">⑤</div>
+        <div class="sub-txt"><b>"앱이 설치되었습니다"</b> 메시지가 뜨면 완료!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step-card">
+    <div class="step-hd">
+      <div class="step-num">4</div>
+      <h2>앱 실행</h2>
+    </div>
+    <div class="step-bd">
+      <div class="sub">
+        <div class="sub-num">①</div>
+        <div class="sub-txt">설치 완료 화면에서 <b>"열기"</b>를 탭하거나,</div>
+      </div>
+      <div class="sub">
+        <div class="sub-num">②</div>
+        <div class="sub-txt">홈 화면 또는 앱 서랍에서 <b>📷 현장 사진대지</b> 아이콘을 탭합니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 완료 -->
+  <div class="ok-box">
+    <div class="ico">✅</div>
+    <h2>설치 완료!</h2>
+    <p>앱 업데이트 시 새 APK 파일을 받아<br>같은 방법으로 덮어서 설치하시면 됩니다.</p>
+  </div>
+
+  <div class="footer">현장 사진대지 v0.602.02</div>
+
+</div>
+</body>
+</html>
