@@ -171,7 +171,9 @@
       position: relative; aspect-ratio: 4/3;
       border-radius: 10px; overflow: hidden;
       cursor: pointer; background: #e2e8f0;
+      border: 3px solid transparent; transition: border-color .15s;
     }
+    .gallery-item.selected { border-color: #1e40af; }
     .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
     .gallery-item .g-label {
       position: absolute; bottom: 0; left: 0; right: 0;
@@ -179,6 +181,14 @@
       color: #fff; font-size: 11px; font-weight: 600;
       padding: 16px 8px 6px; line-height: 1.4;
     }
+    .gallery-item .g-check {
+      display: none; position: absolute; top: 6px; right: 6px;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: white; border: 2px solid #cbd5e1;
+      align-items: center; justify-content: center; font-size: 14px;
+    }
+    .sel-mode .gallery-item .g-check { display: flex; }
+    .gallery-item.selected .g-check { background: #1e40af; border-color: #1e40af; color: white; }
     .gallery-empty {
       grid-column: 1/-1; text-align: center;
       padding: 60px 0; color: var(--text2); font-size: 14px; line-height: 2;
@@ -348,9 +358,17 @@
 
 <!-- 갤러리 패널 -->
 <div id="panel-gallery" class="panel">
-  <div style="display:flex;gap:10px;margin-bottom:14px;">
-    <button onclick="downloadAllPhotos()" style="flex:1;padding:13px;background:#1e40af;color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;">⬇️ 전체 저장</button>
-    <button onclick="deleteAllOriginals()" style="flex:1;padding:13px;background:#ef4444;color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;">🗑️ 전체 삭제</button>
+  <!-- 일반 모드 버튼 -->
+  <div id="gallery-btns-normal" style="display:flex;gap:8px;margin-bottom:14px;">
+    <button onclick="downloadAllPhotos()" style="flex:1;padding:12px;background:#1e40af;color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">⬇️ 전체 저장</button>
+    <button onclick="deleteAllOriginals()" style="flex:1;padding:12px;background:#ef4444;color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">🗑️ 전체 삭제</button>
+    <button onclick="enterSelMode()" style="padding:12px 14px;background:#f1f5f9;color:#1e40af;border:2px solid #1e40af;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">☑ 선택</button>
+  </div>
+  <!-- 선택 모드 버튼 -->
+  <div id="gallery-btns-sel" style="display:none;gap:8px;margin-bottom:14px;">
+    <button onclick="downloadSelectedPhotos()" style="flex:1;padding:12px;background:#1e40af;color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">⬇️ 선택 저장</button>
+    <button onclick="deleteSelectedPhotos()" style="flex:1;padding:12px;background:#ef4444;color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">🗑️ 선택 삭제</button>
+    <button onclick="exitSelMode()" style="padding:12px 14px;background:#f1f5f9;color:#475569;border:2px solid #cbd5e1;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">취소</button>
   </div>
   <div id="gallery-grid"></div>
 </div>
@@ -373,13 +391,6 @@
     <div class="s-section-title">데이터 관리</div>
     <div class="s-btn-row">
       <button class="s-btn s-btn-reset" onclick="resetAll()">↺ 전체 초기화</button>
-    </div>
-  </div>
-  <div class="s-section">
-    <div class="s-section-title">홈화면 바로가기 추가</div>
-    <div style="padding:14px 16px;font-size:13px;line-height:2;color:var(--text2);">
-      <b style="color:var(--text)">갤럭시 (내 파일 앱)</b><br>
-      파일 꾹 누르기 → 우측 하단 <b style="color:var(--text)">⋮ 더보기</b> → 맨 아래 <b style="color:var(--text)">홈 화면에 추가</b>
     </div>
   </div>
   <div style="padding:16px;text-align:center;font-size:12px;color:#94a3b8;">
@@ -475,7 +486,8 @@
       <b style="color:#1e293b">🖼️ 갤러리 탭</b><br>
       • 촬영한 원본 사진 보관 (초기화해도 유지)<br>
       • <b style="color:#1e293b">⬇️ 전체 저장</b> → 다운로드 폴더에 전체 저장<br>
-      • <b style="color:#1e293b">🗑️ 전체 삭제</b> → 갤러리 사진만 삭제<br>
+      • <b style="color:#1e293b">🗑️ 전체 삭제</b> → 갤러리 사진 전체 삭제<br>
+      • <b style="color:#1e293b">☑ 선택</b> → 선택 모드 진입, 사진 개별 탭으로 선택 후 저장·삭제<br>
       • 사진 탭 → 전체화면, <b style="color:#1e293b">⬇️ 저장</b>으로 개별 저장<br>
       <br>
       <b style="color:#1e293b">⚙️ 설정 탭</b><br>
@@ -873,24 +885,66 @@ function compress(src, maxPx, q) {
 }
 
 // ===== GALLERY =====
+let selMode = false;
+let selSet = new Set(); // 선택된 originals의 index
+
+function enterSelMode() {
+  selMode = true; selSet.clear();
+  document.getElementById('gallery-btns-normal').style.display = 'none';
+  document.getElementById('gallery-btns-sel').style.display = 'flex';
+  renderGallery();
+}
+function exitSelMode() {
+  selMode = false; selSet.clear();
+  document.getElementById('gallery-btns-normal').style.display = 'flex';
+  document.getElementById('gallery-btns-sel').style.display = 'none';
+  renderGallery();
+}
+function toggleSelItem(idx) {
+  if (selSet.has(idx)) selSet.delete(idx); else selSet.add(idx);
+  renderGallery();
+}
+function downloadSelectedPhotos() {
+  const items = [...selSet].map(i => originals[i]).filter(Boolean);
+  if (!items.length) { showToast('선택된 사진이 없습니다'); return; }
+  items.forEach((o, i) => setTimeout(() => savePhoto(o.src, o.fname || '사진대지_사진.jpg'), i * 600));
+  showToast(`⬇️ ${items.length}장 저장 중...`);
+  exitSelMode();
+}
+function deleteSelectedPhotos() {
+  const idxs = [...selSet].sort((a,b) => b - a);
+  if (!idxs.length) { showToast('선택된 사진이 없습니다'); return; }
+  if (!confirm(`선택한 ${idxs.length}장을 삭제하시겠습니까?`)) return;
+  idxs.forEach(i => {
+    const o = originals[i];
+    if (o) dbDelete(o.pageIdx, o.slotIdx);
+  });
+  originals = originals.filter((_, i) => !selSet.has(i));
+  exitSelMode();
+  showToast(`🗑️ ${idxs.length}장 삭제 완료`);
+}
+
 function renderGallery() {
   const grid = document.getElementById('gallery-grid');
   if (!grid) return;
   grid.innerHTML = '';
+  grid.className = selMode ? 'sel-mode' : '';
 
-  // originals 기준 독립 렌더링 (초기화와 무관하게 유지)
   if (!originals.length) {
     grid.innerHTML = '<div class="gallery-empty">📷 사진이 없습니다<br>편집 탭에서 사진을 추가해주세요</div>';
     return;
   }
 
-  originals.forEach(o => {
+  originals.forEach((o, idx) => {
     const info = [o.label, o.date].filter(Boolean).join(' · ');
+    const isSel = selSet.has(idx);
 
     const div = document.createElement('div');
-    div.className = 'gallery-item';
-    div.onclick = () => openViewer(o, info);
-    div.innerHTML = `<img src="${o.src}" alt="${e(info)}"><div class="g-label">${e(info)}</div>`;
+    div.className = 'gallery-item' + (isSel ? ' selected' : '');
+    div.onclick = selMode ? () => toggleSelItem(idx) : () => openViewer(o, info);
+    div.innerHTML = `<img src="${o.src}" alt="${e(info)}">
+      <div class="g-label">${e(info)}</div>
+      <div class="g-check">${isSel ? '✓' : ''}</div>`;
     grid.appendChild(div);
   });
 }
@@ -1007,7 +1061,6 @@ async function saveToFile() {
   if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
     const Plugins = window.Capacitor.Plugins || {};
     if (Plugins.Filesystem) {
-      // 1차 시도: Downloads 폴더에 직접 저장
       try {
         await Plugins.Filesystem.writeFile({
           path: fname,
@@ -1019,7 +1072,6 @@ async function saveToFile() {
         showToast('💾 다운로드 폴더에 저장됨: ' + fname);
         return;
       } catch(e1) {}
-      // 2차 시도: 캐시에 저장 후 Share 다이얼로그
       if (Plugins.Share) {
         try {
           const res = await Plugins.Filesystem.writeFile({
@@ -1158,12 +1210,23 @@ function dataUrlToBlob(src) {
 }
 
 async function savePhoto(src, fname) {
-  // Capacitor 네이티브 환경: Filesystem으로 Downloads 폴더에 직접 저장
+  // Capacitor 네이티브 환경
   if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
     const Plugins = window.Capacitor.Plugins || {};
     if (Plugins.Filesystem) {
       const base64Data = src.includes(',') ? src.split(',')[1] : src;
-      // 1차 시도: Downloads 폴더에 직접 저장
+      // 1차: DCIM 폴더 → 갤러리 앱에 자동 표시
+      try {
+        await Plugins.Filesystem.writeFile({
+          path: 'DCIM/공사사진대지/' + fname,
+          data: base64Data,
+          directory: 'EXTERNAL_STORAGE',
+          recursive: true
+        });
+        showToast('📥 갤러리에 저장됨');
+        return;
+      } catch(e1) {}
+      // 2차: Downloads 폴더
       try {
         await Plugins.Filesystem.writeFile({
           path: fname,
@@ -1171,17 +1234,18 @@ async function savePhoto(src, fname) {
           directory: 'DOWNLOADS',
           recursive: true
         });
+        showToast('📥 다운로드 폴더에 저장됨');
         return;
-      } catch(e1) {}
-      // 2차 시도: 캐시에 저장 후 Share 다이얼로그
+      } catch(e2) {}
+      // 3차: Share 다이얼로그 (최후 수단)
       if (Plugins.Share) {
         try {
           const res = await Plugins.Filesystem.writeFile({
             path: fname, data: base64Data, directory: 'CACHE', recursive: true
           });
           await Plugins.Share.share({ title: fname, url: res.uri, dialogTitle: '사진 저장 또는 공유' });
-        } catch(e2) {
-          const msg = (e2 && e2.message) ? e2.message.toLowerCase() : '';
+        } catch(e3) {
+          const msg = (e3 && e3.message) ? e3.message.toLowerCase() : '';
           if (!msg.includes('cancel')) showToast('⚠️ 저장 실패');
         }
         return;

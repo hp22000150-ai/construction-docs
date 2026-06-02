@@ -1210,11 +1210,23 @@ function dataUrlToBlob(src) {
 }
 
 async function savePhoto(src, fname) {
-  // Capacitor 네이티브 환경: Filesystem으로 Downloads 폴더에 직접 저장
+  // Capacitor 네이티브 환경
   if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
     const Plugins = window.Capacitor.Plugins || {};
     if (Plugins.Filesystem) {
       const base64Data = src.includes(',') ? src.split(',')[1] : src;
+      // 1차: DCIM 폴더 → 갤러리 앱에 자동 표시
+      try {
+        await Plugins.Filesystem.writeFile({
+          path: 'DCIM/공사사진대지/' + fname,
+          data: base64Data,
+          directory: 'EXTERNAL_STORAGE',
+          recursive: true
+        });
+        showToast('📥 갤러리에 저장됨');
+        return;
+      } catch(e1) {}
+      // 2차: Downloads 폴더
       try {
         await Plugins.Filesystem.writeFile({
           path: fname,
@@ -1222,16 +1234,18 @@ async function savePhoto(src, fname) {
           directory: 'DOWNLOADS',
           recursive: true
         });
+        showToast('📥 다운로드 폴더에 저장됨');
         return;
-      } catch(e1) {}
+      } catch(e2) {}
+      // 3차: Share 다이얼로그 (최후 수단)
       if (Plugins.Share) {
         try {
           const res = await Plugins.Filesystem.writeFile({
             path: fname, data: base64Data, directory: 'CACHE', recursive: true
           });
           await Plugins.Share.share({ title: fname, url: res.uri, dialogTitle: '사진 저장 또는 공유' });
-        } catch(e2) {
-          const msg = (e2 && e2.message) ? e2.message.toLowerCase() : '';
+        } catch(e3) {
+          const msg = (e3 && e3.message) ? e3.message.toLowerCase() : '';
           if (!msg.includes('cancel')) showToast('⚠️ 저장 실패');
         }
         return;
