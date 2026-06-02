@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "node start.js",
-    "build": "electron-builder --win --x64"
+    "build": "electron-builder --win --x64",
+    "build:daiji": "electron-builder --config electron-builder-daiji.json"
   },
   "build": {
     "appId": "com.contentfactory.daily-log",

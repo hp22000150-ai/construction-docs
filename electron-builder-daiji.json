@@ -1,0 +1,24 @@
+{
+  "appId": "com.contentfactory.photo-daiji",
+  "productName": "공사사진대지",
+  "extraMetadata": {
+    "main": "main-daiji.js"
+  },
+  "asar": false,
+  "win": {
+    "target": [{ "target": "portable", "arch": ["x64"] }],
+    "sign": false,
+    "signingHashAlgorithms": null
+  },
+  "portable": {
+    "requestExecutionLevel": "user"
+  },
+  "files": [
+    "main-daiji.js",
+    "사진대지_PC용.html",
+    "package.json"
+  ],
+  "directories": {
+    "output": "dist-daiji"
+  }
+}

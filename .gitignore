@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-daiji/
 dist-html/
 *.log
 .DS_Store
