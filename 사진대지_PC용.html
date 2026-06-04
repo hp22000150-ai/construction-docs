@@ -64,6 +64,7 @@
     .btn-load   { background: #0ea5e9; color: #fff; }
     .btn-reset  { background: #ef4444; color: #fff; }
     .btn-fit    { background: #475569; color: #fff; }
+    .btn-word   { background: #16a34a; color: #fff; }
 
 
     /* 자동저장 토스트 */
@@ -519,7 +520,7 @@
 <!-- 컨트롤 패널 -->
 <div class="controls">
   <div class="ctrl-top">
-    <h1>📋 <span style="letter-spacing:.5em; margin-right:-.5em;">공사사진대지</span> <span style="font-size:13px; font-weight:400; opacity:.7;">v0.602.7</span></h1>
+    <h1>📋 <span style="letter-spacing:.5em; margin-right:-.5em;">공사사진대지</span> <span style="font-size:13px; font-weight:400; opacity:.7;">v0.603.1</span></h1>
     <span style="font-size:11px; opacity:.55; margin-left:8px;">© 2026 CONTENT FACTORY</span>
   </div>
   <div class="ctrl-bottom">
@@ -537,6 +538,7 @@
     <button class="btn-save" onclick="saveToFile()">💾 저장</button>
     <button class="btn-load" onclick="document.getElementById('load-input').click()">📂 불러오기</button>
     <button class="btn-print" onclick="window.electronAPI ? printViaBrowser() : window.print()">🖨️ 인쇄</button>
+    <button class="btn-word" onclick="exportDocx()">📄 Word</button>
     <button class="btn-reset" onclick="resetAll()">↺ 초기화</button>
     <div class="help-wrap">
       <button class="btn-help">❓ 도움말</button>
@@ -615,5 +617,180 @@
 
 <div id="toast"></div>
 
+<script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
+<script>
+async function exportDocx() {
+  if (typeof docx === 'undefined') {
+    alert('docx 라이브러리 로딩 중입니다. 잠시 후 다시 시도해주세요.');
+    return;
+  }
+
+  const { Document, Packer, Paragraph, TextRun, ImageRun,
+          Table, TableRow, TableCell,
+          AlignmentType, PageBreak, BorderStyle, UnderlineType,
+          WidthType, VerticalAlign } = docx;
+
+  function getVal(id) {
+    const el = document.getElementById(id);
+    if (!el) return '';
+    return (el.value !== undefined ? el.value : el.textContent || '').trim();
+  }
+
+  async function imgToBuffer(img) {
+    if (!img || !img.src || !img.src.startsWith('data:')) return null;
+    try { return await (await fetch(img.src)).arrayBuffer(); }
+    catch (e) { return null; }
+  }
+
+  // 실제 이미지 비율 유지하며 최대 크기 안에 맞추기 (object-fit: contain)
+  function fitSize(img, maxW, maxH) {
+    const nw = img.naturalWidth  || maxW;
+    const nh = img.naturalHeight || maxH;
+    const ratio = nw / nh;
+    if (ratio > maxW / maxH) return { width: maxW, height: Math.round(maxW / ratio) };
+    return { width: Math.round(maxH * ratio), height: maxH };
+  }
+
+  const MAX_W = 560; // 최대 너비(px @ 96dpi ≈ 148mm)
+  const MAX_H = 300; // 최대 높이
+  const BORDER = { style: BorderStyle.SINGLE, size: 4, color: '94a3b8' };
+  const cellBorders = { top: BORDER, bottom: BORDER, left: BORDER, right: BORDER };
+
+  function photoTable(imgPara, captionPara) {
+    return new Table({
+      width: { size: 9200, type: WidthType.DXA },
+      borders: { top: BORDER, bottom: BORDER, left: BORDER, right: BORDER,
+                 insideH: { style: BorderStyle.SINGLE, size: 2, color: 'cbd5e1' },
+                 insideV: { style: BorderStyle.NONE, size: 0, color: 'ffffff' } },
+      rows: [
+        new TableRow({ children: [new TableCell({
+          borders: cellBorders,
+          verticalAlign: VerticalAlign.CENTER,
+          children: [imgPara],
+        })] }),
+        new TableRow({ children: [new TableCell({
+          borders: cellBorders,
+          children: [captionPara],
+        })] }),
+      ],
+    });
+  }
+
+  const children = [];
+
+  // ── 표지 ──
+  const proj = getVal('f-project');
+  const comp = getVal('f-company');
+  const loc  = getVal('f-location');
+  const cli  = getVal('f-client');
+  const dt   = getVal('f-date');
+
+  for (let i = 0; i < 8; i++) children.push(new Paragraph({ text: '' }));
+  children.push(new Paragraph({
+    children: [new TextRun({ text: '공 사 사 진 대 지', size: 64, bold: true, color: '1e40af' })],
+    alignment: AlignmentType.CENTER, spacing: { after: 160 },
+  }));
+  children.push(new Paragraph({
+    children: [new TextRun({ text: 'CONSTRUCTION PHOTO RECORD', size: 18, color: '94a3b8' })],
+    alignment: AlignmentType.CENTER, spacing: { after: 800 },
+  }));
+  for (const [label, value] of [
+    ['공  사  명', proj], ['업  체  명', comp],
+    ['공사위치',   loc],  ['발  주  처', cli], ['작  성  일', dt],
+  ].filter(([, v]) => v)) {
+    children.push(new Paragraph({
+      children: [
+        new TextRun({ text: label + '   ', size: 26, bold: true, color: '475569' }),
+        new TextRun({ text: value, size: 26, color: '111111', underline: { type: UnderlineType.SINGLE } }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 80, after: 80 },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: 'e2e8f0' } },
+    }));
+  }
+
+  // ── 내용 페이지들 ──
+  for (const wrapper of document.querySelectorAll('.daiji-wrapper')) {
+    children.push(new Paragraph({ children: [new PageBreak()] }));
+
+    // 헤더 메타
+    const metaTexts = [];
+    wrapper.querySelectorAll('.meta-row').forEach(mr => {
+      const lbl   = mr.querySelector('.meta-label')?.textContent?.trim() || '';
+      const valEl = mr.querySelector('input, .meta-value');
+      const v = valEl ? (valEl.value !== undefined ? valEl.value : valEl.textContent || '').trim() : '';
+      if (lbl && v) metaTexts.push(lbl + ' ' + v);
+    });
+    if (metaTexts.length) {
+      children.push(new Paragraph({
+        children: [new TextRun({ text: metaTexts.join('   '), size: 22, bold: true, color: '1e40af' })],
+        spacing: { before: 120, after: 120 },
+        border: { bottom: { style: BorderStyle.THICK, size: 6, color: '1e40af' } },
+      }));
+    }
+
+    // 사진 셀
+    for (const cell of wrapper.querySelectorAll('.photo-cell')) {
+      if (cell.classList.contains('print-empty')) continue;
+      const label = cell.querySelector('.cell-label')?.textContent?.trim() || '';
+      const img   = cell.querySelector('.photo-slot img');
+      const date  = cell.querySelector('.photo-date-short')?.value || '';
+      const desc  = cell.querySelector('.photo-desc')?.value || '';
+      const caption = [label, date, desc].filter(Boolean).join('  |  ');
+
+      const buf = await imgToBuffer(img);
+      let imgPara;
+      if (buf) {
+        const { width, height } = fitSize(img, MAX_W, MAX_H);
+        imgPara = new Paragraph({
+          children: [new ImageRun({ data: buf, transformation: { width, height } })],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 60, after: 40 },
+        });
+      } else {
+        imgPara = new Paragraph({
+          children: [new TextRun({ text: `[ ${label}  —  사진 없음 ]`, size: 20, color: 'bbbbbb' })],
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 80, after: 40 },
+        });
+      }
+
+      const captionPara = new Paragraph({
+        children: [new TextRun({ text: caption, size: 20, bold: true, color: '374151' })],
+        spacing: { before: 40, after: 40 },
+        indent: { left: 80 },
+      });
+
+      children.push(photoTable(imgPara, captionPara));
+      children.push(new Paragraph({ text: '', spacing: { after: 80 } }));
+    }
+  }
+
+  const doc = new Document({
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 11906, height: 16838 },
+          margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 },
+        },
+      },
+      children,
+    }],
+  });
+
+  try {
+    const blob = await Packer.toBlob(doc);
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    a.download = (proj || '공사사진대지') + '.docx';
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+    showToast('Word 파일 저장 완료!');
+  } catch (err) {
+    alert('Word 저장 오류: ' + err.message);
+  }
+}
+</script>
 </body>
 </html>

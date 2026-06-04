@@ -2,7 +2,9 @@ node_modules/
 dist/
 dist-daiji/
 공사사진대지 앱 V0.602.7/
+공사사진대지 앱/
 공사사진대지_v0.602.7.zip
+*.zip
 *.exe
 *.apk
 dist-html/
