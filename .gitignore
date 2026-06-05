@@ -13,3 +13,4 @@ dist-html/
 Thumbs.db
 사진대지-apk/android/
 사진대지-apk/package-lock.json
+.claude/
