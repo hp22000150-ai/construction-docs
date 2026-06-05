@@ -337,7 +337,7 @@
 <div id="app">
 
 <div id="top-bar">
-  <h1>📷 사진대지 <span style="font-size:11px;font-weight:400;opacity:.7;">v0.602.7</span></h1>
+  <h1>📷 사진대지 <span style="font-size:11px;font-weight:400;opacity:.7;">v0.605.1</span></h1>
   <button id="btn-global-mode" class="top-btn" onclick="toggleGlobalMode()">3컷</button>
   <label class="top-file-label">
     📂 불러오기
@@ -353,7 +353,10 @@
 <div id="panel-edit" class="panel active">
   <div id="pages-list"></div>
   <button class="btn-add-page" onclick="addPage()">+ 페이지 추가</button>
-  <button class="btn-add-page" onclick="saveToFile()" style="background:#8b5cf6;color:#fff;border-color:#8b5cf6;margin-top:-6px;">💾 내보내기 (.json)</button>
+  <div style="display:flex;gap:8px;margin-top:-6px;">
+    <button class="btn-add-page" onclick="saveToDevice()" style="flex:1;background:#2563eb;color:#fff;border-color:#2563eb;">📥 저장</button>
+    <button class="btn-add-page" onclick="shareToApp()" style="flex:1;background:#8b5cf6;color:#fff;border-color:#8b5cf6;">📤 내보내기</button>
+  </div>
 </div>
 
 <!-- 갤러리 패널 -->
@@ -394,7 +397,7 @@
     </div>
   </div>
   <div style="padding:16px;text-align:center;font-size:12px;color:#94a3b8;">
-    공사사진대지 모바일 v0.602.7<br>© 2026 CONTENT FACTORY
+    공사사진대지 모바일 v0.605.1<br>© 2026 CONTENT FACTORY
   </div>
 </div>
 
@@ -481,7 +484,9 @@
       • 사진 위 <b style="color:#1e293b">↻</b> 버튼으로 90° 회전<br>
       • 페이지 헤더의 <b style="color:#1e293b">숫자(0/3)</b>로 입력 진행 상황 확인<br>
       • 상단 <b style="color:#1e293b">2컷/3컷</b> 버튼으로 전체 페이지 구성 변경<br>
-      • 하단 <b style="color:#1e293b">💾 내보내기</b> → 다운로드 폴더에 .json 저장<br>
+      • 하단 <b style="color:#1e293b">📥 저장</b> → 폰 다운로드 폴더에 .json 직접 저장 (현장 변경 전 저장)<br>
+      • 하단 <b style="color:#1e293b">📤 내보내기</b> → 카카오톡·메일 등으로 .json 전송<br>
+      • 상단 <b style="color:#1e293b">📂 불러오기</b> → 저장한 .json 파일 불러와 이어서 작업<br>
       <br>
       <b style="color:#1e293b">🖼️ 갤러리 탭</b><br>
       • 촬영한 원본 사진 보관 (초기화해도 유지)<br>
@@ -499,6 +504,7 @@
       <b style="color:#1e293b">💡 사용 팁</b><br>
       • 입력 내용은 자동저장됩니다<br>
       • 저장 파일은 내 파일 앱 → 다운로드 폴더에서 확인<br>
+      • 현장 변경 시: 📥 저장 → 초기화 → 새 현장 입력 → 나중에 📂 불러오기로 복원<br>
       • 사진 파일명: 사진대지_공사명_날짜_전.jpg
     </div>
     <button onclick="hideHelp()" style="width:100%;margin-top:18px;padding:13px;background:#1e40af;color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;">닫기</button>
@@ -1035,14 +1041,12 @@ function scheduleAutoSave() {
 
 
 // ===== EXPORT / IMPORT =====
-async function saveToFile() {
+function buildExportData() {
   data.project  = document.getElementById('s-project').value;
   data.company  = document.getElementById('s-company').value;
   data.location = document.getElementById('s-location').value;
   data.client   = document.getElementById('s-client').value;
   data.date     = document.getElementById('s-date').value;
-
-  // PC 앱 호환 형식으로 내보내기
   const out = {
     project: data.project, company: data.company,
     location: data.location, client: data.client,
@@ -1055,47 +1059,62 @@ async function saveToFile() {
     }))
   };
   const fname = (data.project || '사진대지') + '_' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '.json';
-  const jsonString = JSON.stringify(out, null, 2);
+  return { out, fname, jsonString: JSON.stringify(out, null, 2) };
+}
 
-  // Capacitor 네이티브 환경: Filesystem으로 Downloads 폴더에 직접 저장
+// 📥 저장 — 다운로드 폴더에 직접 저장
+async function saveToDevice() {
+  const { fname, jsonString } = buildExportData();
+
   if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
-    const Plugins = window.Capacitor.Plugins || {};
-    if (Plugins.Filesystem) {
-      try {
-        await Plugins.Filesystem.writeFile({
-          path: fname,
-          data: jsonString,
-          directory: 'DOWNLOADS',
-          encoding: 'utf8',
-          recursive: true
-        });
-        showToast('💾 다운로드 폴더에 저장됨: ' + fname);
-        return;
-      } catch(e1) {}
-      if (Plugins.Share) {
-        try {
-          const res = await Plugins.Filesystem.writeFile({
-            path: fname, data: jsonString, directory: 'CACHE', encoding: 'utf8', recursive: true
-          });
-          await Plugins.Share.share({ title: fname, url: res.uri, dialogTitle: '저장 위치 선택' });
-          showToast('💾 ' + fname);
-        } catch(e2) {
-          const msg = (e2 && e2.message) ? e2.message.toLowerCase() : '';
-          if (!msg.includes('cancel')) showToast('⚠️ 저장 실패');
-        }
-        return;
-      }
+    const { Filesystem } = window.Capacitor.Plugins;
+    try {
+      await Filesystem.writeFile({
+        path: 'Download/' + fname,
+        data: jsonString,
+        directory: 'EXTERNAL_STORAGE',
+        encoding: 'utf8',
+      });
+      showToast('📥 저장됨: ' + fname);
+    } catch(e) {
+      showToast('⚠️ 저장 실패 — 내보내기를 이용해주세요');
     }
+    return;
   }
+  // 브라우저 fallback
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fname; a.click();
+  URL.revokeObjectURL(url);
+  showToast('📥 ' + fname);
+}
 
-  // 웹 환경 fallback
+// 📤 내보내기 — 카톡·메일 등 공유 다이얼로그
+async function shareToApp() {
+  const { fname, jsonString } = buildExportData();
+
+  if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+    const { Filesystem, Share } = window.Capacitor.Plugins;
+    try {
+      const res = await Filesystem.writeFile({
+        path: fname, data: jsonString, directory: 'CACHE', encoding: 'utf8', recursive: true
+      });
+      await Share.share({ title: fname, url: res.uri, dialogTitle: '파일 공유' });
+    } catch(e) {
+      const msg = (e && e.message) ? e.message.toLowerCase() : '';
+      if (!msg.includes('cancel')) showToast('⚠️ 공유 실패');
+    }
+    return;
+  }
+  // 브라우저 fallback
   const blob = new Blob([jsonString], { type: 'application/json' });
   try {
     if (navigator.canShare) {
       const file = new File([blob], fname, { type: 'application/json' });
       if (navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: fname });
-        showToast('💾 ' + fname); return;
+        showToast('📤 ' + fname); return;
       }
     }
   } catch(e) { if (e.name === 'AbortError') return; }
@@ -1103,7 +1122,7 @@ async function saveToFile() {
   const a = document.createElement('a');
   a.href = url; a.download = fname; a.click();
   URL.revokeObjectURL(url);
-  showToast('💾 ' + fname);
+  showToast('📤 ' + fname);
 }
 
 function loadFromFile(input) {
