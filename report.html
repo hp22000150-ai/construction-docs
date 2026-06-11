@@ -7,7 +7,6 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>정산 보고서</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
 :root { --green:#1a3a2a; --green-mid:#52b788; --green-light:#d8f3dc; --brown:#7a4f2e; }
 * { box-sizing:border-box; margin:0; padding:0; }
@@ -68,16 +67,26 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
 }
 
 .print-header { display:none; }
+
+/* 인페이지 확인 모달 */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:5000; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:white; border-radius:12px; padding:24px 28px; max-width:380px; width:90%; box-shadow:0 8px 32px rgba(0,0,0,0.22); }
+.modal-box p { font-size:14px; line-height:1.7; color:#333; margin-bottom:18px; }
+.modal-btns { display:flex; gap:8px; justify-content:flex-end; }
+.modal-btns button { padding:8px 18px; border-radius:6px; font-size:13px; font-weight:700; font-family:inherit; cursor:pointer; border:1.5px solid; }
+.modal-btn-ok { background:#1a3a2a; color:white; border-color:#1a3a2a; }
+.modal-btn-cancel { background:white; color:#555; border-color:#ccc; }
 </style>
 </head>
 <body>
 <div class="app">
 
   <div class="top-bar">
-    <h1>📊 정산 보고서<span style="font-size:10px;font-weight:400;opacity:0.6;margin-left:10px;">V 0.602.0</span></h1>
+    <h1>📊 정산 보고서<span style="font-size:10px;font-weight:400;opacity:0.6;margin-left:10px;">V 0.611.20</span></h1>
     <div class="top-links">
       <a href="index.html">📋 일보</a>
-      <a href="mobile.html">📱 모바일</a>
+      <a href="mobile.html" id="link-mobile">📱 모바일</a>
       <button onclick="openReportHelp()" style="color:rgba(255,255,255,0.75);font-size:12px;background:none;border:1px solid rgba(255,255,255,0.4);border-radius:4px;padding:3px 10px;margin-left:6px;cursor:pointer;font-family:inherit;">📖 도움말</button>
     </div>
   </div>
@@ -89,32 +98,37 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
       <button onclick="document.getElementById('report-help-win').style.display='none'" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:5px;padding:2px 10px;font-size:12px;cursor:pointer;font-family:inherit;">✕</button>
     </div>
     <div style="overflow-y:auto;padding:14px;font-size:12px;line-height:1.9;color:#444;">
+      <b style="color:#1a3a2a;">📥 데이터 불러오기</b><br>
+      모바일에서 내보낸 JSON 파일을 선택하면 정산 데이터로 불러옵니다.<br>
+      기존 데이터가 있으면 <b>초기화 후 새로 불러오기</b> 또는 <b>기존에 추가</b>를 선택할 수 있습니다.<br>
+      여러 파일을 한번에 선택해도 됩니다.<br><br>
+
+      <b style="color:#1a3a2a;">📂 data 폴더 불러오기</b><br>
+      Electron 앱 환경에서 사용 가능. data 폴더 안의 JSON 파일 전체를 한번에 불러옵니다.<br><br>
+
       <b style="color:#1a3a2a;">기간 / 공사명 필터</b><br>
-      시작일·종료일을 설정하고 공사명을 선택하면 해당 조건의 일보 데이터만 불러옵니다.<br>
+      시작일·종료일·공사명을 설정하면 해당 조건의 데이터만 집계합니다.<br>
       공사명을 선택하지 않으면 전체 현장을 합산합니다.<br><br>
 
-      <b style="color:#1a3a2a;">인력 정산</b><br>
-      기간 내 일보에서 성명별 공수를 자동 합산합니다.<br>
-      단가 칸에 금액을 입력하면 <b>합계 = 공수 × 단가</b>가 자동 계산됩니다.<br><br>
+      <b style="color:#1a3a2a;">👷 인력 정산</b><br>
+      기간 내 일보에서 성명·직종별 공수를 자동 합산합니다.<br>
+      단가 입력 → <b>합계 = 공수 × 단가</b> 자동 계산.<br><br>
 
-      <b style="color:#1a3a2a;">장비 정산</b><br>
-      기간 내 일보에서 장비명별 투입 일수를 자동 합산합니다.<br>
-      • 단가 입력 → <b>합계 = 일수 × 단가</b> 자동 계산<br>
-      • 일보 작성 시 장비 금액을 직접 입력한 경우 해당 금액이 우선 적용됩니다.<br><br>
-
-      <b style="color:#1a3a2a;">합계</b><br>
-      인력 소계 + 장비 소계를 합산하여 총액을 표시합니다.<br><br>
+      <b style="color:#1a3a2a;">🚜 장비 정산</b><br>
+      장비명별 투입 시간·일수를 자동 합산합니다.<br>
+      단가 입력 → 합계 자동 계산. <b>부가세 10%</b> 체크박스로 VAT 포함 총액 계산 가능.<br>
+      일보에 금액이 직접 입력된 경우 해당 금액을 그대로 사용합니다.<br><br>
 
       <b style="color:#1a3a2a;">💾 단가 저장</b><br>
-      입력한 단가를 저장합니다. 다음에 정산 페이지를 열면 저장된 단가가 자동으로 불러와집니다.<br>
+      입력한 단가를 저장하면 다음 방문 시 자동으로 불러와집니다.<br>
+      <b>공사명을 선택한 상태로 저장하면 해당 현장 전용 단가로 저장됩니다.</b> 같은 사람이라도 현장별로 다른 단가를 쓸 수 있습니다. 현장별 단가가 없으면 공통 단가로 폴백합니다.<br>
       <b style="color:#dc2626;">저장 버튼을 누르지 않으면 단가가 유지되지 않습니다.</b><br><br>
 
-      <b style="color:#1a3a2a;">데이터 불러오기</b><br>
-      • <b>📥 데이터 불러오기</b> — PC 일보·모바일에서 내보낸 JSON 파일 병합<br>
-      • <b>📤 병합 내보내기</b> — 현재 데이터를 JSON으로 내보내기<br><br>
+      <b style="color:#1a3a2a;">📦 통합 파일로 저장</b><br>
+      불러온 데이터를 하나의 JSON 파일로 합쳐서 저장합니다. 데이터 백업·이관에 활용하세요.<br><br>
 
       <b style="color:#1a3a2a;">🖨️ PDF 인쇄</b><br>
-      인쇄 버튼을 누르면 헤더·필터 영역은 숨겨지고 정산 결과만 인쇄됩니다.
+      헤더·필터 영역은 숨겨지고 정산 결과만 인쇄됩니다.
     </div>
   </div>
 
@@ -126,8 +140,9 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
   <!-- 필터 -->
   <div class="filter-panel">
     <div class="fg"><label>공사명</label><select id="r-project"><option value="">전체</option></select></div>
-    <div class="fg"><label>시작일</label><input id="r-from" placeholder="시작일" disabled></div>
-    <div class="fg"><label>종료일</label><input id="r-to" placeholder="종료일" disabled></div>
+    <div class="fg" id="company-fg" style="display:none"><label>시공사</label><span id="r-company" style="padding:6px 8px;font-size:12px;color:#333;background:#f0f7ee;border-radius:6px;border:1.5px solid #b7e4c7;min-width:80px;display:inline-block;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;"></span></div>
+    <div class="fg"><label>시작일</label><input id="r-from" type="date" disabled></div>
+    <div class="fg"><label>종료일</label><input id="r-to" type="date" disabled></div>
     <button class="btn-calc" id="btn-calculate" onclick="calculate()" disabled style="opacity:0.4;cursor:not-allowed;">📊 정산하기</button>
     <button class="btn-save-price" onclick="savePrices()">💾 단가 저장</button>
     <button class="btn-save-price" onclick="document.getElementById('import-transfer-input').click()" style="background:#fff3cd;color:#856404;border-color:#ffc107;">📥 데이터 불러오기</button>
@@ -195,18 +210,24 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
   </div>
 
 </div>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script>
-  const fpOpts = {
-    dateFormat:'Y-m-d',
-    locale:{ firstDayOfWeek:0,
-      weekdays:{shorthand:['일','월','화','수','목','금','토'],longhand:['일','월','화','수','목','금','토']},
-      months:{shorthand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
-              longhand:['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월']} }
-  };
-  flatpickr('#r-from', fpOpts);
-  flatpickr('#r-to', fpOpts);
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a3a2a;color:white;padding:11px 22px;border-radius:8px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.25);white-space:nowrap;pointer-events:none;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  // 포커스를 빼앗지 않는 인페이지 확인 모달
+  function showConfirm(msg, okLabel, cancelLabel, onOk, onCancel) {
+    const ov = document.createElement('div');
+    ov.className = 'modal-overlay open';
+    ov.innerHTML = `<div class="modal-box"><p>${msg.replace(/\n/g,'<br>')}</p><div class="modal-btns"><button class="modal-btn-cancel">${cancelLabel||'취소'}</button><button class="modal-btn-ok">${okLabel||'확인'}</button></div></div>`;
+    document.body.appendChild(ov);
+    ov.querySelector('.modal-btn-ok').onclick = () => { ov.remove(); if (onOk) onOk(); };
+    ov.querySelector('.modal-btn-cancel').onclick = () => { ov.remove(); if (onCancel) onCancel(); };
+  }
 
   function fmt(n) { return Math.round(n).toLocaleString('ko-KR'); }
   function getDailyLogs() {
@@ -236,19 +257,30 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
   // 모바일 전송 데이터 불러오기 (daily_logs 병합)
   function importTransferData(input) {
     const files = [...input.files]; if (!files.length) return;
-    let totalCnt = 0, doneCnt = 0;
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        try { totalCnt += mergeLogData(JSON.parse(e.target.result)); } catch { /* skip */ }
-        if (++doneCnt === files.length) {
-          checkDataReady();
-          input.value = '';
-          alert(`✅ ${files.length}개 파일에서 ${totalCnt}건의 일보 데이터를 불러왔습니다.\n정산하기를 눌러 확인하세요.`);
-        }
-      };
-      reader.readAsText(file);
-    });
+    const existing = JSON.parse(localStorage.getItem('daily_logs') || '{}');
+    const hasData = Object.keys(existing).length > 0;
+    function doImport(reset) {
+      if (reset) localStorage.removeItem('daily_logs');
+      let totalCnt = 0, doneCnt = 0;
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          try { totalCnt += mergeLogData(JSON.parse(e.target.result)); } catch { /* skip */ }
+          if (++doneCnt === files.length) {
+            checkDataReady();
+            input.value = '';
+            showToast(`✅ ${files.length}개 파일, ${totalCnt}건 불러왔습니다`);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+    if (hasData) {
+      showConfirm('기존 데이터를 초기화하고 새로 불러올까요?', '초기화 후 불러오기', '기존에 추가',
+        () => doImport(true), () => doImport(false));
+    } else {
+      doImport(false);
+    }
   }
 
   // Electron 환경 감지 후 버튼 표시
@@ -259,7 +291,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
   async function loadFromDataDir() {
     if (!window.electronAPI) return;
     const files = await window.electronAPI.dataList();
-    if (!files.length) { alert('data 폴더에 JSON 파일이 없습니다.'); return; }
+    if (!files.length) { showToast('data 폴더에 JSON 파일이 없습니다.'); return; }
     let totalCnt = 0;
     for (const fname of files) {
       try {
@@ -270,7 +302,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     }
     checkDataReady();
     const dirPath = await window.electronAPI.dataDirPath();
-    alert(`✅ data 폴더에서 ${files.length}개 파일, ${totalCnt}건 불러왔습니다.\n경로: ${dirPath}`);
+    showToast(`✅ ${files.length}개 파일, ${totalCnt}건 불러왔습니다`);
   }
 
   function mergeLogData(data) {
@@ -309,7 +341,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
 
   async function exportMerged() {
     const logs = getDailyLogs();
-    if (!Object.keys(logs).length) { alert('저장된 일보 데이터가 없습니다.'); return; }
+    if (!Object.keys(logs).length) { showToast('저장된 일보 데이터가 없습니다.'); return; }
     const payload = {
       _type: 'daily_logs_transfer',
       _date: new Date().toISOString(),
@@ -321,7 +353,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     const content = JSON.stringify(payload, null, 2);
     if (window.electronAPI) {
       const dirPath = await window.electronAPI.dataSave(fname, content);
-      alert(`✅ data 폴더에 저장됐습니다.\n경로: ${dirPath}\\${fname}`);
+      showToast(`✅ 저장됐습니다: ${fname}`);
     } else {
       const blob = new Blob([content], {type:'application/json'});
       const a = document.createElement('a');
@@ -332,20 +364,66 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     }
   }
 
-  // 공사명 목록 로드
+  // 공사명·시공사 목록 로드
   function loadProjects() {
     const logs = getDailyLogs();
-    const projects = [...new Set(Object.values(logs).map(l=>l.project).filter(Boolean))].sort();
+    const logVals = Object.values(logs);
+
+    // 공사명: 로그값의 project 또는 키의 || 앞부분
+    const rawLogs = JSON.parse(localStorage.getItem('daily_logs')||'{}');
+    const projFromKeys = Object.keys(rawLogs)
+      .filter(k => k.includes('||'))
+      .map(k => k.split('||')[0])
+      .filter(Boolean);
+    const projFromVals = logVals.map(l=>l.project).filter(Boolean);
+    const projects = [...new Set([...projFromVals, ...projFromKeys])].sort();
+
     const sel = document.getElementById('r-project');
     sel.innerHTML = '<option value="">전체</option>' + projects.map(p=>`<option value="${p}">${p}</option>`).join('');
+    if (projects.length === 1) sel.value = projects[0];
+
+    // 시공사: 로그값의 company
+    const companies = [...new Set(logVals.map(l=>l.company).filter(Boolean))].sort();
+    const compFg = document.getElementById('company-fg');
+    const compEl = document.getElementById('r-company');
+    if (compFg && compEl) {
+      if (companies.length) {
+        compEl.textContent = companies.join(', ');
+        compEl.title = companies.join(', ');
+        compFg.style.display = '';
+      } else {
+        compFg.style.display = 'none';
+      }
+    }
+  }
+
+  // 기간 자동 설정 (데이터 로드 후)
+  function autoSetDateRange() {
+    const logs = getDailyLogs();
+    const dates = Object.values(logs).map(l=>l.date).filter(d=>d&&/^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+    if (!dates.length) return;
+    const rFrom = document.getElementById('r-from');
+    const rTo   = document.getElementById('r-to');
+    if (!rFrom.value) rFrom.value = dates[0];
+    if (!rTo.value)   rTo.value   = dates[dates.length - 1];
   }
 
   function calculate() {
+    document.getElementById('btn-calculate').blur();
     const from = document.getElementById('r-from').value;
     const to   = document.getElementById('r-to').value;
     const proj = document.getElementById('r-project').value;
     const logs = getDailyLogs();
+    // 저장된 단가 + 현재 화면에 입력된 단가 병합 (재정산 시 입력값 보존)
     const prices = getPrices();
+    document.querySelectorAll('#man-body tr[data-type="man"]').forEach(tr => {
+      const val = parseFloat(tr.querySelector('.price-input')?.value);
+      if (val && tr.dataset.key) prices.man[tr.dataset.key] = val;
+    });
+    document.querySelectorAll('#eq-body tr[data-type="eq"]').forEach(tr => {
+      const val = parseFloat(tr.querySelector('.price-input')?.value);
+      if (val && tr.dataset.key) prices.eq[tr.dataset.key] = val;
+    });
 
     const filtered = Object.entries(logs).map(([key, log]) => {
       const date = key.includes('||') ? key.split('||')[1] : key;
@@ -357,28 +435,30 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
       return true;
     });
 
-    if (!filtered.length) { alert('해당 기간에 저장된 일보가 없습니다.'); return; }
+    if (!filtered.length) { showToast('해당 기간에 저장된 일보가 없습니다.'); return; }
 
-    // 인력 집계 (성명+직종 기준)
+    // 인력 집계 — 전체 보기 시 현장별로 분리, 현장 지정 시 성명+직종 기준
     const manMap = {};
     filtered.forEach(([date, log]) => {
       (log.man||[]).forEach(m => {
         if (!m.name && !m.job) return;
-        const key = (m.name||'미입력') + '||' + (m.job||'');
-        if (!manMap[key]) manMap[key] = { job:m.job||'', name:m.name||'미입력', gongsu:0, days:0 };
+        const rowProj = !proj ? (log.project||'') : '';
+        const key = rowProj + '¶' + (m.name||'미입력') + '||' + (m.job||'');
+        if (!manMap[key]) manMap[key] = { job:m.job||'', name:m.name||'미입력', gongsu:0, days:0, project:rowProj };
         const g = parseFloat(m.gongsu||0);
         manMap[key].gongsu += g;
         if (g > 0) manMap[key].days++;
       });
     });
 
-    // 장비 집계 (장비명+규격 기준)
+    // 장비 집계 — 전체 보기 시 현장별로 분리
     const eqMap = {};
     filtered.forEach(([date, log]) => {
       (log.eq||[]).forEach(e => {
         if (!e.name) return;
-        const key = e.name + '||' + (e.spec||'');
-        if (!eqMap[key]) eqMap[key] = { name:e.name, spec:e.spec||'', hours:0, days:0, directAmount:0 };
+        const rowProj = !proj ? (log.project||'') : '';
+        const key = rowProj + '¶' + e.name + '||' + (e.spec||'');
+        if (!eqMap[key]) eqMap[key] = { name:e.name, spec:e.spec||'', hours:0, days:0, directAmount:0, project:rowProj };
         const h = parseFloat(e.today||0);
         eqMap[key].hours += h;
         const amt = parseFloat(e.amount||0);
@@ -387,76 +467,98 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
       });
     });
 
-    renderManTable(Object.values(manMap), prices);
-    renderEqTable(Object.values(eqMap), prices);
-    updateSummary();
+    // result-area를 먼저 show → 브라우저가 이 시점에 페인트
+    // 테이블 렌더링은 다음 이벤트 루프 태스크(setTimeout 0)로 분리
+    // → JS 태스크 분리 없이 show+렌더를 같이 하면 브라우저가 한꺼번에 레이아웃 계산해 입력이 수초간 막힘
     document.getElementById('result-area').classList.add('show');
 
-    // 인쇄용 헤더
     const dateRange = (from||'전체') + ' ~ ' + (to||'전체');
+    const companies = [...new Set(filtered.map(([, log]) => log.company).filter(Boolean))];
+    const companyStr = companies.length ? companies.join(', ') : '';
     document.getElementById('print-header').innerHTML = `
       <div style="text-align:center;margin-bottom:10px;">
         <div style="font-size:22px;font-weight:800;letter-spacing:8px;margin-bottom:4px;">정  산  서</div>
-        <div style="font-size:12px;color:#555;">공사명: ${proj||'전체'} &nbsp;|&nbsp; 기간: ${dateRange}</div>
+        <div style="font-size:12px;color:#555;">공사명: ${proj||'전체'}${companyStr ? ' &nbsp;|&nbsp; 시공사: '+companyStr : ''} &nbsp;|&nbsp; 기간: ${dateRange}</div>
       </div>`;
+
+    const manRows = Object.values(manMap);
+    const eqRows  = Object.values(eqMap);
+    setTimeout(() => {
+      renderManTable(manRows, prices, proj);
+      renderEqTable(eqRows, prices, proj);
+      updateSummary();
+      // Electron: 렌더링 완료 후 result-area로 포커스 이동 → price-input 첫 클릭 즉시 반응
+      const ra = document.getElementById('result-area');
+      ra.setAttribute('tabindex', '-1');
+      ra.focus({ preventScroll: true });
+    }, 0);
   }
 
-  function renderManTable(rows, prices) {
+  function renderManTable(rows, prices, proj) {
     const tbody = document.getElementById('man-body');
-    tbody.innerHTML = '';
-    let total = 0;
-    rows.sort((a,b) => a.name.localeCompare(b.name)).forEach(r => {
-      const priceKey = r.name;
-      const saved = prices.man[priceKey] || '';
+    const frag = document.createDocumentFragment();
+    rows.sort((a,b) => (a.project+a.name).localeCompare(b.project+b.name)).forEach(r => {
+      const baseKey = r.name;
+      const effectiveProj = proj || r.project;
+      const priceKey = effectiveProj ? effectiveProj + '||' + baseKey : baseKey;
+      const saved = prices.man[priceKey] ?? prices.man[baseKey] ?? '';
+      const savedNum = parseFloat(saved) || 0;
+      const gongsuStr = r.gongsu % 1 === 0 ? r.gongsu.toFixed(0) : r.gongsu.toFixed(1);
+      const amt = savedNum * r.gongsu;
+      const amtStr = amt > 0 ? fmt(amt) + ' 원' : '';
+      const projTag = (!proj && r.project) ? `<br><span style="font-size:10px;color:#888;background:#f0f0f0;border-radius:3px;padding:1px 4px;">${r.project}</span>` : '';
       const tr = document.createElement('tr');
       tr.dataset.type = 'man';
       tr.dataset.key = priceKey;
       tr.innerHTML = `
         <td class="left">${r.job}</td>
-        <td class="left">${r.name}</td>
-        <td>${r.gongsu % 1 === 0 ? r.gongsu.toFixed(0) : r.gongsu.toFixed(1)}</td>
+        <td class="left">${r.name}${projTag}</td>
+        <td>${gongsuStr}</td>
         <td>${r.days}</td>
-        <td><input class="price-input" type="number" placeholder="단가 입력" value="${saved}" onchange="recalcRow(this)" oninput="recalcRow(this)"></td>
-        <td class="amount-cell" style="font-weight:700;"></td>
+        <td><input class="price-input" type="text" placeholder="단가 입력" value="${saved}" onchange="recalcRow(this)" oninput="recalcRow(this)"></td>
+        <td class="amount-cell" style="font-weight:700;">${amtStr}</td>
         <td></td>`;
-      tbody.appendChild(tr);
-      recalcRow(tr.querySelector('.price-input'));
+      frag.appendChild(tr);
     });
-    // 소계 행
     const sub = document.createElement('tr');
     sub.className = 'subtotal';
     sub.id = 'man-subtotal';
     sub.innerHTML = `<td colspan="5" style="text-align:right;">인력 소계</td><td id="man-sub-amt" style="font-weight:700;"></td><td></td>`;
-    tbody.appendChild(sub);
-    updateSummary();
+    frag.appendChild(sub);
+    tbody.innerHTML = '';
+    tbody.appendChild(frag);
   }
 
-  function renderEqTable(rows, prices) {
+  function renderEqTable(rows, prices, proj) {
     const tbody = document.getElementById('eq-body');
-    tbody.innerHTML = '';
-    rows.sort((a,b) => a.name.localeCompare(b.name)).forEach(r => {
-      const priceKey = r.name + (r.spec ? `(${r.spec})` : '');
-      const saved = prices.eq[priceKey] || '';
+    const frag = document.createDocumentFragment();
+    rows.sort((a,b) => (a.project+a.name).localeCompare(b.project+b.name)).forEach(r => {
+      const baseKey = r.name + (r.spec ? `(${r.spec})` : '');
+      const effectiveProj = proj || r.project;
+      const priceKey = effectiveProj ? effectiveProj + '||' + baseKey : baseKey;
+      const saved = prices.eq[priceKey] ?? prices.eq[baseKey] ?? '';
+      const hasDirect = r.directAmount > 0;
+      const projTag = (!proj && r.project) ? `<br><span style="font-size:10px;color:#888;background:#f0f0f0;border-radius:3px;padding:1px 4px;">${r.project}</span>` : '';
       const tr = document.createElement('tr');
       tr.dataset.type = 'eq';
       tr.dataset.key = priceKey;
-      tr.dataset.directAmount = r.directAmount > 0 ? r.directAmount : '';
+      tr.dataset.directAmount = hasDirect ? r.directAmount : '';
       tr.innerHTML = `
-        <td class="left">${r.name}</td>
+        <td class="left">${r.name}${projTag}</td>
         <td>${r.spec}</td>
         <td>${r.days > 0 ? r.days : '-'}</td>
-        <td><input class="price-input" type="number" placeholder="단가 입력" value="${saved}" onchange="recalcRow(this)" oninput="recalcRow(this)"></td>
-        <td><input class="amount-direct" type="number" placeholder="금액" value="${r.directAmount > 0 ? r.directAmount : ''}" onchange="updateSummary()" oninput="updateSummary()" style="width:100%;padding:5px 6px;border:1px solid ${r.directAmount > 0 ? '#9bc8e8' : '#ddd'};border-radius:4px;font-size:12px;font-family:inherit;text-align:right;background:${r.directAmount > 0 ? '#e8f4fd' : '#fffde7'};"></td>
+        <td><input class="price-input" type="text" placeholder="단가 입력" value="${saved}" onchange="recalcRow(this)" oninput="recalcRow(this)"></td>
+        <td><input class="amount-direct" type="text" placeholder="금액" value="${hasDirect ? r.directAmount : ''}" onchange="updateSummary()" oninput="updateSummary()" style="width:100%;padding:5px 6px;border:1px solid ${hasDirect ? '#9bc8e8' : '#ddd'};border-radius:4px;font-size:12px;font-family:inherit;text-align:right;background:${hasDirect ? '#e8f4fd' : '#fffde7'};"></td>
         <td></td>`;
-      tbody.appendChild(tr);
-      recalcRow(tr.querySelector('.price-input'));
+      frag.appendChild(tr);
     });
     const sub = document.createElement('tr');
     sub.className = 'subtotal';
     sub.id = 'eq-subtotal';
     sub.innerHTML = `<td colspan="3" style="text-align:right;">장비 소계</td><td></td><td id="eq-sub-amt" style="font-weight:700;"></td><td></td>`;
-    tbody.appendChild(sub);
-    updateSummary();
+    frag.appendChild(sub);
+    tbody.innerHTML = '';
+    tbody.appendChild(frag);
   }
 
   function recalcRow(input) {
@@ -511,7 +613,13 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
   }
 
   function exportExcel() {
-    if (!window.XLSX) { alert('엑셀 라이브러리를 불러오는 중입니다. 잠시 후 다시 시도하세요.'); return; }
+    if (!window.XLSX) {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js';
+      s.onload = () => exportExcel();
+      document.head.appendChild(s);
+      return;
+    }
     const proj  = document.getElementById('r-project').value || '전체';
     const from  = document.getElementById('r-from').value  || '';
     const to    = document.getElementById('r-to').value    || '';
@@ -574,7 +682,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
   }
 
   function savePrices() {
-    const prices = { man:{}, eq:{} };
+    const prices = getPrices(); // 기존 단가(다른 현장 포함) 보존하며 병합
     document.querySelectorAll('#man-body tr[data-type="man"]').forEach(tr => {
       const val = parseFloat(tr.querySelector('.price-input').value);
       if (val) prices.man[tr.dataset.key] = val;
@@ -584,7 +692,8 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
       if (val) prices.eq[tr.dataset.key] = val;
     });
     localStorage.setItem('unit_prices', JSON.stringify(prices));
-    alert('단가가 저장되었습니다.');
+    const proj = document.getElementById('r-project').value;
+    showToast(proj ? `단가가 저장되었습니다. (${proj})` : '단가가 저장되었습니다.');
   }
 
   function checkDataReady() {
@@ -596,7 +705,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     btn.style.opacity = hasData ? '1' : '0.4';
     btn.style.cursor = hasData ? 'pointer' : 'not-allowed';
     document.getElementById('no-data-msg').style.display = hasData ? 'none' : 'block';
-    if (hasData) loadProjects();
+    if (hasData) { loadProjects(); autoSetDateRange(); }
   }
 
   loadProjects();
@@ -629,6 +738,13 @@ body { font-family:'Noto Sans KR',sans-serif; background:#f5f5f0; color:#111; fo
     document.addEventListener('mousemove', e => move(e.clientX, e.clientY));
     document.addEventListener('mouseup', end);
   })();
+</script>
+<script>
+  // Electron 환경에서 모바일 링크 숨김
+  if (window.electronAPI) {
+    const ml = document.getElementById('link-mobile');
+    if (ml) ml.style.display = 'none';
+  }
 </script>
 </body>
 </html>

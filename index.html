@@ -11,7 +11,7 @@
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Nanum+Gothic:wght@700;800&display=swap');
   :root {
     --bg: #f5f5f0;
-    --border: #222;
+    --border: #aaa;
     --light-border: #999;
     --header-bg: #f0f0f0;
     --green: #1a3a2a;
@@ -94,14 +94,14 @@
       margin: 22mm 14mm 1mm 14mm;
     }
 
-    :root { --border: #222; }
+    :root { --border: #aaa; }
 
-    .doc-wrap { width: 100%; font-size: 9px; }
-    .doc-main-title { font-size: 26px; }
-    .approval-table td { min-width: 48px; padding: 3px 6px; font-size: 9px; border: 0.5px solid #222; }
+    .doc-wrap { width: 100%; font-size: 10px; }
+    .doc-main-title { font-size: 28px; }
+    .approval-table td { min-width: 48px; padding: 3px 6px; font-size: 10px; border: 0.5px solid #aaa; }
     .approval-table .ap-sign { height: 54px; }
-    .doc-main td, .doc-main th { padding: 4px 3px; font-size: 10px; border: 0.5px solid #222; }
-    .doc-main .th-sub { font-size: 9px; }
+    .doc-main td, .doc-main th { padding: 4px 3px; font-size: 11px; border: 0.5px solid #aaa; }
+    .doc-main .th-sub { font-size: 10px; }
     thead { display: table-row-group; }
     .doc-wrap { page-break-inside: avoid; }
   }
@@ -123,7 +123,7 @@
   .page-break { border-top: 1px dashed #ccc; margin-top: 24px; padding-top: 20px; }
   @media print { .page-break { border-top: none; margin-top: 0; padding-top: 0; page-break-before: always; } }
 </style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="flatpickr.min.css">
 </head>
 <body>
 <div class="app">
@@ -131,7 +131,7 @@
   <!-- 입력 패널 -->
   <div class="input-panel">
     <div class="input-panel-header" style="display:flex;justify-content:space-between;align-items:center;">
-      <span>📋 작업일보<br><span style="font-size:10px;font-weight:400;opacity:0.6;margin-left:30px;">V 0.602.0</span></span>
+      <span>📋 작업일보<br><span style="font-size:10px;font-weight:400;opacity:0.6;margin-left:30px;">V 0.611.20</span></span>
 <a href="report.html" style="color:rgba(255,255,255,0.75);font-size:11px;text-decoration:none;border:1px solid rgba(255,255,255,0.4);border-radius:4px;padding:2px 8px;margin-left:4px;">📊 정산</a>
       <button onclick="openCalc()" style="color:rgba(255,255,255,0.75);font-size:11px;background:none;border:1px solid rgba(255,255,255,0.4);border-radius:4px;padding:2px 8px;margin-left:4px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🔧 계산기</button>
       <button onclick="openHelp()" style="color:rgba(255,255,255,0.75);font-size:11px;background:none;border:1px solid rgba(255,255,255,0.4);border-radius:4px;padding:2px 8px;margin-left:4px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📖 도움말</button>
@@ -155,20 +155,13 @@
           <input id="i-company" type="hidden">
         </div>
       </div>
-      <div class="row3" style="grid-template-columns: 0.9fr 1fr 1.1fr;">
-        <div class="fg">
-          <label>작성일</label>
-          <input id="i-date" placeholder="날짜 선택" style="width:100%; cursor:pointer;">
-        </div>
+      <div class="row2">
         <div class="fg"><label>날씨</label>
           <select id="i-weather"><option>맑음 ☀️</option><option>흐림 ☁️</option><option>비 🌧️</option><option>눈 ❄️</option><option>강풍 💨</option></select>
         </div>
         <div class="fg">
-          <label>기온 <span id="weather-status" style="font-weight:400; color:#888; font-size:10px;"></span></label>
-          <div style="display:flex; gap:4px;">
-            <input id="i-temp" placeholder="최저/최고" style="flex:1;">
-            <button onclick="getWeather()" style="padding:0 8px; background:#d8f3dc; color:#2d6a4f; border:1.5px solid #52b788; border-radius:6px; cursor:pointer; font-size:11px; font-weight:700; white-space:nowrap;">📍자동</button>
-          </div>
+          <label>작성일</label>
+          <input id="i-date" placeholder="날짜 선택" style="width:100%; cursor:pointer;">
         </div>
       </div>
 
@@ -221,6 +214,15 @@
       </div>
       <button class="btn-add" onclick="addMt()">+ 자재 추가</button>
 
+      <!-- 현장 사진 -->
+      <div class="sec-title" style="margin-top:10px;">📷 현장 사진</div>
+      <div id="photo-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;"></div>
+      <label style="display:block;width:100%;padding:8px;background:#f0f7ee;color:#2d6a4f;border:1.5px dashed #52b788;border-radius:7px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;font-family:'Noto Sans KR',sans-serif;" id="photo-add-label">
+        📷 사진 추가 (최대 6장)
+        <input type="file" accept="image/*" multiple id="photo-input" style="display:none;" onchange="addPhotos(event)">
+      </label>
+      <div style="font-size:10px;color:#aaa;margin-top:3px;margin-bottom:6px;">사진은 자동 압축되어 일보 데이터에 포함됩니다.</div>
+
       <!-- 작업내용 / 계획 -->
       <div class="sec-title" style="display:flex;justify-content:space-between;align-items:center;">
         <span>📝 작업 내용 / 계획</span>
@@ -261,7 +263,7 @@
         <button onclick="backupAll()" style="padding:8px; background:#f3e8fd; color:#5a1a8a; border:1.5px solid #c8a0e8; border-radius:8px; font-size:11px; font-weight:700; font-family:'Noto Sans KR',sans-serif; cursor:pointer;" title="모든 데이터를 파일로 백업">💾 전체 백업</button>
         <button onclick="restoreAll()" style="padding:8px; background:#fff8e8; color:#8b5e3c; border:1.5px solid #f4d488; border-radius:8px; font-size:11px; font-weight:700; font-family:'Noto Sans KR',sans-serif; cursor:pointer;" title="백업 파일로 복원">📂 전체 복원</button>
       </div>
-      <button onclick="resetAll()" style="width:100%; margin-top:8px; padding:9px; background:none; color:#bbb; border:1px solid #ddd; border-radius:8px; font-size:12px; font-family:'Noto Sans KR',sans-serif; cursor:pointer;" onmouseover="this.style.color='#dc2626'; this.style.borderColor='#fca5a5';" onmouseout="this.style.color='#bbb'; this.style.borderColor='#ddd';">전체 초기화</button>
+      <button onclick="resetAll()" style="width:100%; margin-top:8px; padding:9px; background:#fff5f5; color:#dc2626; border:1.5px solid #fca5a5; border-radius:8px; font-size:12px; font-weight:700; font-family:'Noto Sans KR',sans-serif; cursor:pointer;">🗑️ 전체 초기화</button>
     </div>
   </div>
 
@@ -286,39 +288,49 @@
   <div style="overflow-y:auto;padding:14px;font-size:11px;line-height:1.9;color:#444;">
 
     <b style="color:#1a3a2a;">⚙️ 기본설정</b><br>
-    공사명·시공사·직종·성명·장비명·현장대리인 목록 추가·삭제. 공사명별로 일보가 분리 저장됩니다.<br><br>
+    공사명·시공사·직종·성명·장비명·현장대리인 목록 추가·삭제.<br>
+    공사명별로 일보가 분리 저장됩니다.<br><br>
 
     <b style="color:#1a3a2a;">📅 작성일</b><br>
-    저장된 날짜는 초록 점(●) 표시. 날짜 선택 후 <b>📥 불러오기</b>로 JSON 파일을 가져오면 해당 일보가 폼에 자동 입력됩니다.<br>
-    불러올 때 일보의 직종·성명·장비명이 목록에 없으면 자동 추가됩니다.<br><br>
+    저장된 날짜는 달력에 초록 점(●) 표시.<br>
+    날짜 선택 후 <b>📥 불러오기</b>로 단일 일보 JSON 파일을 가져오면 폼에 자동 입력됩니다.<br>
+    모바일 앱 <b>📦 데이터 전송</b>으로 받은 파일(일보전송_*.json)도 불러오기로 가져올 수 있으며, 전체 일보가 자동 병합됩니다.<br>
+    불러올 때 직종·성명·장비명이 목록에 없으면 자동 추가됩니다.<br><br>
 
-    <b style="color:#1a3a2a;">기온 📍자동</b><br>
+    <b style="color:#1a3a2a;">날씨·기온 📍자동</b><br>
     GPS 기반 최저·최고 기온·날씨 자동 입력. 위치 권한 및 인터넷 연결 필요.<br><br>
 
     <b style="color:#1a3a2a;">👷 인력 투입</b><br>
-    직종·성명 드롭다운 선택. 공수 직접 입력 (0.5/1.0 또는 숫자). 헤더 합계 배지 실시간 표시.<br>
-    ⏮ 전날 복사: 전날 인력·장비 한번에 복사. 누계: 일보 생성 시 과거 기록 합산 자동 계산.<br><br>
+    직종·성명 드롭다운 선택. 공수 직접 입력 (0.5/1.0 또는 숫자). 헤더 배지 실시간 표시.<br>
+    ⏮ 전날 복사: 전날 인력·장비 한번에 복사.<br>
+    <b>누계</b> — 같은 공사명·같은 달 기준, 당일 이전 합산 자동 계산. 월이 바뀌면 초기화.<br><br>
 
     <b style="color:#1a3a2a;">🚜 장비 투입</b><br>
-    장비명·기사명·시간 입력. <b>금액(원)</b> 직접 입력 시 미리보기에 표시되고 정산 시 단가 계산 대신 해당 금액 사용. 금액은 천단위 콤마로 표시됩니다.<br><br>
+    장비명·기사명·시간 입력. <b>금액(원)</b> 직접 입력 시 정산 시 단가 계산 대신 해당 금액 사용. 금액은 천단위 콤마 표시.<br><br>
 
     <b style="color:#1a3a2a;">📦 자재 반입</b><br>
     품명·규격·단위·수량·거래처 입력.<br><br>
+
+    <b style="color:#1a3a2a;">📷 현장 사진</b><br>
+    최대 6장 추가. 자동 압축(JPEG) 저장. 일지 미리보기 하단에 현장 사진표로 출력.<br>
+    모바일에서 사진 포함해 가져온 데이터도 그대로 표시됩니다.<br><br>
 
     <b style="color:#1a3a2a;">📝 작업내용 템플릿</b><br>
     💾 저장 → 이름 붙여 저장 / 📂 불러오기 → 목록에서 선택 적용.<br><br>
 
     <b style="color:#1a3a2a;">버튼 안내</b><br>
     • <b>📄 일지 생성하기</b> — 미리보기 생성 + 저장 + 누계 계산<br>
-    • <b>📤 내보내기</b> — 최종 제출·잠금 + JSON 다운로드<br>
-    • <b>📥 불러오기</b> — JSON 파일 → 폼 자동 입력<br>
+    • <b>📤 내보내기</b> — 최종 제출·잠금 + JSON 파일 다운로드<br>
+    • <b>📥 불러오기</b> — 단일 일보 JSON → 폼 자동 입력 / 모바일 전송 파일(일보전송_*.json) → 전체 일보 자동 병합<br>
     • <b>💾 전체 백업 / 📂 복원</b> — 전체 데이터 JSON 저장·복원<br>
     • <b>🖨️ 인쇄</b> — PDF 저장 / 인쇄<br>
     • <b>🔧 계산기</b> — 수목중량·면적·근분 규격표<br>
-    • <b>전체 초기화</b> — 모든 데이터 삭제 <b style="color:#dc2626;">(되돌릴 수 없음)</b><br><br>
+    • <b>🗑️ 전체 초기화</b> — 모든 데이터 삭제 <b style="color:#dc2626;">(되돌릴 수 없음)</b><br><br>
 
-    <b style="color:#dc6a00;">🔄 재작성</b><br>
-    잠금 배너 → 🔄 재작성 → 사유 입력 → 수정 → 재제출. 재작성 이력 자동 기록.
+    <b style="color:#1a3a2a;">🔒 잠금 상태 버튼</b><br>
+    • <b>✏️ 새 일보</b> — 잠긴 상태에서 새 날짜 일보를 바로 작성. 입력 내용 초기화 후 시작.<br>
+    • <b>🔄 재작성</b> — 잠긴 일보 수정 시. 사유 입력 → 수정 → 📤 내보내기로 재제출.<br>
+    재작성 이력(시간·사유)이 내보낸 파일에 자동 기록됩니다.
 
   </div>
 </div>
@@ -560,6 +572,7 @@
           <div style="display:flex;gap:4px;">
             <input id="sm-folder-path" readonly placeholder="폴더를 선택해주세요" style="flex:1;padding:6px 8px;border:1.5px solid #ddd;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif;background:#f5f5f5;outline:none;">
             <button onclick="selectStorageFolder()" style="padding:0 10px;background:#d8f3dc;color:#2d6a4f;border:1.5px solid #52b788;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap;">폴더 선택</button>
+            <button onclick="openStorageFolder()" style="padding:0 10px;background:#e8f4fd;color:#1a6496;border:1.5px solid #a0c8e8;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap;">📂 열기</button>
           </div>
           <div id="sm-status" style="font-size:10px;color:#52b788;margin-top:4px;"></div>
         </div>
@@ -572,9 +585,10 @@
 <datalist id="names-datalist"></datalist>
 <datalist id="equip-datalist"></datalist>
 <datalist id="gongsu-opts"><option value="0.5"><option value="1.0"></datalist>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="flatpickr.min.js"></script>
 <script>
   let fpInstance;
+  let photoDataList = [];
   function initDatePicker() {
     const toDateStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     fpInstance = flatpickr('#i-date', {
@@ -589,41 +603,18 @@
       },
       onChange(dates, dateStr) {
         checkLogExists(dateStr);
+        // 잠금 상태에서 저장 기록 없는 날짜로 이동 시 자동 unlock
+        const banner = document.getElementById('pc-lock-banner');
+        if (banner && banner.style.display !== 'none') {
+          const logs = getDailyLogs();
+          const hasLog = Object.keys(logs).some(k => k === dateStr || k.endsWith('||' + dateStr));
+          if (!hasLog) setPcLockMode(false, null);
+        }
       },
       onReady() {
         checkLogExists(toDateStr(new Date()));
       }
     });
-  }
-
-  function getWeather() {
-    const status = document.getElementById('weather-status');
-    if (!navigator.geolocation) { status.textContent = '위치 사용 불가'; return; }
-    status.textContent = '위치 확인 중...';
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lon } = pos.coords;
-        status.textContent = '날씨 가져오는 중...';
-        try {
-          const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=Asia%2FSeoul&forecast_days=1`;
-          const res  = await fetch(url);
-          const data = await res.json();
-          const tMax  = Math.round(data.daily.temperature_2m_max[0]);
-          const tMin  = Math.round(data.daily.temperature_2m_min[0]);
-          const wcode = data.daily.weathercode[0];
-          document.getElementById('i-temp').value = `최저 ${tMin}°C / 최고 ${tMax}°C`;
-          const sel = document.getElementById('i-weather');
-          if (wcode === 0 || wcode === 1) sel.value = '맑음 ☀️';
-          else if (wcode <= 48) sel.value = '흐림 ☁️';
-          else if (wcode <= 67 || (wcode >= 80 && wcode <= 82)) sel.value = '비 🌧️';
-          else if (wcode <= 77 || (wcode >= 85 && wcode <= 86)) sel.value = '눈 ❄️';
-          else if (wcode >= 95) sel.value = '비 🌧️';
-          status.textContent = '✓ 자동 입력됨';
-          setTimeout(() => status.textContent = '', 3000);
-        } catch(e) { status.textContent = '가져오기 실패'; }
-      },
-      () => { status.textContent = '위치 권한 거부됨'; }
-    );
   }
 
   // ===== 공사명 관리 =====
@@ -795,9 +786,8 @@
     });
     const data = {
       date, weather: document.getElementById('i-weather').value,
-      temp: document.getElementById('i-temp').value,
-      project: document.getElementById('i-project').value || document.getElementById('i-project-select').value,
-      company: document.getElementById('i-company').value || document.getElementById('i-company-select').value,
+      project: getProj(),
+      company: getComp(),
       work: document.getElementById('i-work').value,
       plan: document.getElementById('i-plan').value,
       note: document.getElementById('i-note').value,
@@ -836,7 +826,38 @@
       reader.onload = e => {
         try {
           const d = JSON.parse(e.target.result);
-          // monthly 번들에 저장 (같은 날 재불러와도 덮어쓰기)
+
+          // 모바일 전송 포맷 처리
+          if (d._type === 'daily_logs_transfer') {
+            const flat = d.daily_logs || {};
+            let count = 0;
+            Object.entries(flat).forEach(([k, v]) => {
+              if (!v || typeof v !== 'object') return;
+              const hasP = k.includes('||');
+              const proj = hasP ? k.split('||')[0] : (v.project || '');
+              const date = hasP ? k.split('||')[1] : k;
+              if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+              saveDayLog(date, v, proj);
+              count++;
+            });
+            // 공사명·업체명 목록 병합
+            if (Array.isArray(d.projects)) {
+              const existing = JSON.parse(localStorage.getItem('projects') || '[]');
+              const merged = [...new Set([...existing, ...d.projects])];
+              localStorage.setItem('projects', JSON.stringify(merged));
+            }
+            if (Array.isArray(d.companies)) {
+              const existing = JSON.parse(localStorage.getItem('companies') || '[]');
+              const merged = [...new Set([...existing, ...d.companies])];
+              localStorage.setItem('companies', JSON.stringify(merged));
+            }
+            loadProjects(); loadCompanies();
+            if (fpInstance) fpInstance.redraw();
+            alert(`모바일 전송 데이터를 불러왔습니다. (${count}건)`);
+            return;
+          }
+
+          // 단일 일보 포맷 처리
           if (d.date) saveDayLog(d.date, d, d.project || '');
           loadFromData(d);
           if (d.locked) setPcLockMode(true, d.savedAt, d);
@@ -862,7 +883,10 @@
       const ts = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
       let html = `<div style="display:flex;justify-content:space-between;align-items:center;">
         <span>🔒 제출된 일보 (${ts})</span>
-        <button onclick="requestPcRewrite()" style="padding:2px 8px;background:#dc6a00;color:white;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;">🔄 재작성</button>
+        <div style="display:flex;gap:5px;">
+          <button onclick="pcNewEntry()" style="padding:2px 8px;background:#1a6496;color:white;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;">✏️ 새 일보</button>
+          <button onclick="requestPcRewrite()" style="padding:2px 8px;background:#dc6a00;color:white;border:none;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;">🔄 재작성</button>
+        </div>
       </div>
       <span style="font-weight:400;font-size:10px;">수정 불가 — 인쇄·내보내기만 가능</span>`;
       if (log?.revised) {
@@ -884,11 +908,24 @@
     });
   }
 
+  function pcNewEntry() {
+    setPcLockMode(false, null);
+    document.getElementById('i-work').value = '';
+    document.getElementById('i-plan').value = '';
+    document.getElementById('i-note').value = '';
+    document.getElementById('man-list').innerHTML = ''; addMan();
+    document.getElementById('eq-list').innerHTML = '';  addEq();
+    document.getElementById('mt-list').innerHTML = '';  addMt();
+    photoDataList = []; renderPhotos();
+    document.getElementById('preview-area').innerHTML = '';
+    document.getElementById('preview-area').style.display = 'none';
+  }
+
   function requestPcRewrite() {
     const reason = prompt('재작성 사유를 입력해주세요:\n(예: 인력 공수 오입력, 날짜 오류 등)');
     if (!reason || !reason.trim()) return;
     const date = document.getElementById('i-date').value;
-    const project = document.getElementById('i-project').value || document.getElementById('i-project-select').value;
+    const project = getProj();
     const existing = getDayLog(date, project);
     if (existing) {
       existing.revised = true;
@@ -904,23 +941,33 @@
   function loadFromData(d) {
     if (d.date) { document.getElementById('i-date').value = d.date; if(fpInstance) fpInstance.setDate(d.date); checkLogExists(d.date); }
     document.getElementById('i-project').value = d.project||'';
-    document.getElementById('i-project-select').value = d.project||'';
+    const _ps1 = document.getElementById('i-project-select');
+    if(d.project && !Array.from(_ps1.options).some(o=>o.value===d.project))
+      _ps1.insertAdjacentHTML('beforeend',`<option value="${d.project}">${d.project}</option>`);
+    _ps1.value = d.project||'';
     document.getElementById('i-company').value = d.company||'';
-    document.getElementById('i-company-select').value = d.company||'';
+    const _cs1 = document.getElementById('i-company-select');
+    if(d.company && !Array.from(_cs1.options).some(o=>o.value===d.company))
+      _cs1.insertAdjacentHTML('beforeend',`<option value="${d.company}">${d.company}</option>`);
+    _cs1.value = d.company||'';
     document.getElementById('i-weather').value = d.weather||'맑음 ☀️';
-    document.getElementById('i-temp').value = d.temp||'';
     document.getElementById('i-work').value = d.work||'';
     document.getElementById('i-plan').value = d.plan||'';
     document.getElementById('i-note').value = d.note||'';
     document.getElementById('note-counter').textContent = (d.note||'').length + '/80';
     document.getElementById('i-supervisor').value = d.supervisor||'';
-    document.getElementById('supervisor-select').value = d.supervisor||'';
+    const _supSel1 = document.getElementById('supervisor-select');
+    if(d.supervisor && !Array.from(_supSel1.options).some(o=>o.value===d.supervisor))
+      _supSel1.insertAdjacentHTML('beforeend',`<option value="${d.supervisor}">${d.supervisor}</option>`);
+    _supSel1.value = d.supervisor||'';
     const manList = document.getElementById('man-list');
     manList.innerHTML = '';
     (d.man?.length ? d.man : [{}]).forEach(m => {
       addMan();
       const row = manList.lastElementChild;
       const f = row.querySelectorAll('input, select.job-sel, select.gongsu-sel');
+      if(m.job && !Array.from(f[0].options).some(o=>o.value===m.job))
+        f[0].insertAdjacentHTML('beforeend',`<option value="${m.job}">${m.job}</option>`);
       f[0].value = m.job||''; f[1].value = m.name||''; f[2].value = m.gongsu||'';
       if(f[4]) f[4].value = m.note||'';
     });
@@ -947,6 +994,8 @@
       inp[0].value = m.item||''; inp[1].value = m.spec||''; inp[2].value = m.unit||'';
       inp[3].value = m.qty||''; inp[4].value = m.supplier||'';
     });
+    photoDataList = Array.isArray(d.photos) ? d.photos : [];
+    renderPhotos();
     generate();
   }
 
@@ -957,7 +1006,7 @@
     loadProjects(); loadCompanies(); loadJobs(); loadNames(); loadSupervisors(); loadEquipNames();
     if (fpInstance) { fpInstance.redraw(); }
     // 폼 초기화
-    ['i-project','i-temp','i-work','i-plan','i-note','i-supervisor'].forEach(id => document.getElementById(id).value = '');
+    ['i-project','i-work','i-plan','i-note','i-supervisor'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('i-project-select').value = '';
     document.getElementById('i-company').value = '';
     document.getElementById('i-company-select').value = '';
@@ -966,6 +1015,7 @@
     document.getElementById('man-list').innerHTML = '';  addMan();
     document.getElementById('eq-list').innerHTML = '';   addEq();
     document.getElementById('mt-list').innerHTML = '';   addMt();
+    photoDataList = []; renderPhotos();
     document.getElementById('preview-body').innerHTML = '<div class="placeholder">🌿<br>왼쪽에 정보를 입력하고<br><strong>일보 생성하기</strong>를 눌러주세요</div>';
     checkLogExists(document.getElementById('i-date').value);
   }
@@ -1006,7 +1056,7 @@
 
   // ===== 과거 일보 불러오기 =====
   function getLogKey(date) {
-    const proj = document.getElementById('i-project').value || document.getElementById('i-project-select').value;
+    const proj = getProj();
     return proj ? `${proj}||${date}` : date;
   }
 
@@ -1018,7 +1068,7 @@
     const day = date.slice(8, 10);
     const month = date.slice(0, 7);
     // raw 구조에서 해당 날짜 직접 검색 (공사명 무관)
-    const raw = JSON.parse(localStorage.getItem('daily_logs') || '{}');
+    const raw = getLogs();
     // 해당 날짜 모든 후보 수집 후 가장 완전한 데이터(savedAt 최신 or eq.amount 있는) 선택
     const candidates = [];
     for (const [mk, mv] of Object.entries(raw)) {
@@ -1038,12 +1088,17 @@
     if (!log) return;
 
     // 기본 필드
-    document.getElementById('i-project').value  = log.project  || '';
-    document.getElementById('i-project-select').value = log.project || '';
-    document.getElementById('i-company').value  = log.company  || '';
-    document.getElementById('i-company-select').value = log.company || '';
+    document.getElementById('i-project').value = log.project||'';
+    const _ps2 = document.getElementById('i-project-select');
+    if(log.project && !Array.from(_ps2.options).some(o=>o.value===log.project))
+      _ps2.insertAdjacentHTML('beforeend',`<option value="${log.project}">${log.project}</option>`);
+    _ps2.value = log.project||'';
+    document.getElementById('i-company').value = log.company||'';
+    const _cs2 = document.getElementById('i-company-select');
+    if(log.company && !Array.from(_cs2.options).some(o=>o.value===log.company))
+      _cs2.insertAdjacentHTML('beforeend',`<option value="${log.company}">${log.company}</option>`);
+    _cs2.value = log.company||'';
     document.getElementById('i-weather').value  = log.weather  || '맑음 ☀️';
-    document.getElementById('i-temp').value     = log.temp     || '';
     document.getElementById('i-work').value     = log.work     || '';
     document.getElementById('i-plan').value     = log.plan     || '';
     document.getElementById('i-note').value     = log.note     || '';
@@ -1104,6 +1159,14 @@
     document.getElementById('sm-folder-path').value = folder;
     await syncToFile();
     document.getElementById('sm-status').textContent = '✓ 저장 완료: ' + folder;
+  }
+
+  function openStorageFolder() {
+    if (_storageFolder && window.electronAPI?.openFolder) {
+      window.electronAPI.openFolder(_storageFolder);
+    } else {
+      alert('먼저 폴더를 선택해주세요.');
+    }
   }
 
   function setStorageMode(mode) {
@@ -1215,6 +1278,52 @@
     document.getElementById('mt-list').appendChild(d);
   }
 
+  // ===== 현장 사진 =====
+  function addPhotos(event) {
+    const files = [...event.target.files];
+    const remaining = 6 - photoDataList.length;
+    if (remaining <= 0) { alert('사진은 최대 6장까지 추가할 수 있습니다.'); event.target.value = ''; return; }
+    files.slice(0, remaining).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxW = 1280;
+          let w = img.width, h = img.height;
+          if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          photoDataList.push(canvas.toDataURL('image/jpeg', 0.72));
+          renderPhotos();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+    event.target.value = '';
+  }
+
+  function renderPhotos() {
+    const list = document.getElementById('photo-list');
+    if (!list) return;
+    list.innerHTML = '';
+    photoDataList.forEach((dataUrl, i) => {
+      const div = document.createElement('div');
+      div.style.cssText = 'position:relative;aspect-ratio:1;overflow:hidden;border-radius:6px;border:1px solid #ddd;';
+      div.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;">` +
+        `<button onclick="removePhoto(${i})" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;line-height:22px;padding:0;">✕</button>`;
+      list.appendChild(div);
+    });
+    const label = document.getElementById('photo-add-label');
+    if (label) label.style.display = photoDataList.length >= 6 ? 'none' : 'block';
+  }
+
+  function removePhoto(i) {
+    photoDataList.splice(i, 1);
+    renderPhotos();
+  }
+
   function calcEq(sel) {
     const row = sel.closest('.trow');
     const inputs = row.querySelectorAll('input');
@@ -1230,9 +1339,16 @@
 
   function td(val, cls='') { return `<td class="${cls}">${val||'&nbsp;'}</td>`; }
 
+  // ===== 헬퍼 =====
+  const getLogs = () => JSON.parse(localStorage.getItem('daily_logs') || '{}');
+  const setLogs = v  => localStorage.setItem('daily_logs', JSON.stringify(v));
+  const getProj = () => document.getElementById('i-project').value || document.getElementById('i-project-select').value;
+  const getComp = () => document.getElementById('i-company').value || document.getElementById('i-company-select').value;
+
   // ===== 월별 저장 구조 =====
   function _migrateToMonthly() {
-    const logs = JSON.parse(localStorage.getItem('daily_logs') || '{}');
+    if (localStorage.getItem('_migv') === '1') return;
+    const logs = getLogs();
     let changed = false;
     const migrated = {};
     Object.entries(logs).forEach(([k, v]) => {
@@ -1251,7 +1367,8 @@
         migrated[k] = v;
       }
     });
-    if (changed) localStorage.setItem('daily_logs', JSON.stringify(migrated));
+    if (changed) setLogs(migrated);
+    localStorage.setItem('_migv', '1');
   }
   _migrateToMonthly();
 
@@ -1262,23 +1379,23 @@
   function _dayKey(date) { return date.slice(8, 10); }
 
   function saveDayLog(date, data, proj) {
-    const logs = JSON.parse(localStorage.getItem('daily_logs') || '{}');
+    const logs = getLogs();
     const mk = _monthKey(date, proj), dk = _dayKey(date);
     if (!logs[mk]) logs[mk] = {};
     logs[mk][dk] = data;
-    localStorage.setItem('daily_logs', JSON.stringify(logs));
+    setLogs(logs);
     syncToFile();
   }
 
   function getDayLog(date, proj) {
-    const logs = JSON.parse(localStorage.getItem('daily_logs') || '{}');
+    const logs = getLogs();
     return logs[_monthKey(date, proj)]?.[_dayKey(date)] || null;
   }
 
   // ===== 누계 저장/조회 =====
   function getDailyLogs() {
     // 월별 구조를 flat 형태로 반환 (기존 코드 호환)
-    const logs = JSON.parse(localStorage.getItem('daily_logs') || '{}');
+    const logs = getLogs();
     const flat = {};
     Object.entries(logs).forEach(([k, v]) => {
       if (v && typeof v === 'object' && !v.date && !v.man) {
@@ -1295,31 +1412,40 @@
     });
     return flat;
   }
-  function calcManCumul(name, gongsu, currentDate) {
-    if (!name) return '';
+  function calcManCumul(name, gongsu, currentDate, project) {
+    if (!name || !currentDate) return '';
+    const month = currentDate.slice(0, 7);
+    const raw = getLogs();
+    const mk = project ? `${project}||${month}` : month;
+    const monthLogs = raw[mk] || {};
     let total = parseFloat(gongsu || 0);
-    Object.entries(getDailyLogs()).forEach(([d, log]) => {
-      if (d < currentDate && log.man)
-        log.man.forEach(m => { if (m.name === name) total += parseFloat(m.gongsu || 0); });
+    Object.entries(monthLogs).forEach(([day, log]) => {
+      const d = `${month}-${day.padStart(2, '0')}`;
+      if (d >= currentDate) return;
+      (log.man || []).forEach(m => { if (m.name === name) total += parseFloat(m.gongsu || 0); });
     });
-    return total;
+    return total || '';
   }
-  function calcEqCumul(name, today, currentDate) {
-    if (!name) return '';
+  function calcEqCumul(name, today, currentDate, project) {
+    if (!name || !currentDate) return '';
+    const month = currentDate.slice(0, 7);
+    const raw = getLogs();
+    const mk = project ? `${project}||${month}` : month;
+    const monthLogs = raw[mk] || {};
     let total = parseFloat(today || 0);
-    Object.entries(getDailyLogs()).forEach(([d, log]) => {
-      if (d < currentDate && log.eq)
-        log.eq.forEach(e => { if (e.name === name) total += parseFloat(e.today || 0); });
+    Object.entries(monthLogs).forEach(([day, log]) => {
+      const d = `${month}-${day.padStart(2, '0')}`;
+      if (d >= currentDate) return;
+      (log.eq || []).forEach(e => { if (e.name === name) total += parseFloat(e.today || 0); });
     });
-    return total;
+    return total || '';
   }
 
   function generate() {
-    const project    = document.getElementById('i-project').value || document.getElementById('i-project-select').value || '';
-    const company    = document.getElementById('i-company').value || document.getElementById('i-company-select').value || '';
+    const project    = getProj() || '';
+    const company    = getComp() || '';
     const date       = document.getElementById('i-date').value;
     const weather    = document.getElementById('i-weather').value;
-    const temp       = document.getElementById('i-temp').value;
     const work       = document.getElementById('i-work').value;
     const plan       = document.getElementById('i-plan').value;
     const note       = document.getElementById('i-note').value;
@@ -1344,39 +1470,40 @@
 
     // 누계 계산 + 입력 패널 업데이트
     manData.forEach(r => {
-      r.cumul = calcManCumul(r.name, r.gongsu, date);
+      r.cumul = calcManCumul(r.name, r.gongsu, date, project);
       if (r.nugyeEl) r.nugyeEl.value = r.cumul !== '' ? r.cumul : '';
     });
     eqData.forEach(r => {
-      r.cumul = calcEqCumul(r.name, r.today, date);
+      r.cumul = calcEqCumul(r.name, r.today, date, project);
       if (r.nugyeEl) r.nugyeEl.value = r.cumul !== '' ? r.cumul : '';
     });
 
     // 오늘 데이터 저장 (월별 번들)
     if (date) {
       saveDayLog(date, {
-        project, company, weather, temp, work, plan, note, supervisor,
+        project, company, weather, work, plan, note, supervisor,
         man: manData.map(r => ({ job: r.job, name: r.name, gongsu: r.gongsu, note: r.note })),
         eq:  eqData.map(r => ({ name: r.name, driver: r.driver, today: r.today, note: r.note })),
-        mt:  mtRows.map(r => ({ item: r[0], spec: r[1], unit: r[2], qty: r[3], supplier: r[4] }))
+        mt:  mtRows.map(r => ({ item: r[0], spec: r[1], unit: r[2], qty: r[3], supplier: r[4] })),
+        ...(photoDataList.length > 0 ? { photos: photoDataList } : {})
       }, project);
       checkLogExists(date);
       if (fpInstance) fpInstance.redraw();
     }
 
-    const EQ_ROWS = 9, MT_ROWS = 13, MAN_ROWS = 24;
+    const EQ_ROWS = 8, MT_ROWS = 12, MAN_ROWS = 22;
     const fmtN = v => { const n = parseFloat(String(v).replace(/,/g,'')); return (v!==''&&v!=null&&!isNaN(n)) ? n.toLocaleString('ko-KR') : (v||''); };
     const E = `<td>&nbsp;</td>`;
-    const EB = `<td style="border-right:1px solid #222;">&nbsp;</td>`;
-    const tdB = (v,c='') => `<td class="${c}" style="border-right:1px solid #222;">${v||'&nbsp;'}</td>`;
+    const EB = `<td style="border-right:0.5px solid #aaa;">&nbsp;</td>`;
+    const tdB = (v,c='') => `<td class="${c}" style="border-right:0.5px solid #aaa;">${v||'&nbsp;'}</td>`;
     const manR = i => { const r = manData[i]; return r ? `${td(r.job)}${td(r.name)}${td(r.gongsu)}${td(r.cumul)}${tdB(r.note,'left')}` : E+E+E+E+EB; };
     const eqR  = i => { const r = eqData[i];  return r ? `${td(r.name)}${td(r.driver)}${td(r.today)}${td(r.cumul)}${td((r.amount ? fmtN(r.amount)+'원' : r.note)||'')}` : E+E+E+E+E; };
     const mtR  = i => { const r = mtRows[i];   return r ? `${td(r[0])}${td(r[1])}${td(r[2])}${td(fmtN(r[3]))}${td(r[4])}` : E+E+E+E+E; };
 
     let combinedRows = '';
     // 헤더행
-    combinedRows += `<tr><td colspan="5" class="th-group" style="border-right:1px solid #222;">인 력 투 입 현 황</td><td colspan="5" class="th-group">장 비 투 입 현 황</td></tr>`;
-    combinedRows += `<tr><td class="th-sub">직종</td><td class="th-sub">성명</td><td class="th-sub">공수</td><td class="th-sub">누계</td><td class="th-sub" style="border-right:1px solid #222;">비고</td><td class="th-sub">장비명</td><td class="th-sub">기사명</td><td class="th-sub">시간</td><td class="th-sub">누계</td><td class="th-sub">비고/금액</td></tr>`;
+    combinedRows += `<tr><td colspan="5" class="th-group" style="border-right:0.5px solid #aaa;">인 력 투 입 현 황</td><td colspan="5" class="th-group">장 비 투 입 현 황</td></tr>`;
+    combinedRows += `<tr><td class="th-sub">직종</td><td class="th-sub">성명</td><td class="th-sub">공수</td><td class="th-sub">누계</td><td class="th-sub" style="border-right:0.5px solid #aaa;">비고</td><td class="th-sub">장비명</td><td class="th-sub">기사명</td><td class="th-sub">시간</td><td class="th-sub">누계</td><td class="th-sub">비고/금액</td></tr>`;
     // 인력 0~8 | 장비 0~8 (9행)
     for (let i = 0; i < EQ_ROWS; i++) combinedRows += `<tr>${manR(i)}${eqR(i)}</tr>`;
     // 인력 9 | 자재 헤더
@@ -1391,6 +1518,23 @@
       const days = ['일','월','화','수','목','금','토'];
       return `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 (${days[dt.getDay()]})`;
     })() : '202   년   월   일';
+
+    const eqOverflow = eqData.length > 9;
+    const mtOverflow = mtRows.length > 13;
+
+    // 사진 HTML — 마지막 페이지 끝에 삽입
+    let photoHtml = '';
+    if (photoDataList.length > 0) {
+      const _pg = photoDataList.map(src =>
+        `<td style="padding:4px;"><img src="${src}" style="width:100%;max-width:180px;aspect-ratio:1;object-fit:cover;border:0.5px solid #ccc;display:block;"></td>`
+      );
+      const _pr = [];
+      for (let i = 0; i < _pg.length; i += 3) _pr.push(`<tr>${_pg.slice(i,i+3).join('')}</tr>`);
+      photoHtml = `<div style="margin-top:10px;"><table style="width:100%;border-collapse:collapse;border:1px solid #222;">
+        <thead><tr><th colspan="3" style="background:#ddd;padding:5px 8px;font-size:12px;font-weight:700;text-align:center;border-bottom:1px solid #222;">현 장 사 진</th></tr></thead>
+        <tbody>${_pr.join('')}</tbody>
+      </table></div>`;
+    }
 
     let previewHtml = `
     <div class="doc-wrap">
@@ -1412,7 +1556,7 @@
       <div style="font-size:13px; margin-bottom:3px;"><strong>시 공 사 :</strong> ${company}</div>
       <div style="font-size:13px; margin-bottom:3px; display:flex; justify-content:space-between;">
         <span><strong>공 사 명 :</strong> ${project}</span>
-        <span><strong>날 씨 :</strong> ${weather}&nbsp;&nbsp;<strong>기 온 :</strong> ${temp||'-'}</span>
+        <span><strong>날 씨 :</strong> ${weather}</span>
       </div>
       <div style="font-size:13px; margin-bottom:5px;">
         <span><strong>작 성 일 :</strong> ${dateStr}</span>
@@ -1430,12 +1574,12 @@
       <table class="doc-main" style="width:100%; table-layout:fixed; border-top:1px solid #222;">
         <colgroup><col style="width:50%"><col style="width:50%"></colgroup>
         <tr>
-          <td class="th-group" style="letter-spacing:3px; border-right:1px solid #222;">작 업 내 용</td>
+          <td class="th-group" style="letter-spacing:3px; border-right:0.5px solid #aaa;">작 업 내 용</td>
           <td class="th-group" style="letter-spacing:3px;">작 업 계 획</td>
         </tr>
         <tr>
-          <td style="height:38mm; vertical-align:top; text-align:left; padding:6px; white-space:pre-line; border-top:none; border-right:1px solid #222;">${work||''}</td>
-          <td style="height:38mm; vertical-align:top; text-align:left; padding:6px; white-space:pre-line; border-top:none;">${plan||''}</td>
+          <td style="height:52mm; vertical-align:top; text-align:left; padding:6px; white-space:pre-line; border-top:none; border-right:0.5px solid #aaa;">${work||''}</td>
+          <td style="height:52mm; vertical-align:top; text-align:left; padding:6px; white-space:pre-line; border-top:none;">${plan||''}</td>
         </tr>
       </table>
       <!-- 비고/현장대리인 -->
@@ -1450,12 +1594,10 @@
           </td>
         </tr>
       </table>
-      <div style="text-align:right; font-size:11px; font-weight:700; margin-top:2px;">${company}</div>
+      ${!eqOverflow && !mtOverflow ? photoHtml : ''}
     </div>`;
 
     // ===== 2페이지: 장비/자재 초과 데이터 =====
-    const eqOverflow = eqData.length > 9;
-    const mtOverflow = mtRows.length > 13;
     if (eqOverflow || mtOverflow) {
       let p2 = `<div class="page-break doc-wrap">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -1490,7 +1632,7 @@
           <tbody>${rows}</tbody>
         </table>`;
       }
-      p2 += `</div>`;
+      p2 += photoHtml + `</div>`;
       previewHtml += p2;
     }
 
@@ -1554,7 +1696,7 @@
     const d = new Date(dateEl.value);
     d.setDate(d.getDate() - 1);
     const prevDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const project = document.getElementById('i-project').value || document.getElementById('i-project-select').value;
+    const project = getProj();
     const logs = getDailyLogs();
     const log = logs[project ? `${project}||${prevDate}` : prevDate] || logs[prevDate];
     if (!log) { alert(`${prevDate} 저장된 일보가 없습니다.\n전날 일보 생성하기를 먼저 눌러야 복사할 수 있습니다.`); return; }
